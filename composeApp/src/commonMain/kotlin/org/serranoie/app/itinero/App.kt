@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,14 +16,17 @@ import androidx.compose.ui.Modifier
 import itinero.composeapp.generated.resources.Res
 import itinero.composeapp.generated.resources.compose_multiplatform
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.serranoie.app.itinero.ui.component.ItineroButton
+import org.serranoie.feature.itinero.onboard.OnboardScreen
 
 @Composable
-@Preview
 fun App() {
     ItineroTheme {
-        var showContent by remember { mutableStateOf(false) }
+        OnboardScreen(onNavigate = {})
+
+        // ! Basic greeting component
+        /*var showContent by remember { mutableStateOf(false) }
+
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             ItineroButton(onClick = { showContent = !showContent }) {
                 Text("Click me!")
@@ -39,6 +41,6 @@ fun App() {
                     Text("Compose: $greeting")
                 }
             }
-        }
+        }*/
     }
 }
