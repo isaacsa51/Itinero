@@ -43,6 +43,14 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
+            implementation(libs.androidx.material3.android)
+            implementation(compose.preview)
+        }
+        iosMain.dependencies {
+            implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
         }
     }
 }
@@ -75,6 +83,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.ui.tooling.preview.android)
     debugImplementation(compose.uiTooling)
 }
 
