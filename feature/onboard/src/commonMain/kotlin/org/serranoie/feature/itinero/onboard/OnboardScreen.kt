@@ -22,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.serranoie.app.itinero.ui.component.ItineroButton
 import org.serranoie.app.itinero.ui.component.ItineroTextButton
 import org.serranoie.app.itinero.ui.component.PagerIndicator
@@ -75,7 +74,7 @@ fun OnboardScreen(
                 val scope = rememberCoroutineScope()
 
                 if (buttonState.value[0].isNotEmpty()) {
-                    ItineroButton(
+                    ItineroTextButton(
                         text = { Text(text = buttonState.value[0]) },
                         onClick = {
                             scope.launch {
@@ -88,7 +87,7 @@ fun OnboardScreen(
                 ItineroButton(
                     text = { Text(buttonState.value[1]) },
                     onClick = {
-                        if(pagerState.currentPage == 2) {
+                        if (pagerState.currentPage == 2) {
                             onNavigate()
                         } else {
                             scope.launch {
@@ -113,18 +112,10 @@ private fun TopSection(onNavigate: () -> Unit) {
             .padding(12.dp)
     ) {
         ItineroTextButton(
-            onClick = { onNavigate () },
+            onClick = { onNavigate() },
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             Text(text = "Skip", color = MaterialTheme.colorScheme.onBackground)
         }
-    }
-}
-
-@Preview
-@Composable
-private fun OnboardScreenPreview() {
-    ItineroTheme {
-            OnboardScreen(onNavigate = {})
     }
 }

@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun OnboardItem(
@@ -36,15 +35,4 @@ fun OnboardItem(
         )
     }
 
-}
-
-@Preview
-@Composable
-fun OnboardItemPreview() {
-    OnboardItem(
-        page = Page(
-            title = "Welcome to Itinero",
-            description = "Itinero is a travel app that helps you plan your next adventure."
-        )
-    )
 }

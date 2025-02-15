@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.serranoie.app.itinero.ui.theme.ItineroTheme
 
 
@@ -185,7 +184,7 @@ private fun ItineroButtonContent(
     }
 }
 
-@Preview
+/*@Preview
 @Composable
 fun TravelerButtonPreview() {
     ItineroTheme {
@@ -235,7 +234,7 @@ fun TravelerLeadingIconPreview() {
             },
         )
     }
-}
+}*/
 
 object ItineroButtonDefaults {
     // TODO: File bug
