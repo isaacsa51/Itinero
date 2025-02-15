@@ -24,8 +24,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.serranoie.app.itinero.ui.component.ItineroButton
 import org.serranoie.app.itinero.ui.component.ItineroTextButton
-import org.serranoie.app.itinero.ui.component.PagerIndicator
-import org.serranoie.app.itinero.ui.theme.ItineroTheme
+import org.serranoie.core.itinero.designsystem.ui.component.PagerIndicator
 
 
 @Composable
@@ -50,17 +49,14 @@ fun OnboardScreen(
 
         TopSection(onNavigate = onNavigate)
 
-        HorizontalPager(state = pagerState) { index ->
+        HorizontalPager(modifier = Modifier.weight(1f), state = pagerState) { index ->
             OnboardItem(page = pages[index])
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 36.dp)
-                .navigationBarsPadding(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).navigationBarsPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -74,17 +70,14 @@ fun OnboardScreen(
                 val scope = rememberCoroutineScope()
 
                 if (buttonState.value[0].isNotEmpty()) {
-                    ItineroTextButton(
-                        text = { Text(text = buttonState.value[0]) },
-                        onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                            }
+                    ItineroTextButton(text = { Text(text = buttonState.value[0]) }, onClick = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
                         }
-                    )
+                    })
                 }
 
-                ItineroButton(
+                ItineroButton(modifier = Modifier.padding(start = 8.dp),
                     text = { Text(buttonState.value[1]) },
                     onClick = {
                         if (pagerState.currentPage == 2) {
@@ -95,8 +88,7 @@ fun OnboardScreen(
                             }
                         }
 
-                    }
-                )
+                    })
             }
         }
 
@@ -107,13 +99,10 @@ fun OnboardScreen(
 @Composable
 private fun TopSection(onNavigate: () -> Unit) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp)
+        modifier = Modifier.fillMaxWidth().padding(12.dp)
     ) {
         ItineroTextButton(
-            onClick = { onNavigate() },
-            modifier = Modifier.align(Alignment.CenterEnd)
+            onClick = { onNavigate() }, modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             Text(text = "Skip", color = MaterialTheme.colorScheme.onBackground)
         }

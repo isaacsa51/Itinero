@@ -1,4 +1,4 @@
-package org.serranoie.app.itinero.ui.component
+package org.serranoie.core.itinero.designsystem.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
