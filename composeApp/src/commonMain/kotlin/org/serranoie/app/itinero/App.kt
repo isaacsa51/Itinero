@@ -9,7 +9,7 @@ import org.serranoie.feature.itinero.onboard.OnboardScreen
 fun App() {
     ItineroTheme {
         Surface {
-            OnboardScreen(onNavigate = { })
+            OnboardScreen(onNavigateAuth = { })
         }
     }
 }

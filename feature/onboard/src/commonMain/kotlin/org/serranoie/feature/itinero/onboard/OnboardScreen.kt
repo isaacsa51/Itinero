@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardScreen(
-    onNavigate: () -> Unit,
+    onNavigateAuth: () -> Unit,
 ) {
     val pagerState = rememberPagerState(initialPage = 0) {
         pages.size
@@ -50,7 +50,7 @@ fun OnboardScreen(
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
                     }
                 } else {
-                    onNavigate()
+                    onNavigateAuth()
                 }
             }
 

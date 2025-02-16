@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -32,9 +31,9 @@ kotlin {
         
         androidMain.dependencies {
             implementation(compose.preview)
+            implementation(compose.uiTooling)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.ui.tooling.preview.android)
-            implementation(compose.uiTooling)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.material3.android)
@@ -48,7 +47,9 @@ kotlin {
             implementation(compose.materialIconsExtended)
 
             implementation(project(":feature:onboard"))
+            implementation(project(":feature:auth"))
             implementation(project(":core:designsystem"))
+            implementation(project(":core:navigation"))
         }
 //        iosMain.dependencies {
 //            implementation(compose.material3)
@@ -83,7 +84,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
-
 //dependencies {
 //    implementation(libs.androidx.ui.tooling.preview.android)
 //    debugImplementation(compose.uiTooling)

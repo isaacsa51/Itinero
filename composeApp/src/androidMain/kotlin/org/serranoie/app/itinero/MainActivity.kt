@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import org.serranoie.app.itinero.navigation.AppContent
 import org.serranoie.core.itinero.designsystem.ui.theme.ItineroTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +17,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ItineroTheme {
                 Surface {
-                    App()
+                   AppContent()
                 }
             }
         }
