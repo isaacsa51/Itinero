@@ -72,7 +72,7 @@ fun OnboardItem(
 
             Text(
                 text = page.description,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.outline
             )
 
