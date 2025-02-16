@@ -1,28 +1,15 @@
 package org.serranoie.app.itinero
 
-import org.serranoie.app.itinero.ui.theme.ItineroTheme
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Text
+import org.serranoie.core.itinero.designsystem.ui.theme.ItineroTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import itinero.composeapp.generated.resources.Res
-import itinero.composeapp.generated.resources.compose_multiplatform
-import org.jetbrains.compose.resources.painterResource
-import org.serranoie.app.itinero.ui.component.ItineroButton
-import org.serranoie.feature.itinero.onboard.OnboardScreen
+import org.serranoie.feature.itinero.onboard.JourneyContent
 
 @Composable
 fun App() {
     ItineroTheme {
-        OnboardScreen(onNavigate = {})
+//        OnboardScreen(onNavigate = {})
+
+        JourneyContent()
 
         // ! Basic greeting component
         /*var showContent by remember { mutableStateOf(false) }
