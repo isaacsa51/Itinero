@@ -1,4 +1,4 @@
-package org.serranoie.app.itinero.ui.theme
+package org.serranoie.core.itinero.designsystem.ui.theme
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf

@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import org.serranoie.app.itinero.ui.theme.LocalBackgroundTheme
+import org.serranoie.core.itinero.designsystem.ui.theme.LocalBackgroundTheme
 
 @Composable
 fun TCBackground(
