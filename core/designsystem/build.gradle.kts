@@ -41,6 +41,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
         }
 //        iosMain.dependencies {
 //            implementation(compose.material3)
