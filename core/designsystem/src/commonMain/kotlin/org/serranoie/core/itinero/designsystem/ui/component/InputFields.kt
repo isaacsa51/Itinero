@@ -2,6 +2,7 @@ package org.serranoie.core.itinero.designsystem.ui.component
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,29 +33,30 @@ private val AppTextInputColors: TextFieldColors
     @Composable
     get() = OutlinedTextFieldDefaults.colors(
         focusedContainerColor = MaterialTheme.colorScheme.background,
-        unfocusedContainerColor = MaterialTheme.colorScheme.background,
-        cursorColor = MaterialTheme.colorScheme.onBackground,
-        focusedLabelColor = MaterialTheme.colorScheme.onBackground,
-        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedLabelColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedLabelColor = MaterialTheme.colorScheme.outline,
         focusedBorderColor = MaterialTheme.colorScheme.primary,
-        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-        focusedLeadingIconColor = MaterialTheme.colorScheme.onBackground,
-        unfocusedLeadingIconColor = MaterialTheme.colorScheme.onBackground,
-        focusedTrailingIconColor = MaterialTheme.colorScheme.onBackground,
-        unfocusedTrailingIconColor = MaterialTheme.colorScheme.onBackground,
-        errorBorderColor = MaterialTheme.colorScheme.onBackground,
-        errorTextColor = MaterialTheme.colorScheme.onBackground,
-        errorLeadingIconColor = MaterialTheme.colorScheme.onBackground,
-        errorTrailingIconColor = MaterialTheme.colorScheme.onBackground,
-        errorLabelColor = MaterialTheme.colorScheme.onBackground,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedLeadingIconColor = MaterialTheme.colorScheme.outline,
+        focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTrailingIconColor = MaterialTheme.colorScheme.outline,
+        errorBorderColor = MaterialTheme.colorScheme.error,
+        errorTextColor = MaterialTheme.colorScheme.error,
+        errorLeadingIconColor = MaterialTheme.colorScheme.error,
+        errorTrailingIconColor = MaterialTheme.colorScheme.error,
+        errorLabelColor = MaterialTheme.colorScheme.error,
         errorSupportingTextColor = MaterialTheme.colorScheme.error,
-        focusedSupportingTextColor = MaterialTheme.colorScheme.onBackground,
-        unfocusedSupportingTextColor = MaterialTheme.colorScheme.onBackground
+        focusedSupportingTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedSupportingTextColor = MaterialTheme.colorScheme.onSurface
     )
 
 @Composable
 fun TextInput(
     modifier: Modifier = Modifier,
+    label: @Composable () -> Unit,
     value: String,
     onValueChange: (String) -> Unit,
     leadingIcon: ImageVector? = null,
@@ -63,9 +66,11 @@ fun TextInput(
     errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    shape: Shape = RoundedCornerShape(8.dp)
 ) {
     OutlinedTextField(
         modifier = modifier,
+        label = label,
         colors = AppTextInputColors,
         value = value,
         onValueChange = onValueChange,
@@ -88,6 +93,7 @@ fun TextInput(
         isError = isError,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
+        shape = shape
     )
 
     if (isError && errorMessage != null) {
@@ -103,17 +109,20 @@ fun TextInput(
 @Composable
 fun PasswordInput(
     modifier: Modifier = Modifier,
+    label: @Composable () -> Unit,
     value: String,
     onValueChange: (String) -> Unit,
     isError: Boolean = false,
     errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    shape: Shape = RoundedCornerShape(8.dp)
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
         modifier = modifier,
+        label = label,
         value = value,
         onValueChange = onValueChange,
         colors = AppTextInputColors,
@@ -136,7 +145,8 @@ fun PasswordInput(
                     contentDescription = if (passwordVisible) "Hide password" else "Show password"
                 )
             }
-        }
+        },
+        shape = shape
     )
 
     if (isError && errorMessage != null) {

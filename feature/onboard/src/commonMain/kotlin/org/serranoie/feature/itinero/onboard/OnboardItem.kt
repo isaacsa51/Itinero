@@ -84,9 +84,7 @@ fun OnboardItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (onBack != null && backLabel != null) {
-                    ItineroTextButton(onClick = onBack) {
-                        Text(text = backLabel)
-                    }
+                    ItineroTextButton(onClick = onBack, text = { backLabel })
                 }
 
                 CircleButton(

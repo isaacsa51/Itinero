@@ -1,13 +1,19 @@
 package org.serranoie.app.itinero.ui.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonDefaults.textButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
@@ -17,19 +23,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
-
 @Composable
 fun ItineroButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-    shape: Shape = RoundedCornerShape(size = 6.dp),
+    shape: Shape = RoundedCornerShape(size = 8.dp),
     content: @Composable RowScope.() -> Unit,
-) {
+
+    ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier
+            .height(48.dp),
         enabled = enabled,
         contentPadding = contentPadding,
         shape = shape,
@@ -44,7 +51,7 @@ fun ItineroButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(size = 6.dp),
+    shape: Shape = RoundedCornerShape(size = 8.dp),
 ) {
     ItineroButton(
         onClick = onClick,
@@ -69,27 +76,34 @@ fun ItineroOutlineButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: Shape = RoundedCornerShape(size = 6.dp),
+    shape: Shape = RoundedCornerShape(size = 8.dp),
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val itineroTextButtonColors = textButtonColors(
+        contentColor = MaterialTheme.colorScheme.onBackground,
+        disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+    )
+
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier
+            .height(48.dp),
         enabled = enabled,
-        /*border = BorderStroke(
-            width = TravelerButtonDefaults.OutlinedButtonBorderWidth,
+        border = BorderStroke(
+            width = ItineroButtonDefaults.OutlinedButtonBorderWidth,
             color = if (enabled) {
-                MaterialTheme.colorScheme.outline
+                MaterialTheme.colorScheme.outlineVariant
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = TravelerButtonDefaults.DISABLED_OUTLINED_BUTTON_BORDER_ALPHA,
+                    alpha = ItineroButtonDefaults.DISABLED_OUTLINED_BUTTON_BORDER_ALPHA,
                 )
             },
-        ),*/
+        ),
         contentPadding = contentPadding,
         content = content,
         shape = shape,
+        colors = itineroTextButtonColors
     )
 }
 
@@ -100,7 +114,7 @@ fun ItineroOutlineButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(size = 6.dp),
+    shape: Shape = RoundedCornerShape(size = 8.dp),
 ) {
     ItineroOutlineButton(
         onClick = onClick,
@@ -125,28 +139,20 @@ fun ItineroTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    content: @Composable RowScope.() -> Unit,
+    text: @Composable () -> Unit,
+    leadingIcon: @Composable (() -> Unit)? = null,
 ) {
+    val itineroTextButtonColors = textButtonColors(
+        contentColor = MaterialTheme.colorScheme.primary,
+        disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+    )
+
     TextButton(
         onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        content = content,
-    )
-}
-
-@Composable
-fun ItineroTextButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    text: @Composable () -> Unit,
-    leadingIcon: @Composable (() -> Unit)? = null,
-) {
-    ItineroTextButton(
-        onClick = onClick,
-        modifier = modifier,
-        enabled = enabled,
+        colors = itineroTextButtonColors,
+        shape = RoundedCornerShape(size = 8.dp),
     ) {
         ItineroButtonContent(
             text = text,
@@ -154,7 +160,6 @@ fun ItineroTextButton(
         )
     }
 }
-
 @Composable
 private fun ItineroButtonContent(
     text: @Composable () -> Unit,
