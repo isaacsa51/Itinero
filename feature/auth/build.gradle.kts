@@ -26,6 +26,12 @@ kotlin {
     }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(compose.preview)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.ui.tooling.preview.android)
+            implementation(compose.uiTooling)
+        }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -33,8 +39,10 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
+//            implementation("org.jetbrains.compose.ui:ui-backhandler")
 
             implementation(project(":core:designsystem"))
+            implementation(project(":core:navigation"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

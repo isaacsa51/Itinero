@@ -1,17 +1,14 @@
-package org.serranoie.feature.itinero.auth
+package org.serranoie.feature.itinero.auth.register
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.rounded.Facebook
 import androidx.compose.material.icons.rounded.LogoDev
 import androidx.compose.material3.HorizontalDivider
@@ -25,12 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import itinero.feature.auth.generated.resources.Res
-import itinero.feature.auth.generated.resources.auth_label_image
-import org.jetbrains.compose.resources.painterResource
 import org.serranoie.app.itinero.ui.component.ItineroButton
 import org.serranoie.app.itinero.ui.component.ItineroOutlineButton
 import org.serranoie.app.itinero.ui.component.ItineroTextButton
@@ -38,16 +31,17 @@ import org.serranoie.core.itinero.designsystem.ui.component.PasswordInput
 import org.serranoie.core.itinero.designsystem.ui.component.TextInput
 
 @Composable
-fun AuthScreen(
-    onNavigateToRegister: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit,
-    //onFacebookLoginClick: () -> Unit,
-    //onGoogleLoginClick: () -> Unit,
-    onFinish: () -> Unit
+fun RegisterScreen(
+    onNavigateBack: () -> Unit,
+    onRegisterSuccess: () -> Unit
 ) {
 
-    var username by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
@@ -55,34 +49,48 @@ fun AuthScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        Image(
-            painter = painterResource(Res.drawable.auth_label_image),
-            contentDescription = "App Logo",
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.4f),
-            contentScale = ContentScale.Fit
-        )
-
-        Spacer(Modifier.height(8.dp))
-
         Text(
-            text = "Log in to your account",
+            text = "Sign up",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
         )
 
-        Spacer(Modifier.height(8.dp))
-
-        TextInput(
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth(),
-            value = username,
-            onValueChange = { username = it },
-            leadingIcon = Icons.Outlined.Person,
+        Text(
+            text = "Create an account to get started using Itinero",
+            style = MaterialTheme.typography.titleSmall
         )
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
 
+        // Information forms
+
+        TextInput(
+            label = { Text("Name(s)") },
+            modifier = Modifier.fillMaxWidth(),
+            value = name,
+            onValueChange = { name = it },
+        )
+        Spacer(Modifier.height(4.dp))
+        TextInput(
+            label = { Text("Last name") },
+            modifier = Modifier.fillMaxWidth(),
+            value = lastName,
+            onValueChange = { lastName = it },
+        )
+        Spacer(Modifier.height(4.dp))
+        TextInput(
+            label = { Text("Phone number") },
+            modifier = Modifier.fillMaxWidth(),
+            value = phoneNumber,
+            onValueChange = { phoneNumber = it },
+        )
+        Spacer(Modifier.height(4.dp))
+        TextInput(
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth(),
+            value = email,
+            onValueChange = { email = it },
+        )
+        Spacer(Modifier.height(4.dp))
         PasswordInput(
             label = { Text("Password") },
             modifier = Modifier.fillMaxWidth(),
@@ -92,12 +100,22 @@ fun AuthScreen(
             errorMessage = "Password is too short",
             leadingIcon = true
         )
+        Spacer(Modifier.height(4.dp))
+        PasswordInput(
+            label = { Text("Confirm password") },
+            modifier = Modifier.fillMaxWidth(),
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            isError = false,
+            errorMessage = "Password don't match",
+            leadingIcon = true
+        )
 
         Spacer(Modifier.height(16.dp))
 
-        ItineroButton(text = { Text("Log in") },
+        ItineroButton(text = { Text("Register") },
             modifier = Modifier.fillMaxWidth(),
-            onClick = onFinish )
+            onClick = { })
 
         Spacer(Modifier.height(16.dp))
 
@@ -120,12 +138,12 @@ fun AuthScreen(
         Row(
             modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Don't have an account? ", style = MaterialTheme.typography.bodyMedium)
+            Text("Already have an account?", style = MaterialTheme.typography.bodyMedium)
             ItineroTextButton(text = {
                 Text(
-                    "Sign up", style = MaterialTheme.typography.bodyMedium
+                    "Log in here", style = MaterialTheme.typography.bodyMedium
                 )
-            }, onClick = onNavigateToRegister)
+            }, onClick = { })
         }
     }
 }

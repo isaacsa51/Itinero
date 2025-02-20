@@ -114,6 +114,7 @@ fun PasswordInput(
     onValueChange: (String) -> Unit,
     isError: Boolean = false,
     errorMessage: String? = null,
+    leadingIcon: Boolean,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: Shape = RoundedCornerShape(8.dp)
@@ -131,11 +132,13 @@ fun PasswordInput(
         keyboardActions = keyboardActions,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         leadingIcon = {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                imageVector = Icons.Outlined.Lock,
-                contentDescription = "Password lock icon"
-            )
+            if (leadingIcon) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = Icons.Outlined.Lock,
+                    contentDescription = "Password leading icon"
+                )
+            }
         },
         trailingIcon = {
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
