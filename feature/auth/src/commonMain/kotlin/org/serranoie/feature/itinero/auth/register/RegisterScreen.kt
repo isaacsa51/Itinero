@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.rounded.Facebook
@@ -35,8 +37,7 @@ import org.serranoie.core.itinero.designsystem.ui.component.TextInput
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RegisterScreen(
-    onNavigateBack: () -> Unit,
-    onRegisterSuccess: () -> Unit
+    onNavigateBack: () -> Unit, onRegisterSuccess: () -> Unit
 ) {
 
     BackHandler(enabled = true) {
@@ -52,6 +53,7 @@ fun RegisterScreen(
 
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
 
         Spacer(Modifier.height(8.dp))
