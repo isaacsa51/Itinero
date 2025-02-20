@@ -39,7 +39,8 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
-//            implementation("org.jetbrains.compose.ui:ui-backhandler")
+            implementation(compose.preview)
+            implementation("org.jetbrains.compose.ui:ui-backhandler")
 
             implementation(project(":core:designsystem"))
             implementation(project(":core:navigation"))

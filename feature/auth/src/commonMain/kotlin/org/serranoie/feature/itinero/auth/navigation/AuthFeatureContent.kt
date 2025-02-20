@@ -21,9 +21,12 @@ fun AuthFeatureContent(
 
     when (currentAuthScreen) {
 
-        AuthFlowScreen.ForgotPassword -> ForgotPasswordScreen(onNavigateBack = {
-            currentAuthScreen = AuthFlowScreen.Login
-        })
+        AuthFlowScreen.ForgotPassword -> ForgotPasswordScreen(
+            onNavigateBack = {
+                currentAuthScreen = AuthFlowScreen.Login
+            },
+            onFinish = { AuthFlowScreen.Login }
+        )
 
         AuthFlowScreen.Login -> {
             AuthScreen(
@@ -39,9 +42,10 @@ fun AuthFeatureContent(
             onNavigateBack = { currentAuthScreen = AuthFlowScreen.Login },
             onRegisterSuccess = { currentAuthScreen = AuthFlowScreen.RegisterSuccess })
 
-        AuthFlowScreen.RegisterSuccess -> RegisterSuccessScreen(onNavigateToLogin = {
-            currentAuthScreen = AuthFlowScreen.Login
-        })
+        AuthFlowScreen.RegisterSuccess -> RegisterSuccessScreen(
+            onNavigateToLogin = { currentAuthScreen = AuthFlowScreen.Login },
+            onNavigateBack = { currentAuthScreen = AuthFlowScreen.Login }
+        )
     }
 
 

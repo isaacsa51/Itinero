@@ -21,7 +21,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.serranoie.app.itinero.ui.component.ItineroButton
@@ -30,11 +32,16 @@ import org.serranoie.app.itinero.ui.component.ItineroTextButton
 import org.serranoie.core.itinero.designsystem.ui.component.PasswordInput
 import org.serranoie.core.itinero.designsystem.ui.component.TextInput
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
+
+    BackHandler(enabled = true) {
+        onNavigateBack()
+    }
 
     var name by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -51,18 +58,17 @@ fun RegisterScreen(
 
         Text(
             text = "Sign up",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
         )
 
         Text(
             text = "Create an account to get started using Itinero",
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleMedium
         )
 
         Spacer(Modifier.height(8.dp))
 
         // Information forms
-
         TextInput(
             label = { Text("Name(s)") },
             modifier = Modifier.fillMaxWidth(),
@@ -115,7 +121,7 @@ fun RegisterScreen(
 
         ItineroButton(text = { Text("Register") },
             modifier = Modifier.fillMaxWidth(),
-            onClick = { })
+            onClick = { onRegisterSuccess() })
 
         Spacer(Modifier.height(16.dp))
 
@@ -143,7 +149,7 @@ fun RegisterScreen(
                 Text(
                     "Log in here", style = MaterialTheme.typography.bodyMedium
                 )
-            }, onClick = { })
+            }, onClick = { onNavigateBack() })
         }
     }
 }

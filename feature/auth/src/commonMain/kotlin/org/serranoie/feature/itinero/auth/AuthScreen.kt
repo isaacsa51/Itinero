@@ -24,7 +24,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,6 +39,7 @@ import org.serranoie.app.itinero.ui.component.ItineroTextButton
 import org.serranoie.core.itinero.designsystem.ui.component.PasswordInput
 import org.serranoie.core.itinero.designsystem.ui.component.TextInput
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AuthScreen(
     onNavigateToRegister: () -> Unit,
@@ -68,7 +71,7 @@ fun AuthScreen(
 
         Text(
             text = "Log in to your account",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
         )
 
         Spacer(Modifier.height(8.dp))
@@ -92,6 +95,17 @@ fun AuthScreen(
             errorMessage = "Password is too short",
             leadingIcon = true
         )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Forgot your password? ", style = MaterialTheme.typography.bodyMedium)
+            ItineroTextButton(text = {
+                Text(
+                    "Restore here", style = MaterialTheme.typography.bodyMedium
+                )
+            }, onClick = onNavigateToForgotPassword)
+        }
 
         Spacer(Modifier.height(16.dp))
 
