@@ -21,8 +21,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "Itinero"
 include(":app")
-include(":core:data")
 include(":designsystem")
+include(":core:data")
+include(":core:domain")
 include(":di")
 include(":feature:onboard")
-include(":core:domain")

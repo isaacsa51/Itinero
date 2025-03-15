@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             ItineroTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "Design System",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
