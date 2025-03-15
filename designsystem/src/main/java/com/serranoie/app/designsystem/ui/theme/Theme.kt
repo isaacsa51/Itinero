@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.ui.theme
+package com.serranoie.app.designsystem.ui.theme
 
 import android.app.Activity
 import android.os.Build
