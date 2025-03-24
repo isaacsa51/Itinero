@@ -73,6 +73,32 @@ dependencies {
         // For local unit tests
     testImplementation("com.google.dagger:hilt-android-testing:2.55")
     testAnnotationProcessor("com.google.dagger:hilt-compiler:2.55")
+
+    // Compose navigation
+    implementation("androidx.navigation:navigation-compose:2.8.9")
+
+    // Compose animation
+    implementation("androidx.compose.animation:animation:1.7.8")
+
+    // Compose Foundation
+    implementation("androidx.compose.foundation:foundation:1.7.8")
+
+    // Material Icons Extended
+    implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    testImplementation("androidx.room:room-testing:2.6.1")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.7")
+
+    // Coil image loader
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
 
 kapt {

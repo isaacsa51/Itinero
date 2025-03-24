@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.ui
+package com.serranoie.app.itinero.feature.onboard.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardItem(
-    modifier: Modifier = Modifier, page: Page, pagerState: PagerState
+    modifier: Modifier = Modifier, page: Page, pagerState: PagerState, onFinished: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
@@ -95,11 +95,15 @@ fun OnboardItem(
                         ),
                     )
                 }
-                if (pagerState.currentPage < pages.size || pages.size == 1) {
+                if (pagerState.currentPage < pages.size - 1 || pages.size == 1) {
                     IIconButton(
                         onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            if (pagerState.currentPage == pages.size - 1) {
+                                onFinished()
+                            } else {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                }
                             }
                         },
                         leadingIcon = Icons.Filled.ArrowForward,
@@ -108,6 +112,19 @@ fun OnboardItem(
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         modifier = if (pagerState.currentPage == 0 && pages.size > 1) Modifier.fillMaxWidth() else Modifier
+                    )
+                }
+                if (pagerState.currentPage == pages.size - 1 && pages.size > 1) {
+                    IIconButton(
+                        onClick = {
+                            onFinished()
+                        },
+                        leadingIcon = Icons.Filled.ArrowForward,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        modifier = Modifier
                     )
                 }
             }

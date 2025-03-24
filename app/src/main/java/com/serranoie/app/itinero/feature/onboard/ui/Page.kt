@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.ui
+package com.serranoie.app.itinero.feature.onboard.ui
 
 import androidx.annotation.DrawableRes
 import com.serranoie.app.itinero.R
