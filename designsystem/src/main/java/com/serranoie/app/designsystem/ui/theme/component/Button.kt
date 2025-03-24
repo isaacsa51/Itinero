@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonDefaults.textButtonColors
 import androidx.compose.material3.Icon
@@ -21,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.theme.ItineroTheme
@@ -68,6 +72,31 @@ fun IButton(
         IButtonContent(
             text = text,
             leadingIcon = leadingIcon,
+        )
+    }
+}
+
+@Composable
+fun IIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: ImageVector,
+    shape: Shape = RoundedCornerShape(size = 8.dp),
+    colors: ButtonColors = ButtonDefaults.buttonColors()
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = shape,
+        colors = colors,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Icon(
+            imageVector = leadingIcon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp)
         )
     }
 }
@@ -141,7 +170,8 @@ fun ITextButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     text: @Composable () -> Unit,
-    leadingIcon: @Composable (() -> Unit)? = null,
+    leadingIcon: @Composable() (() -> Unit)? = null,
+    colors: ButtonColors,
 ) {
     val ITextButtonColors = textButtonColors(
         contentColor = MaterialTheme.colorScheme.primary,
@@ -152,7 +182,7 @@ fun ITextButton(
         onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        colors = ITextButtonColors,
+        colors = ITextButtonColors ?: colors,
         shape = RoundedCornerShape(size = 8.dp),
     ) {
         IButtonContent(
@@ -215,7 +245,11 @@ fun TravelerTextButtonPreview() {
         Surface {
             ITextButton(
                 onClick = {},
-                text = { Text("Test Button") }
+                text = { Text("Test Button") },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         }
     }

@@ -45,6 +45,8 @@ dependencies {
 
     // Project modules
     implementation(project(":designsystem"))
+    implementation(project(":core:domain"))
+    implementation(project(":di"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -65,12 +67,10 @@ dependencies {
     // Hilt
     implementation("com.google.dagger:hilt-android:2.55")
     annotationProcessor("com.google.dagger:hilt-compiler:2.55")
-
-    // For instrumentation tests
+        // For instrumentation tests
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.55")
     androidTestAnnotationProcessor("com.google.dagger:hilt-compiler:2.55")
-
-    // For local unit tests
+        // For local unit tests
     testImplementation("com.google.dagger:hilt-android-testing:2.55")
     testAnnotationProcessor("com.google.dagger:hilt-compiler:2.55")
 }
