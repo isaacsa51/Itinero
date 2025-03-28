@@ -86,13 +86,9 @@ fun OnboardItem(
                                 pagerState.animateScrollToPage(pagerState.currentPage - 1)
                             }
                         },
+                        modifier = Modifier.padding(end = MediumPadding1),
                         text = { Text("Back") },
                         leadingIcon = null,
-                        modifier = Modifier.padding(end = MediumPadding1),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
                     )
                 }
                 if (pagerState.currentPage < pages.size - 1 || pages.size == 1) {

@@ -9,8 +9,14 @@ import androidx.compose.ui.tooling.preview.Preview
     showSystemUi = true
 )
 @Preview(
-    device = "spec:width=1080px,height=2340px,dpi=440,cutout=tall", showBackground = true,
+    device = "spec:width=1080px,height=2340px,dpi=440,cutout=punch_hole", showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_NIGHT_YES,
     showSystemUi = true
 )
 annotation class ThemePreviews
+
+@Preview(showBackground = true)
+@Preview(showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
+)
+annotation class ComponentPreview

@@ -2,6 +2,7 @@ package com.serranoie.app.designsystem.ui.theme.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
@@ -23,11 +24,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.serranoie.app.designsystem.ui.ComponentPreview
+import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.theme.ItineroTheme
+
+enum class ButtonImportance {
+    Primary, Secondary, Tertiary
+}
 
 @Composable
 fun IButton(
@@ -36,15 +44,16 @@ fun IButton(
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    importance: ButtonImportance = ButtonImportance.Primary,
     content: @Composable RowScope.() -> Unit,
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier
-            .height(48.dp),
+        modifier = modifier.height(48.dp),
         enabled = enabled,
         contentPadding = contentPadding,
         shape = shape,
+        colors = buttonColorsForImportance(importance),
         content = content,
     )
 }
@@ -57,6 +66,7 @@ fun IButton(
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    importance: ButtonImportance = ButtonImportance.Primary
 ) {
     IButton(
         onClick = onClick,
@@ -67,11 +77,32 @@ fun IButton(
         } else {
             ButtonDefaults.ContentPadding
         },
-        shape = shape
+        shape = shape,
+        importance = importance
     ) {
         IButtonContent(
             text = text,
             leadingIcon = leadingIcon,
+        )
+    }
+}
+
+@Composable
+private fun buttonColorsForImportance(importance: ButtonImportance): ButtonColors {
+    return when (importance) {
+        ButtonImportance.Primary -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
+
+        ButtonImportance.Secondary -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary
+        )
+
+        ButtonImportance.Tertiary -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -94,12 +125,11 @@ fun IIconButton(
         contentPadding = PaddingValues(0.dp)
     ) {
         Icon(
-            imageVector = leadingIcon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
+            imageVector = leadingIcon, contentDescription = null, modifier = Modifier.size(24.dp)
         )
     }
 }
+
 
 @Composable
 fun IOutlineButton(
@@ -108,32 +138,22 @@ fun IOutlineButton(
     enabled: Boolean = true,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
+    importance: ButtonImportance = ButtonImportance.Primary,
+    backgroundColor: Color = MaterialTheme.colorScheme.background,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val ITextButtonColors = textButtonColors(
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-    )
-
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier
-            .height(48.dp),
+        modifier = modifier.height(48.dp),
         enabled = enabled,
         border = BorderStroke(
             width = IButtonDefaults.OutlinedButtonBorderWidth,
-            color = if (enabled) {
-                MaterialTheme.colorScheme.outlineVariant
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = IButtonDefaults.DISABLED_OUTLINED_BUTTON_BORDER_ALPHA,
-                )
-            },
+            color = borderColorForImportance(importance, enabled),
         ),
         contentPadding = contentPadding,
         content = content,
         shape = shape,
-        colors = ITextButtonColors
+        colors = outlinedButtonColorsForImportance(importance, backgroundColor)
     )
 }
 
@@ -145,6 +165,7 @@ fun IOutlineButton(
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    importance: ButtonImportance = ButtonImportance.Primary // Default importance
 ) {
     IOutlineButton(
         onClick = onClick,
@@ -155,11 +176,43 @@ fun IOutlineButton(
             ButtonDefaults.ButtonWithIconContentPadding
         } else {
             ButtonDefaults.ContentPadding
-        }
+        },
+        importance = importance // Pass importance
     ) {
         IButtonContent(
             text = text,
             leadingIcon = leadingIcon,
+        )
+    }
+}
+
+@Composable
+private fun outlinedButtonColorsForImportance(
+    importance: ButtonImportance,
+    backgroundColor: Color?
+): ButtonColors {
+    return ButtonDefaults.outlinedButtonColors(
+        contentColor = when (importance) {
+            ButtonImportance.Primary -> MaterialTheme.colorScheme.primary
+            ButtonImportance.Secondary -> MaterialTheme.colorScheme.secondary
+            ButtonImportance.Tertiary -> MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        containerColor = backgroundColor ?: Color.Transparent
+    )
+}
+@Composable
+private fun borderColorForImportance(importance: ButtonImportance, enabled: Boolean): Color {
+    return when (importance) {
+        ButtonImportance.Primary -> if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurface.copy(
+            alpha = 0.38f
+        )
+
+        ButtonImportance.Secondary -> if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurface.copy(
+            alpha = 0.38f
+        )
+
+        ButtonImportance.Tertiary -> if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurface.copy(
+            alpha = 0.38f
         )
     }
 }
@@ -171,7 +224,6 @@ fun ITextButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable() (() -> Unit)? = null,
-    colors: ButtonColors,
 ) {
     val ITextButtonColors = textButtonColors(
         contentColor = MaterialTheme.colorScheme.primary,
@@ -182,7 +234,7 @@ fun ITextButton(
         onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        colors = ITextButtonColors ?: colors,
+        colors = ITextButtonColors,
         shape = RoundedCornerShape(size = 8.dp),
     ) {
         IButtonContent(
@@ -191,6 +243,7 @@ fun ITextButton(
         )
     }
 }
+
 @Composable
 private fun IButtonContent(
     text: @Composable () -> Unit,
@@ -203,8 +256,7 @@ private fun IButtonContent(
     }
 
     Box(
-        Modifier
-            .padding(
+        Modifier.padding(
                 start = if (leadingIcon != null) {
                     ButtonDefaults.IconSpacing
                 } else {
@@ -216,25 +268,55 @@ private fun IButtonContent(
     }
 }
 
-@Preview
+@ComponentPreview
 @Composable
 fun TravelerButtonPreview() {
-    ItineroTheme {
-        IButton(
-            onClick = {},
-            text = { Text("Test Button") }
-        )
+    PreviewWrapper {
+        Column {
+            IButton(
+                onClick = {},
+                text = { Text("Test Button") },
+                importance = ButtonImportance.Primary
+            )
+
+            IButton(
+                onClick = {},
+                text = { Text("Test Button") },
+                importance = ButtonImportance.Secondary
+            )
+
+            IButton(
+                onClick = {},
+                text = { Text("Test Button") },
+                importance = ButtonImportance.Tertiary
+            )
+        }
     }
 }
 
-@Preview
+@ComponentPreview
 @Composable
 fun TravelerOutlineButtonPreview() {
-    ItineroTheme {
-        IOutlineButton(
-            onClick = {},
-            text = { Text("Test Button") }
-        )
+    PreviewWrapper {
+        Column {
+            IOutlineButton(
+                onClick = {},
+                text = { Text("Test Button") },
+                importance = ButtonImportance.Primary
+            )
+
+            IOutlineButton(
+                onClick = {},
+                text = { Text("Test Button") },
+                importance = ButtonImportance.Secondary
+            )
+
+            IOutlineButton(
+                onClick = {},
+                text = { Text("Test Button") },
+                importance = ButtonImportance.Tertiary
+            )
+        }
     }
 }
 
@@ -245,11 +327,7 @@ fun TravelerTextButtonPreview() {
         Surface {
             ITextButton(
                 onClick = {},
-                text = { Text("Test Button") },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                text = { Text("Test Button") }
             )
         }
     }
@@ -264,8 +342,7 @@ fun TravelerLeadingIconPreview() {
             text = { Text("Test Button") },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Rounded.Favorite,
-                    contentDescription = null
+                    imageVector = Icons.Rounded.Favorite, contentDescription = null
                 )
             },
         )

@@ -8,8 +8,11 @@ sealed class Route(val route: String) {
 
     data object SettingsNavigation : Route("settingsNavigation")
 
+    data object AuthNavigation : Route("authNavigation")
+
     data object Onboarding : Route(Screen.ONBOARDING.name)
     data object Home : Route(Screen.HOME.name)
+    data object Authentication : Route(Screen.AUTH.name)
 
 //    data class Edit(val itemId: Int) : Route("edit/$itemId") {
 //        companion object {
