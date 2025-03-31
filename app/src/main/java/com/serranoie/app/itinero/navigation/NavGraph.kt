@@ -6,7 +6,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.serranoie.app.itinero.feature.auth.ui.forgotpass.ForgotPasswordScreen
 import com.serranoie.app.itinero.feature.auth.ui.login.AuthScreen
+import com.serranoie.app.itinero.feature.auth.ui.register.RegisterScreen
 import com.serranoie.app.itinero.feature.home.ui.HomeScreen
 import com.serranoie.app.itinero.feature.onboard.ui.OnboardScreen
 
@@ -24,7 +26,6 @@ fun NavGraph(
     }
 }
 
-// Nested navigation for onboarding
 fun NavGraphBuilder.appStartNavigation(navController: NavHostController) {
     navigation(
         route = Route.AppStartNavigation.route, startDestination = Route.Onboarding.route
@@ -40,7 +41,6 @@ fun NavGraphBuilder.appStartNavigation(navController: NavHostController) {
     }
 }
 
-// Nested navigation for Home
 fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
     navigation(
         route = Route.HomeNavigation.route, startDestination = Route.Home.route
@@ -53,19 +53,19 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
 
 fun NavGraphBuilder.authNavigation(navController: NavHostController) {
     navigation(
-        route = Route.AuthNavigation.route, startDestination = Route.Authentication.route
+        route = Route.AuthNavigation.route,
+        startDestination = Route.Authentication.route
     ) {
         composable(route = Route.Authentication.route) {
-            AuthScreen()
+            AuthScreen(navController)
         }
-        composable(route = Route.Authentication.route) {
-            AuthScreen()
+
+        composable(route = Route.Register.route) {
+            RegisterScreen(navController = navController)
         }
-        composable(route = Route.Authentication.route) {
-            AuthScreen()
-        }
-        composable(route = Route.Authentication.route) {
-            AuthScreen()
+
+        composable(route = Route.ForgotPassword.route) {
+            ForgotPasswordScreen(navController = navController)
         }
     }
 }

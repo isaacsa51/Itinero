@@ -11,6 +11,11 @@ sealed class Route(val route: String) {
     data object AuthNavigation : Route("authNavigation")
 
     data object Onboarding : Route(Screen.ONBOARDING.name)
+
+    data object Login: Route(Screen.LOGIN.name)
+    data object Register: Route(Screen.REGISTER.name)
+    data object ForgotPassword: Route(Screen.FORGOT_PASSWORD.name)
+
     data object Home : Route(Screen.HOME.name)
     data object Authentication : Route(Screen.AUTH.name)
 

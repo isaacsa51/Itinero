@@ -31,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
@@ -40,9 +42,10 @@ import com.serranoie.app.designsystem.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystem.ui.theme.component.ITextButton
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import com.serranoie.app.itinero.R
+import com.serranoie.app.itinero.navigation.Route
 
 @Composable
-fun AuthScreen() {
+fun AuthScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -91,7 +94,9 @@ fun AuthScreen() {
 
                 Text(text = "Forgot password?", style= typography.labelLarge)
                 ITextButton(
-                    onClick = { /* todo: implement button click handler */ },
+                    onClick = {
+                        navController.navigate(Route.ForgotPassword.route)
+                    },
                     enabled = true,
                     text = { Text("reset password") },
                     leadingIcon = null
@@ -103,6 +108,9 @@ fun AuthScreen() {
 
             IButton(
                 onClick = {
+                    navController.navigate(Route.HomeNavigation.route) {
+                        popUpTo(Route.AuthNavigation.route) { inclusive = true }
+                    }
                 },
                 text = { Text("Log in") },
                 leadingIcon = null,
@@ -159,7 +167,9 @@ fun AuthScreen() {
                 )
 
                 ITextButton(
-                    onClick = { /* todo: implement forgot password button click handler */ },
+                    onClick = {
+                        navController.navigate(Route.Register.route)
+                    },
                     modifier = Modifier.padding(start = 4.dp),
                     enabled = true,
                     text = { Text("Sign Up") },
@@ -173,6 +183,6 @@ fun AuthScreen() {
 @Composable
 private fun AuthScreenPreview() {
     PreviewWrapper {
-        AuthScreen()
+        AuthScreen(navController = rememberNavController())
     }
 }

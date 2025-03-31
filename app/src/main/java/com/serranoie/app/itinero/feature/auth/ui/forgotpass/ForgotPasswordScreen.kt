@@ -7,13 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Facebook
-import androidx.compose.material.icons.rounded.GppGood
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,15 +18,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.IButton
-import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
-import com.serranoie.app.designsystem.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
+import com.serranoie.app.itinero.navigation.Route
+
 @Composable
-fun ForgotPasswordScreen() {
+fun ForgotPasswordScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
 
 
@@ -68,9 +63,10 @@ fun ForgotPasswordScreen() {
 
 
             Spacer(modifier = Modifier.height(16.dp))
-
             IButton(
-                onClick = {},
+                onClick = {
+                    navController.navigate(Route.AuthNavigation.route)
+                },
                 text = { Text("Recover account") },
                 leadingIcon = null,
                 modifier = Modifier.fillMaxWidth()
@@ -85,6 +81,6 @@ fun ForgotPasswordScreen() {
 @Composable
 private fun ForgotPasswordScreenPreview() {
     PreviewWrapper {
-        ForgotPasswordScreen()
+        ForgotPasswordScreen(navController = rememberNavController())
     }
 }
