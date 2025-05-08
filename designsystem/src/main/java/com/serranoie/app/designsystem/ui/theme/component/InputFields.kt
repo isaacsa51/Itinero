@@ -1,6 +1,9 @@
 package com.serranoie.app.designsystem.ui.theme.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -8,13 +11,13 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,6 +72,77 @@ fun ITextField(
 }
 
 @Composable
+fun IFilledTextField(
+    modifier: Modifier = Modifier,
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String = "",
+    leadingIcon: ImageVector? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        placeholder = { Text(placeholder) },
+        leadingIcon = leadingIcon?.let {
+            { Icon(imageVector = it, contentDescription = null) }
+        },
+        keyboardOptions = keyboardOptions,
+        modifier = modifier.fillMaxWidth(),
+        shape = shape,
+        colors = TextFieldDefaults.colors(
+//            focusedTextColor: Color,
+//            unfocusedTextColor: Color,
+//            disabledTextColor: Color,
+//            errorTextColor: Color,
+//            focusedContainerColor: Color,
+//            unfocusedContainerColor: Color,
+//            disabledContainerColor: Color,
+//            errorContainerColor: Color,
+//            cursorColor: Color,
+//            errorCursorColor: Color,
+//            textSelectionColors: TextSelectionColors,
+//            focusedIndicatorColor: Color,
+//            unfocusedIndicatorColor: Color,
+//            disabledIndicatorColor: Color,
+//            errorIndicatorColor: Color,
+//            focusedLeadingIconColor: Color,
+//            unfocusedLeadingIconColor: Color,
+//            disabledLeadingIconColor: Color,
+//            errorLeadingIconColor: Color,
+//            focusedTrailingIconColor: Color,
+//            unfocusedTrailingIconColor: Color,
+//            disabledTrailingIconColor: Color,
+//            errorTrailingIconColor: Color,
+//            focusedLabelColor: Color,
+//            unfocusedLabelColor: Color,
+//            disabledLabelColor: Color,
+//            errorLabelColor: Color,
+//            focusedPlaceholderColor: Color,
+//            unfocusedPlaceholderColor: Color,
+//            disabledPlaceholderColor: Color,
+//            errorPlaceholderColor: Color,
+//            focusedSupportingTextColor: Color,
+//            unfocusedSupportingTextColor: Color,
+//            disabledSupportingTextColor: Color,
+//            errorSupportingTextColor: Color,
+//            focusedPrefixColor: Color,
+//            unfocusedPrefixColor: Color,
+//            disabledPrefixColor: Color,
+//            errorPrefixColor: Color,
+//            focusedSuffixColor: Color,
+//            unfocusedSuffixColor: Color,
+//            disabledSuffixColor: Color,
+//            errorSuffixColor: Color
+        )
+    )
+}
+
+@Composable
 fun IPasswordField(
     modifier: Modifier = Modifier,
     value: String,
@@ -118,6 +192,20 @@ fun IPasswordField(
 fun ITextFieldPreview() {
     PreviewWrapper {
         ITextField(
+            value = "Example Text",
+            onValueChange = {},
+            label = "Username",
+            placeholder = "Enter your username",
+            leadingIcon = Icons.Default.Person,
+        )
+    }
+}
+
+@Composable
+@Preview
+fun IFilledTextFieldPreview() {
+    PreviewWrapper {
+        IFilledTextField(
             value = "Example Text",
             onValueChange = {},
             label = "Username",

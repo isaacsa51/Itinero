@@ -19,15 +19,21 @@ fun OnboardScreen(onFinished: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
     Scaffold { innerPadding ->
-        Column(modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f),
                 pageSize = PageSize.Fill,
             ) { pageIndex ->
-                OnboardItem(page = pages[pageIndex], pagerState = pagerState, onFinished = onFinished)
+                OnboardItem(
+                    page = pages[pageIndex],
+                    pagerState = pagerState,
+                    onFinished = onFinished
+                )
             }
         }
     }

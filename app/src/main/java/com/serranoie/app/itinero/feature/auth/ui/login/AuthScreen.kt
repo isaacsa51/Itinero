@@ -88,17 +88,19 @@ fun AuthScreen(navController: NavHostController) {
                 label = "Password"
             )
 
-            Row(modifier = Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start) {
+                horizontalArrangement = Arrangement.Start
+            ) {
 
-                Text(text = "Forgot password?", style= typography.labelLarge)
+                Text(text = "Forgot password?", style = typography.labelLarge)
                 ITextButton(
                     onClick = {
                         navController.navigate(Route.ForgotPassword.route)
                     },
                     enabled = true,
-                    text = { Text("reset password") },
+                    text = { Text("Reset password") },
                     leadingIcon = null
                 )
             }
