@@ -15,10 +15,3 @@ fun PreviewWrapper(content: @Composable () -> Unit) {
         }
     }
 }
-
-@Composable
-fun PreviewWithTheme(content: @Composable () -> Unit) {
-    PreviewWrapper{
-        content()
-    }
-}

@@ -18,14 +18,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -44,16 +48,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.IFilledTextField
+import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
 
 @Composable
-fun HomeScreen() {
-    Scaffold { paddingValues ->
+fun HomeScreen(navController: NavHostController = rememberNavController()) {
+    Scaffold(
+        bottomBar = { BottomBarNav(navController = navController) },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = { /* Handle FAB click */ },
+                icon = { Icon(Icons.Rounded.AddCircleOutline, contentDescription = "Add") },
+                text = { Text("Add Trip") },
+                expanded = true
+            )
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState(), true)
                 .padding(paddingValues)
         ) {
             TripDetailsScreen()
@@ -379,20 +397,20 @@ fun PeopleInfoCard(
                 text = "$confirmedCount total",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
-//            Row(
-//                modifier = Modifier.padding(top = 4.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                names.take(2).forEach {
-//                    Icon(
-//                        imageVector = Icons.Rounded.Person,
-//                        contentDescription = null
-//                    )
-//                }
-//                if (names.size > 2) {
-//                    Text(text = "+${names.size - 2}", color = Color.Gray)
-//                }
-//            }
+            Row(
+                modifier = Modifier.padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                names.take(2).forEach {
+                    Icon(
+                        imageVector = Icons.Rounded.Person,
+                        contentDescription = null
+                    )
+                }
+                if (names.size > 2) {
+                    Text(text = "+${names.size - 2}", color = Color.Gray)
+                }
+            }
         }
     }
 }

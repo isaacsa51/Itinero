@@ -9,4 +9,7 @@ enum class Screen {
     FORGOT_PASSWORD,
     SETTINGS,
     ABOUT,
+    CHAT,
+    EXPENSES,
+    ITINERARY
 }

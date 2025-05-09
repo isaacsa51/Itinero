@@ -9,8 +9,12 @@ import androidx.navigation.navigation
 import com.serranoie.app.itinero.feature.auth.ui.forgotpass.ForgotPasswordScreen
 import com.serranoie.app.itinero.feature.auth.ui.login.AuthScreen
 import com.serranoie.app.itinero.feature.auth.ui.register.RegisterScreen
+import com.serranoie.app.itinero.feature.chat.ChatScreen
 import com.serranoie.app.itinero.feature.home.ui.HomeScreen
+import com.serranoie.app.itinero.feature.itinerary.ItineraryItem
+import com.serranoie.app.itinero.feature.itinerary.ItineraryScreen
 import com.serranoie.app.itinero.feature.onboard.ui.OnboardScreen
+import java.time.LocalDate
 
 @Composable
 fun NavGraph(
@@ -28,7 +32,7 @@ fun NavGraph(
 
 fun NavGraphBuilder.appStartNavigation(navController: NavHostController) {
     navigation(
-        route = Route.AppStartNavigation.route, startDestination = Route.Onboarding.route
+        route = Route.AppStartNavigation.route, startDestination = Route.HomeNavigation.route
     ) {
         composable(route = Route.Onboarding.route) {
             OnboardScreen(
@@ -36,7 +40,8 @@ fun NavGraphBuilder.appStartNavigation(navController: NavHostController) {
                     navController.navigate(Route.AuthNavigation.route) {
                         popUpTo(Route.AppStartNavigation.route) { inclusive = true }
                     }
-                })
+                }
+            )
         }
     }
 }
@@ -45,8 +50,62 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
     navigation(
         route = Route.HomeNavigation.route, startDestination = Route.Home.route
     ) {
+        val mockItinerary = mapOf(
+            LocalDate.of(2025, 5, 6) to listOf(
+                ItineraryItem(
+                    title = "Visit Museum",
+                    time = "12:00 PM",
+                    location = "Art Museum",
+                    description = "Explore the modern art section"
+                ),
+                ItineraryItem(
+                    title = "Lunch",
+                    time = "2:00 PM",
+                    location = "City Café",
+                    description = "Try the local special"
+                )
+            ),
+            LocalDate.of(2025, 5, 7) to listOf(
+                ItineraryItem(
+                    title = "Beach Day",
+                    time = "10:00 AM",
+                    location = "Palm Beach",
+                    description = "Sunbathing and volleyball"
+                )
+            ),
+            LocalDate.of(2025, 5, 8) to emptyList(),
+            LocalDate.of(2025, 5, 9) to emptyList(),
+            LocalDate.of(2025, 5, 10) to emptyList(),
+            LocalDate.of(2025, 5, 11) to listOf(
+                ItineraryItem(
+                    title = "Visit Museum",
+                    time = "12:00 PM",
+                    location = "Art Museum",
+                    description = "Explore the modern art section"
+                ),
+                ItineraryItem(
+                    title = "Lunch",
+                    time = "2:00 PM",
+                    location = "City Café",
+                    description = "Try the local special"
+                )
+            ),
+        )
+
         composable(route = Route.Home.route) {
-            HomeScreen()
+            HomeScreen(navController = navController)
+        }
+
+        composable(route = Route.Itinerary.route) {
+            ItineraryScreen(
+                itinerary = mockItinerary,
+                onSwiped = {  },
+                navController = navController
+            )
+        }
+
+        composable(route = Route.Chat.route) {
+            ChatScreen()
         }
     }
 }

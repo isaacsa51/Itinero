@@ -55,7 +55,8 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    val startDestination = Route.AppStartNavigation.route
+                    // ! TODO: Validate an change depending on what to test, ideally this needs to be handled using shared prefs after passing onboarding
+                    val startDestination = Route.HomeNavigation.route
 
                     NavGraph(navController, startDestination)
                 }

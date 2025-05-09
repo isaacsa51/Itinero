@@ -75,16 +75,16 @@ dependencies {
     testAnnotationProcessor("com.google.dagger:hilt-compiler:2.55")
 
     // Compose navigation
-    implementation("androidx.navigation:navigation-compose:2.8.9")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
 
     // Compose animation
-    implementation("androidx.compose.animation:animation:1.7.8")
+    implementation("androidx.compose.animation:animation:1.8.1")
 
     // Compose Foundation
-    implementation("androidx.compose.foundation:foundation:1.7.8")
+    implementation("androidx.compose.foundation:foundation:1.8.1")
 
     // Material Icons Extended
-    implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
+    implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
 
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
