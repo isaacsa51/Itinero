@@ -105,7 +105,7 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
         }
 
         composable(route = Route.Chat.route) {
-            ChatScreen()
+            ChatScreen(navController = navController)
         }
     }
 }

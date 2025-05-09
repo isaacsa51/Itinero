@@ -1,9 +1,12 @@
 package com.serranoie.app.itinero.feature.itinerary
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,12 +42,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -51,6 +59,7 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -60,6 +69,7 @@ import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,20 +86,20 @@ fun ItineraryScreen(
     Scaffold(topBar = {
         MediumTopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.inverseOnSurface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-        ), title = {
-            Text(
-                "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
-            )
-        }, navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }, content = {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back"
+                containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                titleContentColor = MaterialTheme.colorScheme.onSurface,
+            ), title = {
+                Text(
+                    "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
-            })
-        }, scrollBehavior = scrollBehavior
+            }, navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }, content = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Go back"
+                    )
+                })
+            }, scrollBehavior = scrollBehavior
         )
     }, bottomBar = { BottomBarNav(navController = navController) }, floatingActionButton = {
         FloatingActionButton(
@@ -97,6 +107,9 @@ fun ItineraryScreen(
             content = { Icon(Icons.Rounded.Add, contentDescription = "Add") },
         )
     }) { paddingValues ->
+        val itineraryState = remember { mutableStateOf(itinerary) }
+        val currentItinerary by itineraryState
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -106,7 +119,16 @@ fun ItineraryScreen(
         ) {
             items(generateDateRange(startDate, endDate)) { date ->
                 ItineraryDateSection(
-                    date = date, activities = itinerary[date].orEmpty(), onSwiped = onSwiped
+                    date = date,
+                    activities = currentItinerary[date].orEmpty(),
+                    onSwiped = {
+                        // Mark as complete logic
+                        val newItinerary = currentItinerary.toMutableMap()
+                        newItinerary[date] = newItinerary[date]?.map {
+                            if (it.isCompleted) it else it.copy(isCompleted = true)
+                        } ?: emptyList()
+                        itineraryState.value = newItinerary
+                    }
                 )
             }
         }
@@ -115,9 +137,10 @@ fun ItineraryScreen(
 
 @Composable
 fun ItineraryDateSection(date: LocalDate, activities: List<ItineraryItem>, onSwiped: () -> Unit) {
-    Row() {
+    Row {
         Column(
-            modifier = Modifier.weight(0.15f), horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.weight(0.15f),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = date.format(DateTimeFormatter.ofPattern("dd")),
@@ -142,12 +165,27 @@ fun ItineraryDateSection(date: LocalDate, activities: List<ItineraryItem>, onSwi
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 1.dp)
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp
+                )
             } else {
                 activities.forEach { activity ->
-                    SwipeableCard(item = activity, onSwiped = onSwiped)
+                    SwipeableCard(
+                        item = activity,
+                        onSwiped = onSwiped
+                    )
                 }
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 1.dp)
+
+                // Make the divider match the card width instead of full width
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        thickness = 1.dp
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -157,77 +195,124 @@ fun ItineraryDateSection(date: LocalDate, activities: List<ItineraryItem>, onSwi
 
 @Composable
 fun SwipeableCard(item: ItineraryItem, onSwiped: () -> Unit) {
-
     var isCompleted by remember { mutableStateOf(item.isCompleted) }
+    var offsetX by remember { mutableStateOf(0f) }
+    val dragThreshold = 150f // Distance needed to trigger completion
 
-    Card(
+    // Animation states
+    val scale by animateFloatAsState(
+        targetValue = if (offsetX.absoluteValue > dragThreshold) 0.95f else 1f
+    )
+
+    val bgColor = if (offsetX.absoluteValue > dragThreshold) {
+        MaterialTheme.colorScheme.tertiaryContainer
+    } else {
+        Color.Transparent
+    }
+
+    // Background check icon visibility
+    val iconAlpha by animateFloatAsState(
+        targetValue = if (offsetX.absoluteValue > dragThreshold) 1f else 0f
+    )
+
+    Box(
         modifier = Modifier
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
-                shape = RoundedCornerShape(16.dp)
-            )
             .fillMaxWidth()
-            .pointerInput(Unit) {
-                val velocityTracker = VelocityTracker()
-
-                detectHorizontalDragGestures(
-                    onDragEnd = {
-                    val velocity = velocityTracker.calculateVelocity()
-                    if (velocity.x.absoluteValue > 1000f) {
-                        isCompleted = true
-                        onSwiped()
-                    }
-                },
-                    onDragCancel = { velocityTracker.resetTracking() },
-                    onHorizontalDrag = { change, dragAmount ->
-                        velocityTracker.addPosition(change.uptimeMillis, change.position)
-                        // You could also add some visual feedback here if needed
-                    })
-            },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(2.dp),
-        colors = CardDefaults.elevatedCardColors(
-            if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer.copy(
-                alpha = 0.5f
-            ) else MaterialTheme.colorScheme.surface
-        )
+            .padding(vertical = 4.dp)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                    )
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                    if (isCompleted) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Completed",
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+        // Background that appears during swipe
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(bgColor, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Done,
+                contentDescription = "Mark as done",
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.alpha(iconAlpha)
+            )
+        }
+
+        // The actual card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(offsetX.roundToInt(), 0) }
+                .scale(scale)
+                .alpha(1f)
+                .draggable(
+                    orientation = androidx.compose.foundation.gestures.Orientation.Horizontal,
+                    state = rememberDraggableState { delta ->
+                        // Only allow dragging if not already completed
+                        if (!isCompleted) {
+                            offsetX += delta
+                        }
+                    },
+                    onDragStopped = {
+                        if (offsetX.absoluteValue > dragThreshold) {
+                            isCompleted = true
+                            item.isCompleted = true
+                            onSwiped()
+                        }
+                        // Reset position with animation
+                        offsetX = 0f
+                    }
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    shape = RoundedCornerShape(16.dp)
+                ),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(2.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = if (isCompleted)
+                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+                else
+                    MaterialTheme.colorScheme.surface
+            )
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                         )
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        if (isCompleted) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Completed",
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
                     }
                 }
-            }
 
-            Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "🕒 ${item.time}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "📍 ${item.location}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "❓ ${item.description}", style = MaterialTheme.typography.bodyMedium)
+                Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "🕒 ${item.time}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "📍 ${item.location}", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = "❓ ${item.description}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }
@@ -285,25 +370,6 @@ fun OnboardScreenPreview() {
         ItineraryScreen(
             navController = rememberNavController(), itinerary = mockItineraryData, onSwiped = {})
     }
-}
-
-@Composable
-fun SegmentPathDivider(
-    modifier: Modifier = Modifier,
-    width: Dp = 20.dp,
-    thickness: Dp = DividerDefaults.Thickness,
-    color: Color = DividerDefaults.color,
-) = Canvas(
-    modifier
-        .fillMaxHeight()
-        .width(width)
-) {
-    drawLine(
-        color = color,
-        strokeWidth = thickness.toPx(),
-        start = Offset(thickness.toPx() / 2 + width.toPx() * 0.25f, size.height),
-        end = Offset(thickness.toPx() / 2 + width.toPx() * 0.75f, 0f)
-    )
 }
 
 @Composable
