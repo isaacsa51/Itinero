@@ -49,7 +49,7 @@ fun JumpToBottom(
                 )
             },
             text = {
-                Text(text = "JumpToBottom")
+                Text(text = "Go to bottom")
             },
             onClick = onClicked,
             containerColor = MaterialTheme.colorScheme.surface,

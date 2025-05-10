@@ -9,6 +9,7 @@ import androidx.navigation.navigation
 import com.serranoie.app.itinero.feature.auth.ui.forgotpass.ForgotPasswordScreen
 import com.serranoie.app.itinero.feature.auth.ui.login.AuthScreen
 import com.serranoie.app.itinero.feature.auth.ui.register.RegisterScreen
+import com.serranoie.app.itinero.feature.bills.ExpensesScreen
 import com.serranoie.app.itinero.feature.chat.ChatScreen
 import com.serranoie.app.itinero.feature.home.ui.HomeScreen
 import com.serranoie.app.itinero.feature.itinerary.ItineraryItem
@@ -106,6 +107,10 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
 
         composable(route = Route.Chat.route) {
             ChatScreen(navController = navController)
+        }
+
+        composable(route = Route.Expenses.route) {
+            ExpensesScreen(navController = navController)
         }
     }
 }

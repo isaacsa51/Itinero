@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Message
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryAddCheck
+import androidx.compose.material.icons.rounded.MonetizationOn
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,8 +33,11 @@ fun BottomBarNav(
             title = "Itinerary", icon = Icons.Rounded.LibraryAddCheck, route = Screen.ITINERARY.name
         ),
         NavigationItem(
-            title = "Chat", icon = Icons.AutoMirrored.Rounded.Message, route = Screen.CHAT.name
+            title = "Expenses", icon = Icons.Rounded.MonetizationOn, route = Screen.EXPENSES.name
         ),
+        NavigationItem(
+            title = "Chat", icon = Icons.AutoMirrored.Rounded.Message, route = Screen.CHAT.name
+        )
     )
 
     BottomAppBar {

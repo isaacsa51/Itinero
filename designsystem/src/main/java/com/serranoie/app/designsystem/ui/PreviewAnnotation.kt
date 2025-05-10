@@ -4,9 +4,9 @@ import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Preview
 
 @Preview(
-    device = "spec:width=1080px,height=2340px,dpi=440,cutout=tall", showBackground = true,
+    device = "spec:parent=pixel,navigation=buttons", showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL,
-    showSystemUi = true
+    showSystemUi = true, apiLevel = 28
 )
 @Preview(
     device = "spec:width=1080px,height=2340px,dpi=440,cutout=punch_hole", showBackground = true,
