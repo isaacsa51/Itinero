@@ -3,19 +3,24 @@ package com.serranoie.app.designsystem.ui.theme.component
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -37,8 +42,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.layout.Spacer
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import kotlin.math.absoluteValue
@@ -46,7 +49,7 @@ import kotlin.math.roundToInt
 
 /**
  * A card component with optional swipeable functionality and colorful header.
- * 
+ *
  * @param modifier The modifier to be applied to the card
  * @param isCompleted Whether the card is marked as completed
  * @param onSwipe Callback when the card is swiped (only used in swipeable variant)
@@ -71,10 +74,8 @@ fun OutlinedCard(
     onSwipe: (() -> Unit)? = null,
     shape: Shape = RoundedCornerShape(16.dp),
     colors: CardColors = CardDefaults.elevatedCardColors(
-        containerColor = if (isCompleted)
-            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-        else
-            MaterialTheme.colorScheme.surface
+        containerColor = if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+        else MaterialTheme.colorScheme.surface
     ),
     elevation: Dp = 2.dp,
     borderWidth: Dp = 1.dp,
@@ -111,7 +112,7 @@ fun OutlinedCard(
                             style = MaterialTheme.typography.headlineSmall,
                             color = headerTextColor
                         )
-                        
+
                         // Show icon if provided
                         headerIcon?.let {
                             Icon(
@@ -123,7 +124,7 @@ fun OutlinedCard(
                     }
                 }
             }
-            
+
             // Main content
             content()
         }
@@ -147,13 +148,8 @@ fun OutlinedCard(
             modifier = modifier
                 .fillMaxWidth()
                 .border(
-                    width = borderWidth,
-                    color = borderColor,
-                    shape = shape
-                ),
-            shape = shape,
-            elevation = CardDefaults.cardElevation(elevation),
-            colors = colors
+                    width = borderWidth, color = borderColor, shape = shape
+                ), shape = shape, elevation = CardDefaults.cardElevation(elevation), colors = colors
         ) {
             cardContent()
         }
@@ -175,7 +171,7 @@ private fun SwipeableOutlinedCard(
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var localIsCompleted by remember { mutableStateOf(isCompleted) }
-    
+
     // Animation states
     val scale by animateFloatAsState(
         targetValue = if (offsetX.absoluteValue > dragThreshold) 0.95f else 1f
@@ -234,16 +230,10 @@ private fun SwipeableOutlinedCard(
                         }
                         // Reset position with animation
                         offsetX = 0f
-                    }
-                )
+                    })
                 .border(
-                    width = borderWidth,
-                    color = borderColor,
-                    shape = shape
-                ),
-            shape = shape,
-            elevation = CardDefaults.cardElevation(elevation),
-            colors = colors
+                    width = borderWidth, color = borderColor, shape = shape
+                ), shape = shape, elevation = CardDefaults.cardElevation(elevation), colors = colors
         ) {
             content()
         }
@@ -257,13 +247,11 @@ private fun OutlinedCardPreview() {
         Column(modifier = Modifier.padding(16.dp)) {
             // Regular non-swipeable card without header
             OutlinedCard(
-                swipeable = false,
-                isCompleted = false
+                swipeable = false, isCompleted = false
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Basic Card",
-                        style = MaterialTheme.typography.titleMedium
+                        text = "Basic Card", style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = "This is a simple card without header",
@@ -271,9 +259,9 @@ private fun OutlinedCardPreview() {
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.padding(8.dp))
-            
+
             // Card with colorful header
             OutlinedCard(
                 swipeable = false,
@@ -289,9 +277,9 @@ private fun OutlinedCardPreview() {
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.padding(8.dp))
-            
+
             // Swipeable card with header
             OutlinedCard(
                 swipeable = true,
@@ -307,9 +295,9 @@ private fun OutlinedCardPreview() {
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.padding(8.dp))
-            
+
             // Completed swipeable card with header
             OutlinedCard(
                 swipeable = true,
@@ -324,6 +312,50 @@ private fun OutlinedCardPreview() {
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            // Regular expense card (current user owes money)
+            ExpenseCardItem(
+                expenseName = "Dinner at La Taquería",
+                membersCount = 4,
+                amountOwed = 56.75,
+                icon = Icons.Default.Restaurant
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            // Expense card where others owe the user
+            ExpenseCardItem(
+                expenseName = "Movie Tickets",
+                membersCount = 3,
+                amountOwed = 32.50,
+                isYours = true,
+                icon = Icons.Default.ConfirmationNumber
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            // Completed expense card
+            ExpenseCardItem(
+                expenseName = "Groceries",
+                membersCount = 2,
+                amountOwed = 45.20,
+                isCompleted = true,
+                icon = Icons.Default.Restaurant
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            // Completed expense card that was yours
+            ExpenseCardItem(
+                expenseName = "Uber ride",
+                membersCount = 3,
+                amountOwed = 12.80,
+                isYours = true,
+                isCompleted = false,
+                icon = Icons.Rounded.DirectionsCar
+            )
         }
     }
 }
