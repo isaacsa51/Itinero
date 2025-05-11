@@ -48,6 +48,7 @@ import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
 import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
+import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -106,7 +107,8 @@ fun ItineraryScreen(
                             if (it.isCompleted) it else it.copy(isCompleted = true)
                         } ?: emptyList()
                         itineraryState.value = newItinerary
-                    })
+                    }
+                )
             }
         }
     }
@@ -186,16 +188,10 @@ data class ItineraryItem(
     var isCompleted: Boolean = false
 )
 
-fun generateDateRange(start: LocalDate, end: LocalDate): List<LocalDate> {
-    return generateSequence(start) { it.plusDays(1) }.takeWhile { it <= end }.toList()
-}
-
 @ThemePreviews
 @Composable
-fun OnboardScreenPreview() {
+private fun ItineraryScreenPreview() {
     val startDate = LocalDate.now()
-    val endDate = startDate.plusDays(3)
-    val dateRange = generateDateRange(startDate, endDate)
 
     val mockItineraryData = mapOf(
         startDate to listOf(

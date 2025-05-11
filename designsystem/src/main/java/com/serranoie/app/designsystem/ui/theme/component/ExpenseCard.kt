@@ -48,7 +48,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
  */
 
 @Composable
-fun ExpenseCardItem(
+fun ExpenseCard(
     expenseName: String,
     membersCount: Int,
     amountOwed: Double,
@@ -221,7 +221,7 @@ private fun OutlinedCardPreview() {
     PreviewWrapper {
         Column(modifier = Modifier.padding(16.dp)) {
             // Regular expense card (current user owes money)
-            ExpenseCardItem(
+            ExpenseCard(
                 expenseName = "Dinner at La Taquería",
                 membersCount = 4,
                 amountOwed = 56.75,
@@ -231,7 +231,7 @@ private fun OutlinedCardPreview() {
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Expense card where others owe the user
-            ExpenseCardItem(
+            ExpenseCard(
                 expenseName = "Movie Tickets",
                 membersCount = 3,
                 amountOwed = 32.50,
@@ -242,7 +242,7 @@ private fun OutlinedCardPreview() {
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Completed expense card
-            ExpenseCardItem(
+            ExpenseCard(
                 expenseName = "Groceries",
                 membersCount = 2,
                 amountOwed = 45.20,
@@ -253,7 +253,7 @@ private fun OutlinedCardPreview() {
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Completed expense card that was yours
-            ExpenseCardItem(
+            ExpenseCard(
                 expenseName = "Uber ride",
                 membersCount = 3,
                 amountOwed = 12.80,

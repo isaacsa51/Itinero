@@ -10,6 +10,7 @@ import com.serranoie.app.itinero.feature.auth.ui.forgotpass.ForgotPasswordScreen
 import com.serranoie.app.itinero.feature.auth.ui.login.AuthScreen
 import com.serranoie.app.itinero.feature.auth.ui.register.RegisterScreen
 import com.serranoie.app.itinero.feature.bills.ExpensesScreen
+import com.serranoie.app.itinero.feature.bills.ExpenseItem
 import com.serranoie.app.itinero.feature.chat.ChatScreen
 import com.serranoie.app.itinero.feature.home.ui.HomeScreen
 import com.serranoie.app.itinero.feature.itinerary.ItineraryItem
@@ -93,6 +94,51 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
             ),
         )
 
+        val mockExpenses = mapOf(
+            LocalDate.of(2025, 5, 6) to listOf(
+                ExpenseItem(
+                    id = 1,
+                    expenseDate = LocalDate.of(2025, 5, 6),
+                    expenseType = "Groceries",
+                    expenseCategory = "Food",
+                    expenseName = "Supermarket",
+                    membersCount = 3,
+                    amountOwed = 100.0,
+                    isCompleted = false,
+                    isYours = true,
+                ),
+                ExpenseItem(
+                    id = 2,
+                    expenseDate = LocalDate.of(2025, 5, 6),
+                    expenseType = "Food",
+                    expenseCategory = "Food",
+                    expenseName = "Groceries",
+                    membersCount = 2,
+                    amountOwed = 45.20,
+                    isCompleted = true,
+                ),
+                ExpenseItem(
+                    id = 3,
+                    expenseDate = LocalDate.of(2025, 5, 6),
+                    expenseType = "Entertainment",
+                    expenseCategory = "Entertainment",
+                    expenseName = "Movie Tickets",
+                    membersCount = 3,
+                    amountOwed = 32.50,
+                    isYours = true,
+                ),
+                ExpenseItem(
+                    id = 4,
+                    expenseDate = LocalDate.of(2025, 5, 6),
+                    expenseType = "Food",
+                    expenseCategory = "Restaurant",
+                    expenseName = "Dinner at La Taquería",
+                    membersCount = 4,
+                    amountOwed = 56.75,
+                )
+            ), LocalDate.of(2025, 5, 6).plusDays(10) to emptyList()
+        )
+
         composable(route = Route.Home.route) {
             HomeScreen(navController = navController)
         }
@@ -110,7 +156,10 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
         }
 
         composable(route = Route.Expenses.route) {
-            ExpensesScreen(navController = navController)
+            ExpensesScreen(
+                navController = navController,
+                expenses = mockExpenses
+            )
         }
     }
 }

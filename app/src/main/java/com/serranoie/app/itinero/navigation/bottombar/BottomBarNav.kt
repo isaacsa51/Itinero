@@ -59,7 +59,7 @@ fun BottomBarNav(
                 Icon(imageVector = item.icon, contentDescription = item.title)
             }, label = {
                 Text(
-                    item.title, color = if (isSelected) Color.Black else Color.Gray
+                    item.title, /*color = if (isSelected) Color.Black else Color.Gray*/
                 )
             }, colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.surface,
