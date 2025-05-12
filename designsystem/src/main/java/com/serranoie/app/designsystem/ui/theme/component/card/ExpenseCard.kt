@@ -1,4 +1,4 @@
-package com.serranoie.app.designsystem.ui.theme.component
+package com.serranoie.app.designsystem.ui.theme.component.card
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
+import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
 
 /**
  * Same outline card but focused on displaying expense details.

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
+import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 

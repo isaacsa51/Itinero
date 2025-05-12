@@ -16,6 +16,8 @@ import com.serranoie.app.itinero.feature.home.ui.HomeScreen
 import com.serranoie.app.itinero.feature.itinerary.ItineraryItem
 import com.serranoie.app.itinero.feature.itinerary.ItineraryScreen
 import com.serranoie.app.itinero.feature.onboard.ui.OnboardScreen
+import com.serranoie.app.itinero.feature.settings.trip.TripInfoSettingsScreen
+import com.serranoie.app.itinero.feature.settings.trip.TripSettingsScreen
 import java.time.LocalDate
 
 @Composable
@@ -152,7 +154,9 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
         }
 
         composable(route = Route.Chat.route) {
-            ChatScreen(navController = navController)
+            // TODO: Testing porpoises
+            TripSettingsScreen(navController = navController)
+            //ChatScreen(navController = navController)
         }
 
         composable(route = Route.Expenses.route) {

@@ -32,6 +32,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +54,7 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.IFilledTextField
+import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
 
 @Composable
@@ -90,10 +92,36 @@ fun TripDetailsScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ExpandablePendingInvites(
+        ExpandableCard(
+            title = "Pending actions",
             isExpanded = isInviteExpanded,
-            onExpandedChange = { isInviteExpanded= it }
-        )
+            onExpandedChange = { isInviteExpanded = it },
+            headerIcon = Icons.Rounded.AddCircleOutline,
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            titleStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+        ) {
+            // Content remains the same
+            Text(
+                text = "map sdk location holder",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "ADDRESS",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+
+            Text(
+                text = "Antonio Dovali Jaime 70, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01219 Mexico City, CDMX",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -132,157 +160,38 @@ fun TripDetailsScreen() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        ExpandableHotelCard(
-            isExpanded = isExpanded, onExpandedChange = { isExpanded = it })
+        ExpandableCard(
+            title = "Hotel/AirBnB Details",
+            isExpanded = isExpanded,
+            onExpandedChange = { isExpanded = it },
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            showDivider = true
+        ) {
+            Text(
+                text = "map sdk location holder",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "ADDRESS",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+
+            Text(
+                text = "Antonio Dovali Jaime 70, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01219 Mexico City, CDMX",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TravelInfoCard()
-    }
-}
-
-@Composable
-fun ExpandableHotelCard(
-    isExpanded: Boolean, onExpandedChange: (Boolean) -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val rotationAngle by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, shape = RoundedCornerShape(12.dp))
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(12.dp)
-            )
-            .clickable(
-                interactionSource = interactionSource, indication = null
-            ) {
-                onExpandedChange(!isExpanded)
-            }
-            .padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "Hotel/AirBnB Details",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowDown,
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
-                modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
-            )
-        }
-
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-            ) {
-                Text(
-                    text = "map sdk location holder",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "ADDRESS",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-
-                Text(
-                    text = "Antonio Dovali Jaime 70, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01219 Mexico City, CDMX",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ExpandablePendingInvites(
-    isExpanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val rotationAngle by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(4.dp, shape = RoundedCornerShape(12.dp))
-            .background(
-                color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(12.dp)
-            )
-            .clickable(
-                interactionSource = interactionSource, indication = null
-            ) {
-                onExpandedChange(!isExpanded)
-            }
-            .padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Rounded.AddCircleOutline,
-                contentDescription = "Add Circle",
-                tint = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-
-            Text(
-                text = "Pending actions",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier.weight(1f).padding(start = 16.dp)
-            )
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowDown,
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
-                modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
-            )
-        }
-
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-            ) {
-                Text(
-                    text = "map sdk location holder",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "ADDRESS",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-
-                Text(
-                    text = "Antonio Dovali Jaime 70, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01219 Mexico City, CDMX",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
     }
 }
 
@@ -343,18 +252,11 @@ fun DateInfoCard(
     value: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    outlineColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    outlineWidth: Dp = 1.dp,
     cardColors: CardColors = CardDefaults.elevatedCardColors(),
 ) {
-    Card(
-        modifier = modifier.then(
-            Modifier.border(
-                width = outlineWidth, color = outlineColor, shape = RoundedCornerShape(16.dp)
-            )
-        ),
+    OutlinedCard(
+        modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(2.dp),
         colors = cardColors
     ) {
         Column(
@@ -375,44 +277,37 @@ fun PeopleInfoCard(
     confirmedCount: Int,
     names: List<String>,
     modifier: Modifier = Modifier,
-    outlineColor: Color = MaterialTheme.colorScheme.outlineVariant,
     cardColors: CardColors = CardDefaults.elevatedCardColors(),
-    outlineWidth: Dp = 1.dp
 ) {
-    Card(
-        modifier = modifier.then(
-            Modifier.border(
-                width = outlineWidth, color = outlineColor, shape = RoundedCornerShape(16.dp)
-            )
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(2.dp),
-        colors = cardColors
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(text = "People", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-            Text(
-                text = "$confirmedCount total",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-            )
-            Row(
-                modifier = Modifier.padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                names.take(2).forEach {
-                    Icon(
-                        imageVector = Icons.Rounded.Person,
-                        contentDescription = null
-                    )
-                }
-                if (names.size > 2) {
-                    Text(text = "+${names.size - 2}", color = Color.Gray)
-                }
-            }
-        }
-    }
+   OutlinedCard(
+       modifier = modifier,
+       shape = RoundedCornerShape(16.dp),
+       colors = cardColors,
+   ){
+       Column(
+           modifier = Modifier.padding(16.dp)
+       ) {
+           Text(text = "People", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+           Text(
+               text = "$confirmedCount total",
+               style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+           )
+           Row(
+               modifier = Modifier.padding(top = 4.dp),
+               verticalAlignment = Alignment.CenterVertically
+           ) {
+               names.take(2).forEach {
+                   Icon(
+                       imageVector = Icons.Rounded.Person,
+                       contentDescription = null
+                   )
+               }
+               if (names.size > 2) {
+                   Text(text = "+${names.size - 2}", color = Color.Gray)
+               }
+           }
+       }
+   }
 }
 
 @Composable

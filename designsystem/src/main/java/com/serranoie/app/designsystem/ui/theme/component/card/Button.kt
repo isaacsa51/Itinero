@@ -1,4 +1,4 @@
-package com.serranoie.app.designsystem.ui.theme.component
+package com.serranoie.app.designsystem.ui.theme.component.card
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
@@ -34,7 +34,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.theme.ItineroTheme
 
 enum class ButtonImportance {
-    Primary, Secondary, Tertiary
+    Primary, Secondary, Tertiary, Error
 }
 
 @Composable
@@ -103,6 +103,11 @@ private fun buttonColorsForImportance(importance: ButtonImportance): ButtonColor
         ButtonImportance.Tertiary -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        ButtonImportance.Error -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError,
         )
     }
 }
@@ -188,18 +193,18 @@ fun IOutlineButton(
 
 @Composable
 private fun outlinedButtonColorsForImportance(
-    importance: ButtonImportance,
-    backgroundColor: Color?
+    importance: ButtonImportance, backgroundColor: Color?
 ): ButtonColors {
     return ButtonDefaults.outlinedButtonColors(
         contentColor = when (importance) {
             ButtonImportance.Primary -> MaterialTheme.colorScheme.primary
             ButtonImportance.Secondary -> MaterialTheme.colorScheme.secondary
             ButtonImportance.Tertiary -> MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        containerColor = backgroundColor ?: Color.Transparent
+            ButtonImportance.Error -> MaterialTheme.colorScheme.error
+        }, containerColor = backgroundColor ?: Color.Transparent
     )
 }
+
 @Composable
 private fun borderColorForImportance(importance: ButtonImportance, enabled: Boolean): Color {
     return when (importance) {
@@ -212,6 +217,10 @@ private fun borderColorForImportance(importance: ButtonImportance, enabled: Bool
         )
 
         ButtonImportance.Tertiary -> if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurface.copy(
+            alpha = 0.38f
+        )
+
+        ButtonImportance.Error -> if (enabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(
             alpha = 0.38f
         )
     }
@@ -257,12 +266,12 @@ private fun IButtonContent(
 
     Box(
         Modifier.padding(
-                start = if (leadingIcon != null) {
-                    ButtonDefaults.IconSpacing
-                } else {
-                    0.dp
-                },
-            ),
+            start = if (leadingIcon != null) {
+                ButtonDefaults.IconSpacing
+            } else {
+                0.dp
+            },
+        ),
     ) {
         text()
     }
@@ -290,6 +299,12 @@ fun TravelerButtonPreview() {
                 text = { Text("Test Button") },
                 importance = ButtonImportance.Tertiary
             )
+
+            IButton(
+                onClick = {},
+                text = { Text("Error Button") },
+                importance = ButtonImportance.Error
+            )
         }
     }
 }
@@ -316,6 +331,12 @@ fun TravelerOutlineButtonPreview() {
                 text = { Text("Test Button") },
                 importance = ButtonImportance.Tertiary
             )
+
+            IOutlineButton(
+                onClick = {},
+                text = { Text("Error Button") },
+                importance = ButtonImportance.Error
+            )
         }
     }
 }
@@ -325,10 +346,7 @@ fun TravelerOutlineButtonPreview() {
 fun TravelerTextButtonPreview() {
     ItineroTheme {
         Surface {
-            ITextButton(
-                onClick = {},
-                text = { Text("Test Button") }
-            )
+            ITextButton(onClick = {}, text = { Text("Test Button") })
         }
     }
 }

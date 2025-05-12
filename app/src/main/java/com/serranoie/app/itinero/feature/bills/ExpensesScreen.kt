@@ -21,8 +21,6 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Shop
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ConfirmationNumber
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material.icons.rounded.Shop
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -50,7 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
-import com.serranoie.app.designsystem.ui.theme.component.ExpenseCard
+import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
 import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
 import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
