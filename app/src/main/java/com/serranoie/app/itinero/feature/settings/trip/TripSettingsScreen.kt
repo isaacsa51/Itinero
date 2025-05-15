@@ -6,8 +6,10 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +17,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.AddCircleOutline
@@ -31,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,11 +44,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
@@ -54,11 +64,19 @@ import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripSettingsScreen(navController: NavController) {
+fun TripSettingsScreen(
+    navController: NavController,
+    viewModel: TripSettingsViewModel = viewModel()
+) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var otpValue by remember { mutableStateOf("72429") }
+    val qrBitmap = viewModel.qrBitmap.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(otpValue) {
+        viewModel.setQrText(otpValue)
+        viewModel.generateQrCode()
+    }
 
     Scaffold(
         topBar = {
@@ -85,22 +103,48 @@ fun TripSettingsScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
+                .verticalScroll(rememberScrollState())
         ) {
             OutlinedCard(
                 swipeable = false, isCompleted = false, modifier = Modifier.padding(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLarge
+                        text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
 
+                    qrBitmap?.let { bitmap ->
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = "Group QR Code",
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .background(
+                                        color = Color.White,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(8.dp)
+                            )
+                        }
+                    }
+
                     OtpInputField(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(vertical = 16.dp),
                         otpText = otpValue,
                         onOtpTextChange = { otp, _ -> otpValue = otp }
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text = "What's this code/QR for?",
@@ -121,11 +165,149 @@ fun TripSettingsScreen(navController: NavController) {
                         text = "Only the trip creator can manage group members.",
                         style = MaterialTheme.typography.bodyMedium
                     )
-
                 }
             }
 
             RegisteredMembers()
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Trip Information Settings
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text(
+                    text = "TRIP INFORMATION",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SettingsItem(
+                    title = "Trip Name",
+                    subtitle = "Summer Adventure 2023",
+                    onClick = { /* Navigate to edit trip name */ },
+                    showDivider = true
+                )
+
+                SettingsItem(
+                    title = "Trip Dates",
+                    subtitle = "Aug 15 - Aug 25, 2023",
+                    onClick = { /* Navigate to edit trip dates */ },
+                    showDivider = true
+                )
+
+                SettingsItem(
+                    title = "Trip Description",
+                    subtitle = "Our annual summer vacation exploring the coast",
+                    onClick = { /* Navigate to edit description */ }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Group Management Settings
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text(
+                    text = "GROUP MANAGEMENT",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SettingsItem(
+                    title = "Invite New Member",
+                    subtitle = "Share invitation code with others",
+                    onClick = { /* Handle invite action */ },
+                    showDivider = true
+                )
+
+                SettingsItem(
+                    title = "Member Permissions",
+                    subtitle = "Manage what group members can edit",
+                    onClick = { /* Navigate to permissions screen */ },
+                    showDivider = true
+                )
+
+                SettingsItem(
+                    title = "Transfer Ownership",
+                    subtitle = "Change the trip administrator",
+                    onClick = { /* Navigate to transfer ownership */ }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Danger Zone
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Text(
+                    text = "DANGER ZONE",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                IButton(
+                    text = {
+                        Text(
+                            text = "Leave Trip Group",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    onClick = { /* Show leave group confirmation */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    importance = ButtonImportance.Secondary,
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                IButton(
+                    text = {
+                        Text(
+                            text = "Delete Trip",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    onClick = { /* Show delete trip confirmation */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    importance = ButtonImportance.Error,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun SettingsItem(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    showDivider: Boolean = false
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        if (showDivider) {
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider()
         }
     }
 }
@@ -221,6 +403,7 @@ fun ExpandablePendingInvites(
 @Composable
 private fun TripSettingsScreenPreview() {
     PreviewWrapper {
-        TripSettingsScreen(navController = rememberNavController())
+        val viewModel: TripSettingsViewModel = viewModel()
+        TripSettingsScreen(navController = rememberNavController(), viewModel = viewModel)
     }
 }
