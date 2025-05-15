@@ -47,6 +47,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
+import com.serranoie.app.designsystem.ui.theme.component.OtpInputField
 import com.serranoie.app.designsystem.ui.theme.component.card.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.card.IButton
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
@@ -56,6 +57,8 @@ import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
 fun TripSettingsScreen(navController: NavController) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    var otpValue by remember { mutableStateOf("72429") }
+
 
     Scaffold(
         topBar = {
@@ -92,11 +95,16 @@ fun TripSettingsScreen(navController: NavController) {
                         text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLarge
                     )
 
-                    // TODO: Implement number-type inputs + QR Code generated from the code.
+                    OtpInputField(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        otpText = otpValue,
+                        onOtpTextChange = { otp, _ -> otpValue = otp }
+                    )
 
                     Text(
                         text = "What's this code/QR for?",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
 
                     Text(
@@ -144,7 +152,7 @@ fun ExpandablePendingInvites(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp) // Add padding outside the card
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .shadow(4.dp, shape = RoundedCornerShape(12.dp))
             .background(
                 color = MaterialTheme.colorScheme.tertiaryContainer,
