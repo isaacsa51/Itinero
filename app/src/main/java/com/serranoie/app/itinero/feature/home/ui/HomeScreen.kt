@@ -26,6 +26,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Person2
+import androidx.compose.material.icons.rounded.Person4
+import androidx.compose.material.icons.rounded.SupervisedUserCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -262,12 +265,12 @@ fun DateInfoCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(text = title, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(text = title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
-            Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -287,7 +290,7 @@ fun PeopleInfoCard(
        Column(
            modifier = Modifier.padding(16.dp)
        ) {
-           Text(text = "People", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+           Text(text = "People", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
            Text(
                text = "$confirmedCount total",
                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
@@ -296,14 +299,14 @@ fun PeopleInfoCard(
                modifier = Modifier.padding(top = 4.dp),
                verticalAlignment = Alignment.CenterVertically
            ) {
-               names.take(2).forEach {
+               names.take(names.size).forEach {
                    Icon(
-                       imageVector = Icons.Rounded.Person,
+                       imageVector = Icons.Rounded.SupervisedUserCircle,
                        contentDescription = null
                    )
                }
                if (names.size > 2) {
-                   Text(text = "+${names.size - 2}", color = Color.Gray)
+                   Text(text = "+${names.size - 2}", color = MaterialTheme.colorScheme.outline)
                }
            }
        }
