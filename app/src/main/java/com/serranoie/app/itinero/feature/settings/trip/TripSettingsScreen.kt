@@ -17,8 +17,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -69,7 +70,7 @@ fun TripSettingsScreen(
     viewModel: TripSettingsViewModel = viewModel()
 ) {
     val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     var otpValue by remember { mutableStateOf("72429") }
     val qrBitmap = viewModel.qrBitmap.collectAsStateWithLifecycle().value
 
@@ -99,183 +100,202 @@ fun TripSettingsScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
         ) {
-            OutlinedCard(
-                swipeable = false, isCompleted = false, modifier = Modifier.padding(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                    )
+            item {
+                OutlinedCard(
+                    swipeable = false, isCompleted = false, modifier = Modifier.padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "ITINERO GROUP CODE",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                        )
 
-                    qrBitmap?.let { bitmap ->
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Box(
+                        OtpInputField(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = "Group QR Code",
+                                .padding(vertical = 16.dp),
+                            otpText = otpValue,
+                            onOtpTextChange = { otp, _ -> otpValue = otp }
+                        )
+
+                        qrBitmap?.let { bitmap ->
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Box(
                                 modifier = Modifier
-                                    .size(200.dp)
-                                    .background(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .padding(8.dp)
-                            )
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentDescription = "Group QR Code",
+                                    modifier = Modifier
+                                        .size(200.dp)
+                                        .background(
+                                            color = Color.White,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .padding(8.dp)
+                                )
+                            }
                         }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "What's this code/QR for?",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+
+                        Text(
+                            text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Text(
+                            text = "They can only use this code within the app to join your group.\n",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Text(
+                            text = "Only the trip creator can manage group members.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
+                }
+            }
 
-                    OtpInputField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        otpText = otpValue,
-                        onOtpTextChange = { otp, _ -> otpValue = otp }
+            // Registered Members
+            item {
+                RegisteredMembers()
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // Trip Information Settings
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text(
+                        text = "TRIP INFORMATION",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = "What's this code/QR for?",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                    SettingsItem(
+                        title = "Trip Name",
+                        subtitle = "Summer Adventure 2023",
+                        onClick = { /* Navigate to edit trip name */ },
+                        showDivider = true
                     )
 
-                    Text(
-                        text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
-                        style = MaterialTheme.typography.bodyMedium
+                    SettingsItem(
+                        title = "Trip Dates",
+                        subtitle = "Aug 15 - Aug 25, 2023",
+                        onClick = { /* Navigate to edit trip dates */ },
+                        showDivider = true
                     )
 
-                    Text(
-                        text = "They can only use this code within the app to join your group.\n",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Text(
-                        text = "Only the trip creator can manage group members.",
-                        style = MaterialTheme.typography.bodyMedium
+                    SettingsItem(
+                        title = "Trip Description",
+                        subtitle = "Our annual summer vacation exploring the coast",
+                        onClick = { /* Navigate to edit description */ }
                     )
                 }
             }
 
-            RegisteredMembers()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Trip Information Settings
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Text(
-                    text = "TRIP INFORMATION",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SettingsItem(
-                    title = "Trip Name",
-                    subtitle = "Summer Adventure 2023",
-                    onClick = { /* Navigate to edit trip name */ },
-                    showDivider = true
-                )
-
-                SettingsItem(
-                    title = "Trip Dates",
-                    subtitle = "Aug 15 - Aug 25, 2023",
-                    onClick = { /* Navigate to edit trip dates */ },
-                    showDivider = true
-                )
-
-                SettingsItem(
-                    title = "Trip Description",
-                    subtitle = "Our annual summer vacation exploring the coast",
-                    onClick = { /* Navigate to edit description */ }
-                )
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Group Management Settings
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Text(
-                    text = "GROUP MANAGEMENT",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                )
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text(
+                        text = "GROUP MANAGEMENT",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                SettingsItem(
-                    title = "Invite New Member",
-                    subtitle = "Share invitation code with others",
-                    onClick = { /* Handle invite action */ },
-                    showDivider = true
-                )
+                    SettingsItem(
+                        title = "Invite New Member",
+                        subtitle = "Share invitation code with others",
+                        onClick = { /* Handle invite action */ },
+                        showDivider = true
+                    )
 
-                SettingsItem(
-                    title = "Member Permissions",
-                    subtitle = "Manage what group members can edit",
-                    onClick = { /* Navigate to permissions screen */ },
-                    showDivider = true
-                )
+                    SettingsItem(
+                        title = "Member Permissions",
+                        subtitle = "Manage what group members can edit",
+                        onClick = { /* Navigate to permissions screen */ },
+                        showDivider = true
+                    )
 
-                SettingsItem(
-                    title = "Transfer Ownership",
-                    subtitle = "Change the trip administrator",
-                    onClick = { /* Navigate to transfer ownership */ }
-                )
+                    SettingsItem(
+                        title = "Transfer Ownership",
+                        subtitle = "Change the trip administrator",
+                        onClick = { /* Navigate to transfer ownership */ }
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
             // Danger Zone
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                Text(
-                    text = "DANGER ZONE",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.error
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text(
+                        text = "DANGER ZONE",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
                     )
-                )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                IButton(
-                    text = {
-                        Text(
-                            text = "Leave Trip Group",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    },
-                    onClick = { /* Show leave group confirmation */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    importance = ButtonImportance.Secondary,
-                )
+                    IButton(
+                        text = {
+                            Text(
+                                text = "Leave Trip Group",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        onClick = { /* Show leave group confirmation */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        importance = ButtonImportance.Secondary,
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                IButton(
-                    text = {
-                        Text(
-                            text = "Delete Trip",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    },
-                    onClick = { /* Show delete trip confirmation */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    importance = ButtonImportance.Error,
-                )
+                    IButton(
+                        text = {
+                            Text(
+                                text = "Delete Trip",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
+                        onClick = { /* Show delete trip confirmation */ },
+                        modifier = Modifier.fillMaxWidth(),
+                        importance = ButtonImportance.Error,
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -64,30 +65,42 @@ fun ItineraryScreen(
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
-    Scaffold(topBar = {
-        MediumTopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.inverseOnSurface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-        ), title = {
-            Text(
-                "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
+    Scaffold(
+        topBar = {
+            MediumTopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                ), title = {
+                    Text(
+                        "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
+                    )
+                }, navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }, content = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go back"
+                        )
+                    })
+                }, actions = {
+                    IconButton(onClick = { /* do something */ }) {
+                        Icon(
+                            imageVector = Icons.Rounded.MoreVert,
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior
             )
-        }, navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }, content = {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back"
-                )
-            })
-        }, scrollBehavior = scrollBehavior
-        )
-    }, bottomBar = { BottomBarNav(navController = navController) }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = { /* Handle FAB click */ },
-            content = { Icon(Icons.Rounded.Add, contentDescription = "Add") },
-        )
-    }) { paddingValues ->
+        },
+        bottomBar = { BottomBarNav(navController = navController) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { /* Handle FAB click */ },
+                content = { Icon(Icons.Rounded.Add, contentDescription = "Add") },
+            )
+        }
+    ) { paddingValues ->
         val itineraryState = remember { mutableStateOf(itinerary) }
         val currentItinerary by itineraryState
 

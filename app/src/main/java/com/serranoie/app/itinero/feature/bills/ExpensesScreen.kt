@@ -49,6 +49,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
+import com.serranoie.app.itinero.navigation.Screen
 import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
 import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
@@ -81,7 +82,7 @@ fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<E
         )
     }, bottomBar = { BottomBarNav(navController = navController) }, floatingActionButton = {
         FloatingActionButton(
-            onClick = { /* Handle FAB click */ },
+            onClick = { navController.navigate(Screen.ADD_EXPENSE.name) },
             content = { Icon(Icons.Rounded.Add, contentDescription = "Add") },
         )
     }) { paddingValues ->
@@ -219,12 +220,10 @@ fun ExpensesDateSection(date: LocalDate, expenses: List<ExpenseItem>) {
 @ThemePreviews
 @Composable
 private fun ExpensesScreenPreview() {
-    // Create a date range spanning a week
     val currentDate = LocalDate.now()
     val startDate = currentDate.minusDays(3)
     val endDate = currentDate.plusDays(3)
     
-    // Create mock expenses across multiple days with various states
     val mockExpenses = mapOf(
         startDate to listOf(
             ExpenseItem(

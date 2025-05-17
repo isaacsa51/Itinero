@@ -251,5 +251,6 @@ fun ItineroTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         content = content,
+        typography = ItineroTypography
     )
 }

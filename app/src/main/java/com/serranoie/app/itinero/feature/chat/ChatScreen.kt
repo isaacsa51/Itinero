@@ -4,7 +4,9 @@ import android.content.ClipDescription
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,11 +27,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,6 +60,7 @@ import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -220,7 +225,7 @@ fun ChatScreen(navController: NavController) {
                 actions = {
                     IconButton(onClick = { /* do something */ }) {
                         Icon(
-                            imageVector = Icons.Rounded.Menu,
+                            imageVector = Icons.Rounded.MoreVert,
                             contentDescription = "Localized description"
                         )
                     }
@@ -238,7 +243,9 @@ fun ChatScreen(navController: NavController) {
                 },
                 // let this element handle the padding so that the elevation is shown behind the
                 // navigation bar
-                modifier = Modifier.navigationBarsPadding().imePadding()
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .imePadding()
             )
         }
     ) { innerPadding ->
@@ -346,25 +353,30 @@ fun Message(
     }
 
     val spaceBetweenAuthors = if (isLastMessageByAuthor) Modifier.padding(top = 8.dp) else Modifier
-    Row(modifier = spaceBetweenAuthors) {
-        if (isLastMessageByAuthor) {
+    Row(
+        modifier = spaceBetweenAuthors,
+        horizontalArrangement = if (isUserMe) Arrangement.End else Arrangement.Start
+    ) {
+        if (isLastMessageByAuthor && !isUserMe) {
             // Avatar
-//            Image(
-//                modifier = Modifier
-//                    .clickable(onClick = { onAuthorClick(msg.author) })
-//                    .padding(horizontal = 16.dp)
-//                    .size(42.dp)
-//                    .border(1.5.dp, borderColor, CircleShape)
-//                    .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
-//                    .clip(CircleShape)
-//                    .align(Alignment.Top),
-//                painter = painterResource(id = msg.authorImage),
-//                contentScale = ContentScale.Crop,
-//                contentDescription = null,
-//            )
-        } else {
+            Image(
+                modifier = Modifier
+                    .clickable(onClick = { onAuthorClick(msg.author) })
+                    .padding(horizontal = 16.dp)
+                    .size(42.dp)
+                    .border(1.5.dp, borderColor, CircleShape)
+                    .border(3.dp, MaterialTheme.colorScheme.surface, CircleShape)
+                    .clip(CircleShape)
+                    .align(Alignment.Top),
+                painter = painterResource(id = msg.authorImage),
+                contentScale = ContentScale.Crop,
+                contentDescription = null,
+            )
+        } else if (!isUserMe) {
             // Space under avatar
             Spacer(modifier = Modifier.width(74.dp))
+        } else if (isUserMe) {
+            // No spacer for user's messages - they'll be right aligned
         }
         AuthorAndTextMessage(
             msg = msg,
@@ -388,8 +400,13 @@ fun AuthorAndTextMessage(
     authorClicked: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
-        if (isLastMessageByAuthor) {
+    val alignment = if (isUserMe) Alignment.End else Alignment.Start
+    Column(
+        modifier = modifier,
+        horizontalAlignment = alignment
+    ) {
+        // Show author name only for others' messages
+        if (isLastMessageByAuthor && !isUserMe) {
             AuthorNameTimestamp(msg)
         }
         ChatItemBubble(msg, isUserMe, authorClicked = authorClicked)
@@ -412,7 +429,8 @@ private fun AuthorNameTimestamp(msg: Message) {
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .alignBy(LastBaseline)
-                .paddingFrom(LastBaseline, after = 8.dp) // Space to 1st bubble
+                .paddingFrom(LastBaseline, after = 8.dp), // Space to 1st bubble
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
@@ -424,7 +442,13 @@ private fun AuthorNameTimestamp(msg: Message) {
     }
 }
 
-private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
+private fun getChatBubbleShape(isUserMe: Boolean) =
+    if (isUserMe) RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp) else RoundedCornerShape(
+        4.dp,
+        20.dp,
+        20.dp,
+        20.dp
+    )
 
 @Composable
 fun DayHeader(dayString: String) {
@@ -465,9 +489,11 @@ fun ChatItemBubble(
         MaterialTheme.colorScheme.surfaceVariant
     }
 
-    Column {
+    Column(
+        horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start
+    ) {
         Surface(
-            color = backgroundBubbleColor, shape = ChatBubbleShape
+            color = backgroundBubbleColor, shape = getChatBubbleShape(isUserMe)
         ) {
             ClickableMessage(
                 message = message, isUserMe = isUserMe, authorClicked = authorClicked
@@ -477,7 +503,7 @@ fun ChatItemBubble(
         message.image?.let {
             Spacer(modifier = Modifier.height(4.dp))
             Surface(
-                color = backgroundBubbleColor, shape = ChatBubbleShape
+                color = backgroundBubbleColor, shape = getChatBubbleShape(isUserMe)
             ) {
                 Image(
                     painter = painterResource(it),
@@ -486,6 +512,15 @@ fun ChatItemBubble(
                     contentDescription = "Image in message"
                 )
             }
+        }
+        if (isUserMe) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = message.timestamp,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
         }
     }
 }

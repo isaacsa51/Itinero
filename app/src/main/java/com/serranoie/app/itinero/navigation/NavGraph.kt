@@ -9,6 +9,7 @@ import androidx.navigation.navigation
 import com.serranoie.app.itinero.feature.auth.ui.forgotpass.ForgotPasswordScreen
 import com.serranoie.app.itinero.feature.auth.ui.login.AuthScreen
 import com.serranoie.app.itinero.feature.auth.ui.register.RegisterScreen
+import com.serranoie.app.itinero.feature.bills.ExpenseDetailsScreen
 import com.serranoie.app.itinero.feature.bills.ExpensesScreen
 import com.serranoie.app.itinero.feature.bills.ExpenseItem
 import com.serranoie.app.itinero.feature.chat.ChatScreen
@@ -154,9 +155,7 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
         }
 
         composable(route = Route.Chat.route) {
-            // TODO: Testing porpoises
-            TripSettingsScreen(navController = navController)
-            //ChatScreen(navController = navController)
+            ChatScreen(navController = navController)
         }
 
         composable(route = Route.Expenses.route) {
@@ -164,6 +163,14 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
                 navController = navController,
                 expenses = mockExpenses
             )
+        }
+
+        composable(route = Route.AddExpense.route) {
+            ExpenseDetailsScreen(navController)
+        }
+
+        composable(route = Route.TripSettings.route) {
+            TripSettingsScreen(navController = navController)
         }
     }
 }

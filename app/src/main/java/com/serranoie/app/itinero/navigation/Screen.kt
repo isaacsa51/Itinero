@@ -11,5 +11,7 @@ enum class Screen {
     ABOUT,
     CHAT,
     EXPENSES,
-    ITINERARY
+    ADD_EXPENSE,
+    ITINERARY,
+    TRIP_SETTINGS,
 }

@@ -1,15 +1,6 @@
 package com.serranoie.app.itinero.feature.home.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,12 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Person2
-import androidx.compose.material.icons.rounded.Person4
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -45,12 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -58,6 +42,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.IFilledTextField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
+import com.serranoie.app.itinero.navigation.Screen
 import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
 
 @Composable
@@ -79,13 +64,13 @@ fun HomeScreen(navController: NavHostController = rememberNavController()) {
                 .verticalScroll(rememberScrollState(), true)
                 .padding(paddingValues)
         ) {
-            TripDetailsScreen()
+            TripDetailsScreen(navController)
         }
     }
 }
 
 @Composable
-fun TripDetailsScreen() {
+fun TripDetailsScreen(navController: NavHostController) {
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(true) }
     var isInviteExpanded by remember { mutableStateOf(false) }
@@ -104,7 +89,6 @@ fun TripDetailsScreen() {
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
             titleStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
         ) {
-            // Content remains the same
             Text(
                 text = "map sdk location holder",
                 style = MaterialTheme.typography.bodyMedium,
@@ -129,7 +113,7 @@ fun TripDetailsScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         DestinationCard(
-            country = "Germany", route = "Country 1 > Country 2", flightTime = "2 h 25 min flight"
+            country = "Germany", route = "Country 1 > Country 2", flightTime = "2 h 25 min flight", navController = navController
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -199,7 +183,12 @@ fun TripDetailsScreen() {
 }
 
 @Composable
-fun DestinationCard(country: String, route: String, flightTime: String) {
+fun DestinationCard(
+    country: String,
+    route: String,
+    flightTime: String,
+    navController: NavHostController
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -223,7 +212,7 @@ fun DestinationCard(country: String, route: String, flightTime: String) {
                 Icon(
                     imageVector = Icons.Filled.Settings,
                     contentDescription = "Settings",
-                    modifier = Modifier.clickable { /* Handle settings click */ },
+                    modifier = Modifier.clickable { navController.navigate(Screen.TRIP_SETTINGS.name) },
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
