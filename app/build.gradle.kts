@@ -46,7 +46,11 @@ dependencies {
     // Project modules
     implementation(project(":designsystem"))
     implementation(project(":core:domain"))
+    implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
     implementation(project(":di"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:onboard"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

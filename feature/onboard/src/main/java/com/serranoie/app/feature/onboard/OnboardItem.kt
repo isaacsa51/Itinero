@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.onboard.ui
+package com.serranoie.app.feature.onboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement

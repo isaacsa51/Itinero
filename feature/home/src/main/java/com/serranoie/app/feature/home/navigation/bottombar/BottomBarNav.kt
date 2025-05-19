@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.navigation.bottombar
+package com.serranoie.app.feature.home.navigation.bottombar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Message
@@ -13,10 +13,10 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.serranoie.app.itinero.navigation.Screen
+import com.serranoie.app.core.navigation.Screen
+import com.serranoie.app.feature.onboard.navigation.bottombar.NavigationItem
 
 @Composable
 fun BottomBarNav(
@@ -59,7 +59,7 @@ fun BottomBarNav(
                 Icon(imageVector = item.icon, contentDescription = item.title)
             }, label = {
                 Text(
-                    item.title, /*color = if (isSelected) Color.Black else Color.Gray*/
+                    item.title,
                 )
             }, colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.surface,

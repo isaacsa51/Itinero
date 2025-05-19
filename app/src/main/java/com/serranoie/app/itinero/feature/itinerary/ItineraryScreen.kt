@@ -48,7 +48,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
-import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
+import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.MoreVert
@@ -47,12 +46,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.IFilledTextField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
-import com.serranoie.app.itinero.navigation.Screen
-import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
+import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

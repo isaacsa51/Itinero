@@ -19,10 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.theme.ItineroTheme
 import com.serranoie.app.itinero.navigation.NavGraph
-import com.serranoie.app.itinero.navigation.Route
-import com.serranoie.app.itinero.navigation.Screen
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
@@ -55,7 +54,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize(),
                 ) {
                     // ! TODO: Validate an change depending on what to test, ideally this needs to be handled using shared prefs after passing onboarding
-                    val startDestination = Route.HomeNavigation.route
+                    val startDestination = Route.AppStartNavigation.route
 
                     NavGraph(navController, startDestination)
                 }

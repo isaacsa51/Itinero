@@ -1,7 +1,7 @@
-package com.serranoie.app.itinero.feature.onboard.ui
+package com.serranoie.app.feature.onboard
 
 import androidx.annotation.DrawableRes
-import com.serranoie.app.itinero.R
+import com.serranoie.itinero.feature.onboard.R
 
 data class Page(
     val title: String,

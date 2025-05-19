@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.navigation.bottombar
+package com.serranoie.app.feature.onboard.navigation.bottombar
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

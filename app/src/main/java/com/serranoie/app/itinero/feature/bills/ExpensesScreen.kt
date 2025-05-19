@@ -45,12 +45,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
-import com.serranoie.app.itinero.navigation.Screen
-import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
+import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
 
