@@ -172,6 +172,10 @@ fun NavGraphBuilder.homeNavigation(navController: NavHostController) {
         composable(route = Route.TripSettings.route) {
             TripSettingsScreen(navController = navController)
         }
+
+        composable(route = Route.TripInfo.route) {
+            TripInfoSettingsScreen(navController = navController)
+        }
     }
 }
 

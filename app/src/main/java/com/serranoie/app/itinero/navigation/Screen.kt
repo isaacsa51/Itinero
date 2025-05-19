@@ -14,4 +14,5 @@ enum class Screen {
     ADD_EXPENSE,
     ITINERARY,
     TRIP_SETTINGS,
+    TRIP_INFO,
 }

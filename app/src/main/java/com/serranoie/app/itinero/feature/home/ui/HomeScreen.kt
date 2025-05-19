@@ -13,18 +13,25 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,8 +40,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -45,19 +54,37 @@ import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 import com.serranoie.app.itinero.navigation.Screen
 import com.serranoie.app.itinero.navigation.bottombar.BottomBarNav
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController = rememberNavController()) {
-    Scaffold(
-        bottomBar = { BottomBarNav(navController = navController) },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = { /* Handle FAB click */ },
-                icon = { Icon(Icons.Rounded.AddCircleOutline, contentDescription = "Add") },
-                text = { Text("Add Trip") },
-                expanded = true
-            )
-        }
-    ) { paddingValues ->
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+
+    Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
+        TopAppBar(
+            title = {
+                Text(
+                    "Itinero", maxLines = 1, overflow = TextOverflow.Ellipsis
+                )
+            },
+            actions = {
+                IconButton(onClick = { navController.navigate(Screen.TRIP_INFO.name) }) {
+                    Icon(
+                        imageVector = Icons.Rounded.MoreVert,
+                        contentDescription = "Localized description"
+                    )
+                }
+            },
+            scrollBehavior = scrollBehavior,
+        )
+    }, bottomBar = { BottomBarNav(navController = navController) }, floatingActionButton = {
+        ExtendedFloatingActionButton(
+            onClick = { /* Handle FAB click */ },
+            icon = { Icon(Icons.Rounded.AddCircleOutline, contentDescription = "Add") },
+            text = { Text("Add Trip") },
+            expanded = true
+        )
+    }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -113,7 +140,10 @@ fun TripDetailsScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         DestinationCard(
-            country = "Germany", route = "Country 1 > Country 2", flightTime = "2 h 25 min flight", navController = navController
+            country = "Germany",
+            route = "Country 1 > Country 2",
+            flightTime = "2 h 25 min flight",
+            navController = navController
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -122,15 +152,13 @@ fun TripDetailsScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             DateInfoCard(
-                title = "Travel date", 
-                value = "5 days", 
+                title = "Travel date",
+                value = "5 days",
                 subtitle = "08/02/2025 - 13/02/2025",
                 modifier = Modifier.weight(1f)
             )
             PeopleInfoCard(
-                confirmedCount = 3, 
-                names = listOf("Isaac", "Name"),
-                modifier = Modifier.weight(1f)
+                confirmedCount = 3, names = listOf("Isaac", "Name"), modifier = Modifier.weight(1f)
             )
         }
 
@@ -184,10 +212,7 @@ fun TripDetailsScreen(navController: NavHostController) {
 
 @Composable
 fun DestinationCard(
-    country: String,
-    route: String,
-    flightTime: String,
-    navController: NavHostController
+    country: String, route: String, flightTime: String, navController: NavHostController
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -208,7 +233,7 @@ fun DestinationCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                
+
                 Icon(
                     imageVector = Icons.Filled.Settings,
                     contentDescription = "Settings",
@@ -226,12 +251,10 @@ fun DestinationCard(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = route,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = route, style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = flightTime,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = flightTime, style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -247,19 +270,25 @@ fun DateInfoCard(
     cardColors: CardColors = CardDefaults.elevatedCardColors(),
 ) {
     OutlinedCard(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = cardColors
+        modifier = modifier, shape = RoundedCornerShape(16.dp), colors = cardColors
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(text = title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline
+            )
             Text(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
-            Text(text = subtitle, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -271,35 +300,38 @@ fun PeopleInfoCard(
     modifier: Modifier = Modifier,
     cardColors: CardColors = CardDefaults.elevatedCardColors(),
 ) {
-   OutlinedCard(
-       modifier = modifier,
-       shape = RoundedCornerShape(16.dp),
-       colors = cardColors,
-   ){
-       Column(
-           modifier = Modifier.padding(16.dp)
-       ) {
-           Text(text = "People", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-           Text(
-               text = "$confirmedCount total",
-               style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-           )
-           Row(
-               modifier = Modifier.padding(top = 4.dp),
-               verticalAlignment = Alignment.CenterVertically
-           ) {
-               names.take(names.size).forEach {
-                   Icon(
-                       imageVector = Icons.Rounded.SupervisedUserCircle,
-                       contentDescription = null
-                   )
-               }
-               if (names.size > 2) {
-                   Text(text = "+${names.size - 2}", color = MaterialTheme.colorScheme.outline)
-               }
-           }
-       }
-   }
+    OutlinedCard(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = cardColors,
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "People",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline
+            )
+            Text(
+                text = "$confirmedCount total",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+            )
+            Row(
+                modifier = Modifier.padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                names.take(names.size).forEach {
+                    Icon(
+                        imageVector = Icons.Rounded.SupervisedUserCircle, contentDescription = null
+                    )
+                }
+                if (names.size > 2) {
+                    Text(text = "+${names.size - 2}", color = MaterialTheme.colorScheme.outline)
+                }
+            }
+        }
+    }
 }
 
 @Composable

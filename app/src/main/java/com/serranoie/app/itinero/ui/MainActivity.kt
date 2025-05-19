@@ -53,7 +53,6 @@ class MainActivity : ComponentActivity() {
                         )
                         .imePadding()
                         .fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
                 ) {
                     // ! TODO: Validate an change depending on what to test, ideally this needs to be handled using shared prefs after passing onboarding
                     val startDestination = Route.HomeNavigation.route

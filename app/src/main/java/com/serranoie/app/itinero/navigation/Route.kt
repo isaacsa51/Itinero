@@ -23,6 +23,12 @@ sealed class Route(val route: String) {
     data object AddExpense : Route(Screen.ADD_EXPENSE.name)
     data object Chat : Route(Screen.CHAT.name)
     data object TripSettings : Route(Screen.TRIP_SETTINGS.name)
+    data object TripInfo : Route(Screen.TRIP_INFO.name)
+//    data object Settings : Route(Screen.SETTINGS.name)
+//    data object Profile : Route(Screen.PROFILE.name)
+//    data object Notifications : Route(Screen.NOTIFICATIONS.name)
+//    data object Help : Route(Screen.HELP.name)
+//    data object PrivacyPolicy : Route(Screen.PRIVACY_POLICY.name)
 
 //    data class Edit(val itemId: Int) : Route("edit/$itemId") {
 //        companion object {
