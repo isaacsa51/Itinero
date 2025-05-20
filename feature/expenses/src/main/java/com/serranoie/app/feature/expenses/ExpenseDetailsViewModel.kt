@@ -1,15 +1,14 @@
-package com.serranoie.app.itinero.feature.bills
+package com.serranoie.app.feature.expenses
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import com.serranoie.app.itinero.utils.ExpenseCategory
 import kotlin.math.abs
 
 class ExpenseDetailsViewModel : ViewModel() {

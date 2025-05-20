@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.utils
+package com.serranoie.app.feature.expenses.util
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard

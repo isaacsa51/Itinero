@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.utils
+package com.serranoie.app.feature.expenses.util
 
 enum class CurrencyType(val displayName: String) {
     USD("US Dollar"),

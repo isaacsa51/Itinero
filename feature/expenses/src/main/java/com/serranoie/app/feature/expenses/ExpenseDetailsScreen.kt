@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.bills
+package com.serranoie.app.feature.expenses
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -43,7 +43,6 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
@@ -87,11 +86,13 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
+import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.card.IButton
-import com.serranoie.app.itinero.feature.bills.components.SelectField
-import com.serranoie.app.itinero.utils.ExpenseCategory
-import com.serranoie.app.itinero.utils.icon
+import com.serranoie.app.feature.expenses.util.ExpenseCategory
+import com.serranoie.app.feature.expenses.util.icon
+import java.time.Instant
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 
@@ -867,14 +868,14 @@ fun DatePickerDialog(
         initialDisplayMode = DisplayMode.Picker
     )
 
-    DatePickerDialog(
+    androidx.compose.material3.DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(
                 onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val localDate = java.time.Instant.ofEpochMilli(millis)
-                            .atZone(java.time.ZoneId.systemDefault())
+                        val localDate = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.systemDefault())
                             .toLocalDate()
                         onDateSelected(localDate.format(dateFormatter))
                     }
@@ -908,7 +909,3 @@ private fun ExpenseDetailsScreenPreview() {
         ExpenseDetailsScreen(navController = rememberNavController())
     }
 }
-
-data class DropdownItem(
-    val icon: ImageVector, val title: String
-)

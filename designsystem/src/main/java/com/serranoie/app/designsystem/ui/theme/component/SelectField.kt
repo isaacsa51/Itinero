@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.bills.components
+package com.serranoie.app.designsystem.ui.theme.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable

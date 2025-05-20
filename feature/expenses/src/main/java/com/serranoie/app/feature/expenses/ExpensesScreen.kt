@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.bills
+package com.serranoie.app.feature.expenses
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -50,8 +50,6 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
-import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
-import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +78,7 @@ fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<E
                 })
             }, scrollBehavior = scrollBehavior
         )
-    }, bottomBar = { BottomBarNav(navController = navController) }, floatingActionButton = {
+    }, bottomBar = { /*BottomBarNav(navController = navController)*/ }, floatingActionButton = {
         FloatingActionButton(
             onClick = { navController.navigate(Screen.ADD_EXPENSE.name) },
             content = { Icon(Icons.Rounded.Add, contentDescription = "Add") },
@@ -327,3 +325,6 @@ data class ExpenseItem(
     val icon: ImageVector = Icons.Default.Money,
 )
 
+fun generateDateRange(start: LocalDate, end: LocalDate): List<LocalDate> {
+    return generateSequence(start) { it.plusDays(1) }.takeWhile { it <= end }.toList()
+}
