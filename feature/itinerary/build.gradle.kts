@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.serranoie.app.feature.expenses"
+    namespace = "com.serranoie.app.feature.itinerary"
     compileSdk = 35
 
     defaultConfig {
@@ -37,11 +37,11 @@ android {
 
 dependencies {
 
+    implementation(project(":app"))
     implementation(project(":designsystem"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
     implementation(project(":di"))
-    implementation(project(":app"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

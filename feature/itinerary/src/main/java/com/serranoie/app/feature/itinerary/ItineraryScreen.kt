@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.itinerary
+package com.serranoie.app.feature.itinerary
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -33,12 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -48,10 +46,8 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
-import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,7 +89,7 @@ fun ItineraryScreen(
                 scrollBehavior = scrollBehavior
             )
         },
-        bottomBar = { BottomBarNav(navController = navController) },
+        bottomBar = { /*BottomBarNav(navController = navController)*/ },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { /* Handle FAB click */ },

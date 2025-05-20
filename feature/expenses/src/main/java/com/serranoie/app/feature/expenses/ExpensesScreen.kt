@@ -50,6 +50,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
+import com.serranoie.app.itinero.utils.generateDateRange
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -324,7 +325,3 @@ data class ExpenseItem(
     val isYours: Boolean = false,
     val icon: ImageVector = Icons.Default.Money,
 )
-
-fun generateDateRange(start: LocalDate, end: LocalDate): List<LocalDate> {
-    return generateSequence(start) { it.plusDays(1) }.takeWhile { it <= end }.toList()
-}
