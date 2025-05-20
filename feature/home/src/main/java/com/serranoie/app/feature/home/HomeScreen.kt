@@ -77,7 +77,7 @@ fun HomeScreen(navController: NavHostController = rememberNavController()) {
             },
             scrollBehavior = scrollBehavior,
         )
-    }, bottomBar = { BottomBarNav(navController = navController) }, floatingActionButton = {
+    }, floatingActionButton = {
         ExtendedFloatingActionButton(
             onClick = { /* Handle FAB click */ },
             icon = { Icon(Icons.Rounded.AddCircleOutline, contentDescription = "Add") },

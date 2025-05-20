@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.serranoie.app.feature.auth.navigation.AuthNavigationGraph
-import com.serranoie.app.feature.home.navigation.HomeNavigationGraph
 import com.serranoie.app.feature.onboard.navigation.OnboardNavigationGraph
 
 @Composable

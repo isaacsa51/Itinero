@@ -46,7 +46,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
-import com.serranoie.app.itinero.utils.generateDateRange
+import com.serranoie.app.feature.itinerary.util.generateDateRange
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,7 +89,6 @@ fun ItineraryScreen(
                 scrollBehavior = scrollBehavior
             )
         },
-        bottomBar = { /*BottomBarNav(navController = navController)*/ },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { /* Handle FAB click */ },

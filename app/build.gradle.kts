@@ -52,6 +52,9 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:onboard"))
     implementation(project(":feature:auth"))
+    implementation(project(":feature:itinerary"))
+    implementation(project(":feature:expenses"))
+    implementation(project(":feature:chat"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

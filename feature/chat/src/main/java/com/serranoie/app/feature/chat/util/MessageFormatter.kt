@@ -104,7 +104,7 @@ private fun getSymbolAnnotation(
                     fontWeight = FontWeight.Bold
                 )
             ),
-            com.serranoie.app.feature.chat.StringAnnotation(
+            StringAnnotation(
                 item = matchResult.value.substring(1),
                 start = matchResult.range.first,
                 end = matchResult.range.last,
@@ -156,7 +156,7 @@ private fun getSymbolAnnotation(
                     color = if (primary) colorScheme.inversePrimary else colorScheme.primary
                 )
             ),
-            com.serranoie.app.feature.chat.StringAnnotation(
+            StringAnnotation(
                 item = matchResult.value,
                 start = matchResult.range.first,
                 end = matchResult.range.last,

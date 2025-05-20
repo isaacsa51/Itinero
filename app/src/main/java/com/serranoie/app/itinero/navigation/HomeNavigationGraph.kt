@@ -1,4 +1,4 @@
-package com.serranoie.app.feature.home.navigation
+package com.serranoie.app.itinero.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -6,7 +6,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.serranoie.app.core.navigation.NavigationGraph
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.feature.home.HomeScreen
+import com.serranoie.app.core.navigation.Screen
+import com.serranoie.app.itinero.ui.HomeRootScreen
 
 class HomeNavigationGraph : NavigationGraph {
     override fun NavGraphBuilder.build(navController: NavHostController) {
@@ -15,7 +16,7 @@ class HomeNavigationGraph : NavigationGraph {
             startDestination = Route.Home.route
         ) {
             composable(Route.Home.route) {
-                HomeScreen(navController)
+                HomeRootScreen()
             }
         }
     }
