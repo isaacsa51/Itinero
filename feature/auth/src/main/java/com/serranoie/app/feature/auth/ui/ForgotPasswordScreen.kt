@@ -24,7 +24,7 @@ import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
-import com.serranoie.app.designsystem.ui.theme.component.card.IButton
+import com.serranoie.app.designsystem.ui.theme.component.IButton
 
 @Composable
 fun ForgotPasswordScreen(navController: NavHostController) {

@@ -1,7 +1,6 @@
-package com.serranoie.app.itinero.feature.settings.trip
+package com.serranoie.app.designsystem.ui.theme.component
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -36,7 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import androidx.core.net.toUri
 
 /**

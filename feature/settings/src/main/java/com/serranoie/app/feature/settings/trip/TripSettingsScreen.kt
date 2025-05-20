@@ -19,9 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.AddCircleOutline
@@ -47,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -59,8 +56,8 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.OtpInputField
-import com.serranoie.app.designsystem.ui.theme.component.card.ButtonImportance
-import com.serranoie.app.designsystem.ui.theme.component.card.IButton
+import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
 
 @OptIn(ExperimentalMaterial3Api::class)

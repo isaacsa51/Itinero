@@ -28,8 +28,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.theme.UiUtils.MediumPadding1
-import com.serranoie.app.designsystem.ui.theme.component.card.IIconButton
-import com.serranoie.app.designsystem.ui.theme.component.card.ITextButton
+import com.serranoie.app.designsystem.ui.theme.component.IIconButton
+import com.serranoie.app.designsystem.ui.theme.component.ITextButton
 import kotlinx.coroutines.launch
 
 @Composable

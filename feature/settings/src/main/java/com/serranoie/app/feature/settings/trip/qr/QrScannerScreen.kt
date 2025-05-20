@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.settings.trip.qr
+package com.serranoie.app.feature.settings.trip.qr
 
 import android.content.ClipData
 import android.content.ClipboardManager
