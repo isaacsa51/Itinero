@@ -17,7 +17,7 @@ class OnboardNavigationGraph : NavigationGraph {
             composable(route = Route.Onboarding.route) {
                 OnboardScreen(
                     onFinished = {
-                        navController.navigate(Route.HomeNavigation.route) {
+                        navController.navigate(Route.AuthNavigation.route) {
                             popUpTo(Route.AppStartNavigation.route) { inclusive = true }
                         }
                     }

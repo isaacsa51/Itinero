@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.auth.ui.forgotpass
+package com.serranoie.app.feature.auth.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,8 +23,8 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.card.IButton
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
+import com.serranoie.app.designsystem.ui.theme.component.card.IButton
 
 @Composable
 fun ForgotPasswordScreen(navController: NavHostController) {
@@ -45,11 +45,13 @@ fun ForgotPasswordScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Remember to enter the email address associated with your account.", style = typography.titleMedium
+                text = "Remember to enter the email address associated with your account.",
+                style = typography.titleMedium
             )
 
             Text(
-                text = "This will help you receive a password recovery email with instructions on how to reset your password.", style = typography.bodySmall
+                text = "This will help you receive a password recovery email with instructions on how to reset your password.",
+                style = typography.bodySmall
             )
 
             Spacer(modifier = Modifier.height(8.dp))
