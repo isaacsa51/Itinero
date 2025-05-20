@@ -50,30 +50,40 @@ fun OnboardItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .fillMaxHeight()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Image(
-                modifier = modifier
+            Column(
+                modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.60F),
-                painter = painterResource(id = page.image),
-                contentDescription = null,
-                contentScale = ContentScale.Fit
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                modifier = Modifier.padding(horizontal = 30.dp),
-                text = page.title,
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-            )
-            Text(
-                modifier = Modifier.padding(horizontal = 30.dp),
-                text = page.description,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+                    .weight(1f),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.30F),
+                    painter = painterResource(id = page.image),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    text = page.title,
+                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                )
+                Text(
+                    modifier = Modifier.padding(horizontal = 30.dp),
+                    text = page.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
 
             Row(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,

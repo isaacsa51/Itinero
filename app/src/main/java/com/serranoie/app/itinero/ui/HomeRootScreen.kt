@@ -13,7 +13,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.feature.chat.ChatScreen
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
