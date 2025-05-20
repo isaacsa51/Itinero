@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.chat
+package com.serranoie.app.feature.chat
 
 import android.content.ClipDescription
 import androidx.compose.foundation.Image
@@ -32,10 +32,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -76,7 +76,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.itinero.R
+import com.serranoie.app.designsystem.ui.theme.component.JumpToBottom
+import com.serranoie.app.designsystem.ui.theme.component.UserInput
+import com.serranoie.app.feature.chat.util.SymbolAnnotationType
+import com.serranoie.app.feature.chat.util.messageFormatter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,8 +141,8 @@ fun ChatScreen(navController: NavController) {
                 timestamp = "10:30 AM",
                 isMe = true,
                 author = "Me",
-                authorImage = R.drawable.ic_launcher_foreground,
-                image = R.drawable.ic_launcher_foreground
+                authorImage = R.drawable.ic_avatar,
+                image = R.drawable.ic_avatar
             ),
             Message(
                 id = 2,
@@ -147,8 +150,8 @@ fun ChatScreen(navController: NavController) {
                 timestamp = "10:32 AM",
                 isMe = false,
                 author = "Alex",
-                authorImage = R.drawable.ic_launcher_foreground,
-                image = R.drawable.ic_launcher_foreground
+                authorImage = R.drawable.ic_avatar,
+                image = R.drawable.ic_avatar
             ),
             Message(
                 id = 3,
@@ -156,8 +159,8 @@ fun ChatScreen(navController: NavController) {
                 timestamp = "10:34 AM",
                 isMe = true,
                 author = "Me",
-                authorImage = R.drawable.ic_launcher_foreground,
-                image = R.drawable.ic_launcher_background
+                authorImage = R.drawable.ic_avatar,
+                image = R.drawable.ic_avatar
             ),
             Message(
                 id = 4,
@@ -165,8 +168,8 @@ fun ChatScreen(navController: NavController) {
                 timestamp = "10:36 AM",
                 isMe = false,
                 author = "Sarah",
-                authorImage = R.drawable.ic_launcher_foreground,
-                image = R.drawable.ic_launcher_foreground
+                authorImage = R.drawable.ic_avatar,
+                image = R.drawable.ic_avatar
             ),
             Message(
                 id = 5,
@@ -174,8 +177,8 @@ fun ChatScreen(navController: NavController) {
                 timestamp = "10:40 AM",
                 isMe = false,
                 author = "Mike",
-                authorImage = R.drawable.ic_launcher_foreground,
-                image = R.drawable.ic_launcher_foreground
+                authorImage = R.drawable.ic_avatar,
+                image = R.drawable.ic_avatar
             ),
             Message(
                 id = 6,
@@ -183,8 +186,8 @@ fun ChatScreen(navController: NavController) {
                 timestamp = "10:42 AM",
                 isMe = true,
                 author = "Me",
-                authorImage = R.drawable.ic_launcher_foreground,
-                image = R.drawable.ic_launcher_foreground
+                authorImage = R.drawable.ic_avatar,
+                image = R.drawable.ic_avatar
             ),
             Message(
                 id = 7,
@@ -192,8 +195,8 @@ fun ChatScreen(navController: NavController) {
                 timestamp = "10:45 AM",
                 isMe = false,
                 author = "Sarah",
-                authorImage = R.drawable.ic_launcher_foreground,
-                image = R.drawable.ic_launcher_foreground
+                authorImage = R.drawable.ic_avatar,
+                image = R.drawable.ic_avatar
             )
         )
     }
@@ -470,7 +473,7 @@ fun DayHeader(dayString: String) {
 
 @Composable
 private fun RowScope.DayHeaderLine() {
-    Divider(
+    HorizontalDivider(
         modifier = Modifier
             .weight(1f)
             .align(Alignment.CenterVertically),

@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.chat
+package com.serranoie.app.feature.chat.util
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -104,7 +104,7 @@ private fun getSymbolAnnotation(
                     fontWeight = FontWeight.Bold
                 )
             ),
-            StringAnnotation(
+            com.serranoie.app.feature.chat.StringAnnotation(
                 item = matchResult.value.substring(1),
                 start = matchResult.range.first,
                 end = matchResult.range.last,
@@ -156,7 +156,7 @@ private fun getSymbolAnnotation(
                     color = if (primary) colorScheme.inversePrimary else colorScheme.primary
                 )
             ),
-            StringAnnotation(
+            com.serranoie.app.feature.chat.StringAnnotation(
                 item = matchResult.value,
                 start = matchResult.range.first,
                 end = matchResult.range.last,

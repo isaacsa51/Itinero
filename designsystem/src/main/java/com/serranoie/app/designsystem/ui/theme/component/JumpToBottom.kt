@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.chat
+package com.serranoie.app.designsystem.ui.theme.component
 
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition

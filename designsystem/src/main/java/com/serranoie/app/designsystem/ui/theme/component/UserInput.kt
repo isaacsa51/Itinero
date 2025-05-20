@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.chat
+package com.serranoie.app.designsystem.ui.theme.component
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -42,7 +42,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AlternateEmail
-import androidx.compose.material.icons.outlined.Duo
 import androidx.compose.material.icons.outlined.InsertPhoto
 import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material.icons.outlined.Place
