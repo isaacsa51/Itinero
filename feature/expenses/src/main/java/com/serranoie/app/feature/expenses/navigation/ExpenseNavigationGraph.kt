@@ -10,6 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Shop
+import com.serranoie.app.feature.expenses.AddExpenseScreen
+import com.serranoie.app.feature.expenses.ExpenseDetailsScreen
+import com.serranoie.app.feature.expenses.ExpenseDetailsViewModel
 import java.time.LocalDate
 
 fun NavGraphBuilder.expensesGraph(navController: NavController) {
@@ -65,6 +68,18 @@ fun NavGraphBuilder.expensesGraph(navController: NavController) {
         ExpensesScreen(
             navController = navController,
             expenses = mockExpenses
+        )
+    }
+
+    composable(Route.AddExpense.route) {
+        AddExpenseScreen(
+            navController = navController,
+        )
+    }
+
+    composable(Route.ExpenseDetails.route) {
+        ExpenseDetailsScreen(
+            navController = navController,
         )
     }
 }

@@ -28,14 +28,11 @@ fun BottomBarNav(
     val navigationItems = listOf(
         NavigationItem(
             title = "Home", icon = Icons.Rounded.Home, route = Screen.HOME.name
-        ),
-        NavigationItem(
+        ), NavigationItem(
             title = "Itinerary", icon = Icons.Rounded.LibraryAddCheck, route = Screen.ITINERARY.name
-        ),
-        NavigationItem(
+        ), NavigationItem(
             title = "Expenses", icon = Icons.Rounded.MonetizationOn, route = Screen.EXPENSES.name
-        ),
-        NavigationItem(
+        ), NavigationItem(
             title = "Chat", icon = Icons.AutoMirrored.Rounded.Message, route = Screen.CHAT.name
         )
     )
@@ -46,25 +43,25 @@ fun BottomBarNav(
 
             NavigationBarItem(
                 selected = isSelected, onClick = {
-                if (currentRoute != item.route) {
-                    navController.navigate(item.route) {
-                        popUpTo(Screen.HOME.name) {
-                            saveState = true
+                    if (currentRoute != item.route) {
+                        navController.navigate(item.route) {
+                            popUpTo(Screen.HOME.name) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                }
-            }, icon = {
-                Icon(imageVector = item.icon, contentDescription = item.title)
-            }, label = {
-                Text(
-                    item.title,
+                }, icon = {
+                    Icon(imageVector = item.icon, contentDescription = item.title)
+                }, label = {
+                    Text(
+                        item.title,
+                    )
+                }, colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.surface,
+                    indicatorColor = MaterialTheme.colorScheme.primary
                 )
-            }, colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.surface,
-                indicatorColor = MaterialTheme.colorScheme.primary
-            )
             )
         }
     }

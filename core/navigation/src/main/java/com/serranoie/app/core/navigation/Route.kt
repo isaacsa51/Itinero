@@ -9,6 +9,7 @@ sealed class Route(val route: String) {
     data object Itinerary : Route(Screen.ITINERARY.name)
     data object Expenses : Route(Screen.EXPENSES.name)
     data object AddExpense : Route(Screen.ADD_EXPENSE.name)
+    data object ExpenseDetails : Route(Screen.EXPENSE_DETAILS.name)
     data object Chat : Route(Screen.CHAT.name)
     data object TripSettings : Route(Screen.TRIP_SETTINGS.name)
     data object TripInfo : Route(Screen.TRIP_INFO.name)

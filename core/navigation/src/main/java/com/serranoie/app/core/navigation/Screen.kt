@@ -12,6 +12,7 @@ enum class Screen {
     CHAT,
     EXPENSES,
     ADD_EXPENSE,
+    EXPENSE_DETAILS,
     ITINERARY,
     TRIP_SETTINGS,
     TRIP_INFO,

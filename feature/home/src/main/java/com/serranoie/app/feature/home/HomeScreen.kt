@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
 import androidx.compose.material3.Card
@@ -44,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Screen
@@ -66,14 +68,6 @@ fun HomeScreen(navController: NavHostController = rememberNavController()) {
                 Text(
                     "Itinero", maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
-            },
-            actions = {
-                IconButton(onClick = { navController.navigate(Screen.TRIP_INFO.name) }) {
-                    Icon(
-                        imageVector = Icons.Rounded.MoreVert,
-                        contentDescription = "Localized description"
-                    )
-                }
             },
             scrollBehavior = scrollBehavior,
         )
@@ -206,7 +200,7 @@ fun TripDetailsScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TravelInfoCard()
+        TravelInfoCard(navController)
     }
 }
 
@@ -335,12 +329,26 @@ fun PeopleInfoCard(
 }
 
 @Composable
-fun TravelInfoCard() {
+fun TravelInfoCard(navController: NavController) {
     Column {
-        Text(
-            text = "Travel Information",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Travel Information",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            IconButton(onClick = { navController.navigate(Screen.TRIP_INFO.name) }) {
+                Icon(
+                    imageVector = Icons.Rounded.Edit,
+                    contentDescription = "More travel information options"
+                )
+            }
+        }
 
         IFilledTextField(
             modifier = Modifier
