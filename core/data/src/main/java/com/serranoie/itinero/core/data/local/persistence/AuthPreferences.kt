@@ -1,28 +1,18 @@
 package com.serranoie.itinero.core.data.local.persistence
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import androidx.core.content.edit
 
-private val Context.dataStore by preferencesDataStore(name = "auth_preferences")
+class AuthPreferences(context: Context) {
+    private val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
-class AuthPreferences(private val context: Context) {
-
-    private val AUTH_TOKEN = stringPreferencesKey("auth_token")
-
-    suspend fun saveToken(token: String) {
-        context.dataStore.edit { preferences ->
-            preferences[AUTH_TOKEN] = token
-        }
+    fun saveToken(token: String) {
+        prefs.edit { putString("token", token) }
     }
 
-    suspend fun getToken(): String? {
-        return context.dataStore.data
-            .map { preferences ->
-                preferences[AUTH_TOKEN]
-            }.first()
+    fun getToken(): String? = prefs.getString("token", null)
+
+    fun clear() {
+        prefs.edit { clear() }
     }
 }

@@ -1,6 +1,6 @@
 package com.serranoie.itinero.core.domain.repository
 
-import com.serranoie.itinero.core.domain.model.AuthResult
+import com.serranoie.itinero.core.domain.result.AuthResult
 import com.serranoie.itinero.core.domain.model.RegisterRequest
 
 interface AuthRepository {

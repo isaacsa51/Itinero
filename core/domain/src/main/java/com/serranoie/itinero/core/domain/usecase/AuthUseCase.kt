@@ -1,6 +1,6 @@
 package com.serranoie.itinero.core.domain.usecase
 
-import com.serranoie.itinero.core.domain.model.AuthResult
+import com.serranoie.itinero.core.domain.result.AuthResult
 import com.serranoie.itinero.core.domain.model.RegisterRequest
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 
@@ -21,7 +21,7 @@ class RegisterUseCase(private val repo: AuthRepository) {
 }
 
 class GetAuthTokenUseCase(private val repo: AuthRepository) {
-    operator fun invoke() : String? = repo.getAuthToken()
+    suspend operator fun invoke() : String? = repo.getAuthToken()
 }
 
 class SaveAuthTokenUseCase(private val repo: AuthRepository) {
@@ -29,5 +29,5 @@ class SaveAuthTokenUseCase(private val repo: AuthRepository) {
 }
 
 class LogoutUseCase(private val repo: AuthRepository) {
-//    operator fun invoke() = repo.logout()
+    suspend operator fun invoke() = repo.logout()
 }

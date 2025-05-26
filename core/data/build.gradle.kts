@@ -48,8 +48,12 @@ dependencies {
     // Ktor
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.darwin)
+    //implementation(libs.ktor.client.darwin)
 
     // Kotlin serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+
+    // Datastore preferences
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation("androidx.datastore:datastore-preferences-rxjava3:1.1.7")
 }

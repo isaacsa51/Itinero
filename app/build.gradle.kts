@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     id("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -80,15 +79,8 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.accompanist.permissions)
 
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.55")
-    annotationProcessor("com.google.dagger:hilt-compiler:2.55")
-        // For instrumentation tests
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.55")
-    androidTestAnnotationProcessor("com.google.dagger:hilt-compiler:2.55")
-        // For local unit tests
-    testImplementation("com.google.dagger:hilt-android-testing:2.55")
-    testAnnotationProcessor("com.google.dagger:hilt-compiler:2.55")
+    // Koin
+    implementation("io.insert-koin:koin-android:4.0.3")
 
     // Compose navigation
     implementation("androidx.navigation:navigation-compose:2.9.0")
