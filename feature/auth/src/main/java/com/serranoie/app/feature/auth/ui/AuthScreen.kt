@@ -41,20 +41,24 @@ import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystem.ui.theme.component.IPasswordField
-import com.serranoie.app.designsystem.ui.theme.component.ITextButton
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
+import com.serranoie.app.designsystem.ui.theme.component.ITextButton
+import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AuthScreen(navController: NavHostController) {
-    val viewModel: AuthViewModel = koinViewModel()
-    val uiState by viewModel.uiState.collectAsState()
+fun AuthScreen(
+    navController: NavHostController,
+    uiState: StateFlow<AuthUiState>,
+    onLogin: (String, String) -> Unit
+) {
+    val state by uiState.collectAsState()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Success) {
+    LaunchedEffect(state) {
+        if (state is AuthUiState.Success) {
             navController.navigate(Route.HomeNavigation.route) {
                 popUpTo(Route.AuthNavigation.route) { inclusive = true }
             }
@@ -122,22 +126,22 @@ fun AuthScreen(navController: NavHostController) {
 
             IButton(
                 onClick = {
-                    viewModel.login(email, password)
+                    onLogin(email, password)
                 },
                 text = {
-                    if (uiState is AuthUiState.Loading) {
+                    if (state is AuthUiState.Loading) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     } else {
                         Text("Log in")
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = uiState !is AuthUiState.Loading
+                enabled = state !is AuthUiState.Loading
             )
 
-            if (uiState is AuthUiState.Error) {
+            if (state is AuthUiState.Error) {
                 Text(
-                    text = (uiState as AuthUiState.Error).message,
+                    text = (state as AuthUiState.Error).message,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -207,6 +211,10 @@ fun AuthScreen(navController: NavHostController) {
 @Composable
 private fun AuthScreenPreview() {
     PreviewWrapper {
-        AuthScreen(navController = rememberNavController())
+        AuthScreen(
+            navController = rememberNavController(),
+            uiState = koinViewModel<AuthViewModel>().uiState,
+            onLogin = { _, _ -> }
+        )
     }
 }

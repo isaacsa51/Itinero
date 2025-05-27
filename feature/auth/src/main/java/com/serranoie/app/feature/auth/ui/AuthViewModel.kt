@@ -2,16 +2,16 @@ package com.serranoie.app.feature.auth.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import com.serranoie.itinero.core.domain.model.RegisterRequest
+import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 sealed interface AuthUiState {
-    object Idle : AuthUiState
-    object Loading : AuthUiState
+    data object Idle : AuthUiState
+    data object Loading : AuthUiState
     data class Success(val userName: String) : AuthUiState
     data class Error(val message: String) : AuthUiState
 }

@@ -45,6 +45,10 @@ import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystem.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.State
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 
 data class FieldValidation(
     val isValid: Boolean,
@@ -54,7 +58,8 @@ data class FieldValidation(
 @Composable
 fun RegisterScreen(
     navController: NavHostController,
-    viewModel: AuthViewModel = koinViewModel()
+    uiState: StateFlow<AuthUiState>,
+    onRegister: (String, String, String, String, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -65,10 +70,10 @@ fun RegisterScreen(
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val uiState by viewModel.uiState.collectAsState()
+    val state by uiState.collectAsState()
 
-    LaunchedEffect(uiState) {
-        when (uiState) {
+    LaunchedEffect(state) {
+        when (state) {
             is AuthUiState.Success -> {
                 navController.navigate(Route.HomeNavigation.route) {
                     popUpTo(Route.AuthNavigation.route) { inclusive = true }
@@ -76,7 +81,7 @@ fun RegisterScreen(
             }
 
             is AuthUiState.Error -> {
-                errorMessage = (uiState as AuthUiState.Error).message
+                errorMessage = (state as AuthUiState.Error).message
             }
 
             else -> Unit
@@ -167,17 +172,17 @@ fun RegisterScreen(
                         return@IButton
                     }
 
-                    viewModel.register(name, lastName, number, email, password)
+                    onRegister(name, lastName, number, email, password)
                 },
                 text = {
-                    if (uiState is AuthUiState.Loading) {
+                    if (state is AuthUiState.Loading) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     } else {
                         Text("Register")
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = uiState !is AuthUiState.Loading
+                enabled = state !is AuthUiState.Loading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -369,6 +374,12 @@ private fun validatePasswordConfirmation(password: String, confirmation: String)
 @Composable
 private fun RegisterScreenPreview() {
     PreviewWrapper {
-        RegisterScreen(navController = rememberNavController())
+        val navController = rememberNavController()
+        val viewModel = koinViewModel<AuthViewModel>()
+        RegisterScreen(
+            navController = navController,
+            uiState = viewModel.uiState,
+            onRegister = viewModel::register
+        )
     }
 }

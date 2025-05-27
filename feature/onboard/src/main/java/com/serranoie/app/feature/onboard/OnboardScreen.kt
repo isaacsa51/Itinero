@@ -11,13 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
-import org.koin.compose.koinInject
 
 @Composable
 fun OnboardScreen(
     onFinished: () -> Unit,
-    authPreferences: AuthPreferences = koinInject()
 ) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
@@ -35,10 +32,7 @@ fun OnboardScreen(
                 OnboardItem(
                     page = pages[pageIndex],
                     pagerState = pagerState,
-                    onFinished = {
-                        authPreferences.setOnboardingCompleted()
-                        onFinished()
-                    }
+                    onFinished = onFinished
                 )
             }
         }
