@@ -48,6 +48,9 @@ dependencies {
     // Ktor
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.core)
+    implementation("io.ktor:ktor-client-resources:2.3.12")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
     //implementation(libs.ktor.client.darwin)
 
     // Kotlin serialization
