@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:data"))
     implementation(project(":di"))
 
     implementation(libs.androidx.core.ktx)

@@ -56,10 +56,10 @@ class MainActivity : ComponentActivity() {
                         .imePadding()
                         .fillMaxSize(),
                 ) {
-                    val startDestination = if (authPreferences.isOnboardingCompleted()) {
-                        Route.AuthNavigation.route
-                    } else {
-                        Route.AppStartNavigation.route
+                    val startDestination = when {
+                        authPreferences.isUserLoggedIn() -> Route.HomeNavigation.route
+                        authPreferences.isOnboardingCompleted() -> Route.AuthNavigation.route
+                        else -> Route.AppStartNavigation.route
                     }
 
                     NavGraph(navController, startDestination)

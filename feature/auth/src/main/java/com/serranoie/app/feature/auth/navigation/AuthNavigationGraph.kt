@@ -19,6 +19,7 @@ class AuthNavigationGraph : NavigationGraph {
         ) {
             composable(route = Route.Authentication.route) {
                 val viewModel: AuthViewModel = koinViewModel()
+                
                 AuthScreen(
                     navController = navController,
                     uiState = viewModel.uiState,
@@ -28,6 +29,7 @@ class AuthNavigationGraph : NavigationGraph {
 
             composable(route = Route.Register.route) {
                 val viewModel: AuthViewModel = koinViewModel()
+                
                 RegisterScreen(
                     navController = navController,
                     uiState = viewModel.uiState,

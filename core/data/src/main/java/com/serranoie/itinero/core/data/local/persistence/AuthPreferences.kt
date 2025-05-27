@@ -18,6 +18,36 @@ class AuthPreferences(context: Context) {
 
     fun isOnboardingCompleted(): Boolean = prefs.getBoolean("onboarding_completed", false)
 
+    fun saveLoginStatus(isLoggedIn: Boolean, expirationTimeMillis: Long? = null) {
+        prefs.edit {
+            putBoolean("is_logged_in", isLoggedIn)
+            if (expirationTimeMillis != null) {
+                putLong("login_expiration", expirationTimeMillis)
+            }
+        }
+    }
+
+    fun isUserLoggedIn(): Boolean {
+        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
+        if (!isLoggedIn) return false
+
+        val expirationTime = prefs.getLong("login_expiration", 0L)
+        if (expirationTime > 0 && System.currentTimeMillis() > expirationTime) {
+            clearLoginStatus()
+            return false
+        }
+
+        return true
+    }
+
+    fun clearLoginStatus() {
+        prefs.edit {
+            remove("is_logged_in")
+            remove("login_expiration")
+            remove("token")
+        }
+    }
+
     fun clear() {
         prefs.edit { clear() }
     }
