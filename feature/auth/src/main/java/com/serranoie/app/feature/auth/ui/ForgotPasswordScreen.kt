@@ -26,10 +26,11 @@ import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 
+// ! TODO: Add functionality after backend is ready to send OTP to email.
+
 @Composable
 fun ForgotPasswordScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
-
 
     Scaffold(modifier = Modifier.padding(16.dp)) { paddingValues ->
         Column(
