@@ -11,9 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
+import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import org.koin.compose.koinInject
 
 @Composable
-fun OnboardScreen(onFinished: () -> Unit) {
+fun OnboardScreen(
+    onFinished: () -> Unit,
+    authPreferences: AuthPreferences = koinInject()
+) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
     Scaffold { innerPadding ->
@@ -30,7 +35,10 @@ fun OnboardScreen(onFinished: () -> Unit) {
                 OnboardItem(
                     page = pages[pageIndex],
                     pagerState = pagerState,
-                    onFinished = onFinished
+                    onFinished = {
+                        authPreferences.setOnboardingCompleted()
+                        onFinished()
+                    }
                 )
             }
         }

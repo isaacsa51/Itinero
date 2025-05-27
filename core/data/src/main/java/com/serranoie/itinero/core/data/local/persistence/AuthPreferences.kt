@@ -12,6 +12,12 @@ class AuthPreferences(context: Context) {
 
     fun getToken(): String? = prefs.getString("token", null)
 
+    fun setOnboardingCompleted() {
+        prefs.edit { putBoolean("onboarding_completed", true) }
+    }
+
+    fun isOnboardingCompleted(): Boolean = prefs.getBoolean("onboarding_completed", false)
+
     fun clear() {
         prefs.edit { clear() }
     }
