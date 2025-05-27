@@ -22,9 +22,12 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.theme.ItineroTheme
 import com.serranoie.app.itinero.navigation.NavGraph
+import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
+    private val authPreferences: AuthPreferences by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,8 +56,11 @@ class MainActivity : ComponentActivity() {
                         .imePadding()
                         .fillMaxSize(),
                 ) {
-                    // ! TODO: Validate an change depending on what to test, ideally this needs to be handled using shared prefs after passing onboarding
-                    val startDestination = Route.AppStartNavigation.route
+                    val startDestination = when {
+                        authPreferences.isUserLoggedIn() -> Route.HomeNavigation.route
+                        authPreferences.isOnboardingCompleted() -> Route.AuthNavigation.route
+                        else -> Route.AppStartNavigation.route
+                    }
 
                     NavGraph(navController, startDestination)
                 }

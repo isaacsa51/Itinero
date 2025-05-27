@@ -13,7 +13,9 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 
 @Composable
-fun OnboardScreen(onFinished: () -> Unit) {
+fun OnboardScreen(
+    onFinished: () -> Unit,
+) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
     Scaffold { innerPadding ->

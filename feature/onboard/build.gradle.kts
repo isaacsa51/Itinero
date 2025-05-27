@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":designsystem"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:data"))
     implementation(project(":di"))
 
     implementation(libs.androidx.core.ktx)
@@ -52,6 +53,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Koin
+    implementation("io.insert-koin:koin-android:4.0.3")
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
 
     // Compose navigation
     implementation("androidx.navigation:navigation-compose:2.9.0")

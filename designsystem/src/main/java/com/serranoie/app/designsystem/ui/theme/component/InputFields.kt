@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -43,6 +44,7 @@ fun ITextField(
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant
 ) {
@@ -55,6 +57,7 @@ fun ITextField(
             { Icon(imageVector = it, contentDescription = null) }
         },
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         modifier = modifier.fillMaxWidth(),
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
@@ -80,6 +83,7 @@ fun IFilledTextField(
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant
 ) {
@@ -92,6 +96,7 @@ fun IFilledTextField(
             { Icon(imageVector = it, contentDescription = null) }
         },
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         modifier = modifier.fillMaxWidth(),
         shape = shape,
         colors = TextFieldDefaults.colors(
@@ -148,6 +153,8 @@ fun IPasswordField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant
 ) {
@@ -170,7 +177,8 @@ fun IPasswordField(
             }
         },
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         modifier = modifier.fillMaxWidth(),
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(

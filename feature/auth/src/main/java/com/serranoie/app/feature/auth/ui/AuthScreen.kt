@@ -8,18 +8,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Facebook
 import androidx.compose.material.icons.rounded.GppGood
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,13 +41,29 @@ import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystem.ui.theme.component.IPasswordField
-import com.serranoie.app.designsystem.ui.theme.component.ITextButton
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
+import com.serranoie.app.designsystem.ui.theme.component.ITextButton
+import kotlinx.coroutines.flow.StateFlow
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AuthScreen(navController: NavHostController) {
+fun AuthScreen(
+    navController: NavHostController,
+    uiState: StateFlow<AuthUiState>,
+    onLogin: (String, String) -> Unit
+) {
+    val state by uiState.collectAsState()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    LaunchedEffect(state) {
+        if (state is AuthUiState.Success) {
+            navController.navigate(Route.HomeNavigation.route) {
+                popUpTo(Route.AuthNavigation.route) { inclusive = true }
+            }
+        }
+    }
 
     Scaffold(modifier = Modifier.padding(16.dp)) { paddingValues ->
         Column(
@@ -105,18 +126,28 @@ fun AuthScreen(navController: NavHostController) {
 
             IButton(
                 onClick = {
-                    navController.navigate(Route.HomeNavigation.route) {
-                        popUpTo(Route.AuthNavigation.route) { inclusive = true }
+                    onLogin(email, password)
+                },
+                text = {
+                    if (state is AuthUiState.Loading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Log in")
                     }
                 },
-                text = { Text("Log in") },
-                leadingIcon = null,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = state !is AuthUiState.Loading
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (state is AuthUiState.Error) {
+                Text(
+                    text = (state as AuthUiState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
 
+            Spacer(modifier = Modifier.height(16.dp))
 
             HorizontalDivider(thickness = 1.dp)
 
@@ -180,6 +211,10 @@ fun AuthScreen(navController: NavHostController) {
 @Composable
 private fun AuthScreenPreview() {
     PreviewWrapper {
-        AuthScreen(navController = rememberNavController())
+        AuthScreen(
+            navController = rememberNavController(),
+            uiState = koinViewModel<AuthViewModel>().uiState,
+            onLogin = { _, _ -> }
+        )
     }
 }
