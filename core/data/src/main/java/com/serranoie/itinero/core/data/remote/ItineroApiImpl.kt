@@ -3,6 +3,7 @@ package com.serranoie.itinero.core.data.remote
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
+import com.serranoie.itinero.core.domain.model.TripRequest
 import io.ktor.client.HttpClient
 
 class ItineroApiImpl(
@@ -29,5 +30,21 @@ class ItineroApiImpl(
 
     override suspend fun forgotPasswordUser(email: String) {
         apiClient.postForgotPassword(email)
+    }
+
+    override suspend fun createTrip(request: TripRequest) {
+        apiClient.postCreateTrip(request)
+    }
+
+    override suspend fun joinTrip(groupCode: String) {
+        apiClient.postJoinTrip(groupCode)
+    }
+
+    override suspend fun deleteTrip() {
+        // TODO: Implement when the API endpoint is ready
+    }
+
+    override suspend fun leaveTrip() {
+        // TODO: Implement when the API endpoint is ready
     }
 }

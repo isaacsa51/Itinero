@@ -7,7 +7,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 
-// Extension functions to make HTTP calls more declarative
 suspend inline fun <reified T> HttpClient.getRequest(
     baseUrl: String,
     endpoint: String,
