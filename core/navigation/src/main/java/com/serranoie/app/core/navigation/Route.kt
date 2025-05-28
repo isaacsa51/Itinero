@@ -5,6 +5,7 @@ sealed class Route(val route: String) {
     data object AppStartNavigation : Route("appStartNavigation")
 
     data object HomeNavigation : Route("homeNavigation")
+    data object Welcome : Route(Screen.WELCOME.name)
     data object Home : Route(Screen.HOME.name)
     data object Itinerary : Route(Screen.ITINERARY.name)
     data object Expenses : Route(Screen.EXPENSES.name)

@@ -3,6 +3,7 @@ package com.serranoie.app.core.navigation
 enum class Screen {
     HOME,
     ONBOARDING,
+    WELCOME,
     AUTH,
     LOGIN,
     REGISTER,

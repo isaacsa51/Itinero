@@ -16,8 +16,10 @@ import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Facebook
 import androidx.compose.material.icons.rounded.GppGood
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
@@ -46,6 +48,7 @@ import com.serranoie.app.designsystem.ui.theme.component.ITextButton
 import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AuthScreen(
     navController: NavHostController,
@@ -130,7 +133,8 @@ fun AuthScreen(
                 },
                 text = {
                     if (state is AuthUiState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        LoadingIndicator()
+                        // CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     } else {
                         Text("Log in")
                     }
