@@ -8,16 +8,11 @@ import com.serranoie.itinero.core.data.remote.repository.TravelRepositoryImpl
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.usecase.AuthUseCase
-import com.serranoie.itinero.core.domain.usecase.GetAuthTokenUseCase
-import com.serranoie.itinero.core.domain.usecase.LoginUseCase
-import com.serranoie.itinero.core.domain.usecase.LogoutUseCase
-import com.serranoie.itinero.core.domain.usecase.RegisterUseCase
-import com.serranoie.itinero.core.domain.usecase.SaveAuthTokenUseCase
+import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val authModule = module {
+val diModules = module {
     // API
     single<ItineroApi> { ItineroApiImpl(get()) }
 
@@ -28,13 +23,6 @@ val authModule = module {
     // Preferences
     single { AuthPreferences(androidContext()) }
 
-    // Use Cases
-    factory { LoginUseCase(get()) }
-    factory { RegisterUseCase(get()) }
-    factory { GetAuthTokenUseCase(get()) }
-    factory { SaveAuthTokenUseCase(get()) }
-    factory { LogoutUseCase(get()) }
-
     // Combined Use Case
     factory {
         AuthUseCase(
@@ -43,6 +31,16 @@ val authModule = module {
             getAuthToken = get(),
             saveAuthToken = get(),
             logout = get()
+        )
+    }
+
+    factory {
+        TravelUseCase(
+            getAllTravels = get(),
+            getTravelById = get(),
+            joinTravel = get(),
+            leaveTravel = get(),
+            createTravel = get()
         )
     }
 }
