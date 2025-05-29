@@ -15,6 +15,7 @@ import com.serranoie.app.feature.welcome.CreateTravelScreen
 import com.serranoie.app.feature.welcome.JoinTripScreen
 import com.serranoie.app.feature.welcome.TravelListScreen
 import com.serranoie.app.feature.welcome.WelcomeScreen
+import com.serranoie.app.feature.welcome.camera.CameraScannerScreen
 import org.koin.androidx.compose.koinViewModel
 
 class WelcomeNavigationGraph : NavigationGraph {
@@ -54,7 +55,18 @@ class WelcomeNavigationGraph : NavigationGraph {
                             popUpTo(Route.Welcome.route)
                         }
                     },
+                    onNavigateToCameraScanner = {
+                        navController.navigate(Route.CameraScanner.route)
+                    },
                     onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(route = Route.CameraScanner.route) {
+                CameraScannerScreen(
+                    onBackPressed = {
                         navController.popBackStack()
                     }
                 )

@@ -36,7 +36,9 @@ import com.serranoie.app.designsystem.ui.theme.component.OtpInputField
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun JoinTripScreen(
-    onTripJoined: () -> Unit = {}, onNavigateBack: () -> Unit = {}
+    onTripJoined: () -> Unit = {},
+    onNavigateBack: () -> Unit = {},
+    onNavigateToCameraScanner: () -> Unit = {}
 ) {
     var otpCode by remember { mutableStateOf("") }
     val scrollBehavior =
@@ -94,7 +96,7 @@ fun JoinTripScreen(
 
             IOutlineButton(
                 text = { Text("Escanear código QR") },
-                onClick = { /* Abrir cámara */ },
+                onClick = { onNavigateToCameraScanner() },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -105,6 +107,10 @@ fun JoinTripScreen(
 @Composable
 fun JoinTripScreenPreview() {
     PreviewWrapper {
-        JoinTripScreen(onTripJoined = {}, onNavigateBack = {})
+        JoinTripScreen(
+            onTripJoined = {},
+            onNavigateBack = {},
+            onNavigateToCameraScanner = {}
+        )
     }
 }

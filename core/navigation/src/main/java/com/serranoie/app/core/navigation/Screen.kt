@@ -21,4 +21,5 @@ enum class Screen {
     TRAVEL_NAVIGATION,
     CREATE_TRAVEL,
     JOIN_TRIP,
+    CAMERA_SCANNER,
 }
