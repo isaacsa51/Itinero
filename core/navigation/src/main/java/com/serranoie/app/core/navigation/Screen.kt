@@ -17,4 +17,8 @@ enum class Screen {
     ITINERARY,
     TRIP_SETTINGS,
     TRIP_INFO,
+    TRAVEL_LIST,
+    TRAVEL_NAVIGATION,
+    CREATE_TRAVEL,
+    JOIN_TRIP,
 }

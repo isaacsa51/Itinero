@@ -9,16 +9,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,10 +46,10 @@ import kotlinx.coroutines.flow.collectLatest
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateTravelScreen(
-    viewModel: TravelViewModel,
-    onTravelCreated: () -> Unit
+    onTravelCreated: () -> Unit,
+    onNavigateBack: () -> Unit = {}
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    // val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     var destination by remember { mutableStateOf("") }
@@ -53,26 +61,38 @@ fun CreateTravelScreen(
     var extraInfo by remember { mutableStateOf("") }
     var additionalInfo by remember { mutableStateOf("") }
 
-    LaunchedEffect(key1 = true) {
-        viewModel.uiState.collectLatest { state ->
-            when (state) {
-                is TravelUiState.Success<*> -> {
-                    onTravelCreated()
-                    viewModel.resetState()
-                }
-                is TravelUiState.Error -> {
-                    snackbarHostState.showSnackbar(state.message)
-                    viewModel.resetState()
-                }
-                else -> {} // No action needed for other states
-            }
-        }
-    }
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
+//    LaunchedEffect(key1 = true) {
+//        viewModel.uiState.collectLatest { state ->
+//            when (state) {
+//                is TravelUiState.Success<*> -> {
+//                    onTravelCreated()
+//                    viewModel.resetState()
+//                }
+//                is TravelUiState.Error -> {
+//                    snackbarHostState.showSnackbar(state.message)
+//                    viewModel.resetState()
+//                }
+//                else -> {} // No action needed for other states
+//            }
+//        }
+//    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Create New Trip") }
+            MediumFlexibleTopAppBar(
+                title = { Text("Create New Trip") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack, content = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go back"
+                        )
+                    })
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -86,9 +106,9 @@ fun CreateTravelScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (uiState is TravelUiState.Loading) {
-                LoadingIndicator()
-            }
+//            if (uiState is TravelUiState.Loading) {
+//                LoadingIndicator()
+//            }
 
             OutlinedTextField(
                 value = destination,
@@ -150,16 +170,17 @@ fun CreateTravelScreen(
 
             Button(
                 onClick = {
-                    viewModel.createTravel(
-                        destination,
-                        startDate,
-                        endDate,
-                        summary,
-                        accommodation,
-                        reservationCode,
-                        extraInfo,
-                        additionalInfo
-                    )
+//                    viewModel.createTravel(
+//                        destination,
+//                        startDate,
+//                        endDate,
+//                        summary,
+//                        accommodation,
+//                        reservationCode,
+//                        extraInfo,
+//                        additionalInfo
+//                    )
+                    onTravelCreated()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = destination.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank()
@@ -174,17 +195,9 @@ fun CreateTravelScreen(
 @Composable
 private fun CreateTravelScreenPreview() {
     PreviewWrapper {
-//        CreateTravelScreen(
-//            viewModel = TravelViewModel(
-//                travelUseCase = TravelUseCase(
-//                    getAllTravels = GetAllTravelsUseCase(repository = TravelRepositoryImpl()),
-//                    getTravelById = GetTravelByIdUseCase(repository = TravelRepositoryImpl()),
-//                    joinTravel = JoinTravelUseCase(repository = TravelRepositoryImpl()),
-//                    leaveTravel = LeaveTravelUseCase(repository = TravelRepositoryImpl()),
-//                    createTravel = CreateTravelUseCase(repository = TravelRepositoryImpl())
-//                )
-//            ),
-//            onTravelCreated = {}
-//        )
+        CreateTravelScreen(
+            onTravelCreated = {},
+            onNavigateBack = {}
+        )
     }
 }

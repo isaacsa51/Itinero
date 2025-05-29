@@ -62,7 +62,16 @@ class MainActivity : ComponentActivity() {
                         else -> Route.AppStartNavigation.route
                     }
 
-                    NavGraph(navController, startDestination)
+                    // TODO: Replace these with actual user trip data
+                    val hasLinkedTrips = false // Set to true when user has any trips
+                    val hasMultipleTrips = false // Set to true when user has multiple trips
+
+                    NavGraph(
+                        navController = navController,
+                        startDestination = startDestination,
+                        hasLinkedTrips = hasLinkedTrips,
+                        hasMultipleTrips = hasMultipleTrips
+                    )
                 }
             }
         }
