@@ -4,12 +4,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.serranoie.app.core.navigation.NavigationGraph
 import com.serranoie.app.core.navigation.Route
+import com.serranoie.app.feature.TravelUiState
 import com.serranoie.app.feature.TravelViewModel
 import com.serranoie.app.feature.welcome.CreateTravelScreen
 import com.serranoie.app.feature.welcome.JoinTripScreen
@@ -36,11 +38,38 @@ class WelcomeNavigationGraph : NavigationGraph {
             }
 
             composable(route = Route.CreateTravel.route) {
-                CreateTravelScreen(
-                    onTravelCreated = {
-                        navController.navigate(Route.TravelList.route) {
-                            popUpTo(Route.Welcome.route)
+                val viewModel: TravelViewModel = koinViewModel()
+                val uiState by viewModel.uiState.collectAsState()
+                val snackbarHostState = remember { SnackbarHostState() }
+
+                LaunchedEffect(uiState) {
+                    when (uiState) {
+                        is TravelUiState.Success<*> -> {
+                            navController.navigate(Route.TravelList.route) {
+                                popUpTo(Route.Welcome.route)
+                            }
+                            viewModel.resetState()
                         }
+                        is TravelUiState.Error -> {
+                            snackbarHostState.showSnackbar((uiState as TravelUiState.Error).message)
+                            viewModel.resetState()
+                        }
+                        else -> {}
+                    }
+                }
+
+                CreateTravelScreen(
+                    onTravelCreated = { destination, startDate, endDate, summary, accommodation, reservationCode, extraInfo, additionalInfo ->
+                        viewModel.createTravel(
+                            destination,
+                            startDate,
+                            endDate,
+                            summary,
+                            accommodation,
+                            reservationCode,
+                            extraInfo,
+                            additionalInfo
+                        )
                     },
                     onNavigateBack = {
                         navController.popBackStack()

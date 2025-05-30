@@ -18,6 +18,7 @@ interface ItineroApi {
     suspend fun logoutUser()
     suspend fun forgotPasswordUser(email: String)
 
+    suspend fun getAllTrips(): List<TripRequest>
     suspend fun createTrip(request: TripRequest)
     suspend fun joinTrip(groupCode: String)
     suspend fun deleteTrip()

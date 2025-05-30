@@ -33,7 +33,6 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.feature.home.R
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WelcomeScreen(
     onNavigateToCreateTravel: () -> Unit = {},

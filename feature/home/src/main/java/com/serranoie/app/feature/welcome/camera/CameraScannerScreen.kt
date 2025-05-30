@@ -175,7 +175,7 @@ fun CameraScannerScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.surface
                         )
                     }
                 },

@@ -60,9 +60,11 @@ fun AuthScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Handle navigation after successful login
     LaunchedEffect(state) {
         if (state is AuthUiState.Success) {
-            navController.navigate(Route.HomeNavigation.route) {
+            // Navigate to Welcome screen where users can create/join trips
+            navController.navigate(Route.WelcomeNavigation.route) {
                 popUpTo(Route.AuthNavigation.route) { inclusive = true }
             }
         }
@@ -134,7 +136,6 @@ fun AuthScreen(
                 text = {
                     if (state is AuthUiState.Loading) {
                         LoadingIndicator()
-                        // CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     } else {
                         Text("Log in")
                     }
@@ -218,7 +219,7 @@ private fun AuthScreenPreview() {
         AuthScreen(
             navController = rememberNavController(),
             uiState = koinViewModel<AuthViewModel>().uiState,
-            onLogin = { _, _ -> }
+            onLogin = { _, _ -> },
         )
     }
 }

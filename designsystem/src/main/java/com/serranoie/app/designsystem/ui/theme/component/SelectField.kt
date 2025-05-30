@@ -39,7 +39,7 @@ fun SelectField(
     value: String,
     onSelect: () -> Unit,
     label: String,
-    leadingIcon: ImageVector,
+    leadingIcon: ImageVector?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
@@ -56,7 +56,7 @@ fun SelectField(
         )
 
         Surface(
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, borderColor),
             modifier = Modifier.clickable(
                 enabled = enabled,
@@ -67,15 +67,17 @@ fun SelectField(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = leadingIcon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp)
-                )
+                leadingIcon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(12.dp))
 

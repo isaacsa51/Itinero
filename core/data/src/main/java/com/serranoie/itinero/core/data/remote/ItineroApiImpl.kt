@@ -32,6 +32,11 @@ class ItineroApiImpl(
         apiClient.postForgotPassword(email)
     }
 
+    override suspend fun getAllTrips(): List<TripRequest> {
+        // TODO: Implement when the API endpoint is ready
+        return emptyList()
+    }
+
     override suspend fun createTrip(request: TripRequest) {
         apiClient.postCreateTrip(request)
     }

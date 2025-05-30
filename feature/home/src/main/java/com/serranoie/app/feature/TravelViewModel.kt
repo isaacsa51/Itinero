@@ -76,22 +76,6 @@ class TravelViewModel(
         }
     }
 
-    fun leaveTravel() {
-        viewModelScope.launch {
-            _uiState.value = TravelUiState.Loading
-            when (val result = travelUseCase.leaveTravel()) {
-                is Result.Success -> {
-                    _uiState.value = TravelUiState.Success(Unit)
-                    // Refresh the travel list after leaving
-                    getAllTravels()
-                }
-                is Result.Error -> {
-                    _uiState.value = TravelUiState.Error(result.exception.message ?: "Unknown error")
-                }
-            }
-        }
-    }
-
     fun createTravel(
         destination: String,
         startDate: String,
@@ -118,7 +102,7 @@ class TravelViewModel(
                     val newTravel = result.data
                     _currentTravel.value = newTravel
                     // Add the new travel to the list
-                    _travels.value = _travels.value + newTravel
+                    _travels.value += newTravel
                     _uiState.value = TravelUiState.Success(newTravel)
                 }
                 is Result.Error -> {
