@@ -1,8 +1,8 @@
 package com.serranoie.itinero.core.domain.model
 
 data class Travel(
-    val id: String,
-    val groupCode: String,
+    val id: String?,
+    val groupCode: String?,
     val destination: String,
     val startDate: String,
     val endDate: String,

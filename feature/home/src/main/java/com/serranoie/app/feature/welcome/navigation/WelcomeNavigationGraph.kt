@@ -1,10 +1,12 @@
 package com.serranoie.app.feature.welcome.navigation
 
+import android.util.Log
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -18,6 +20,7 @@ import com.serranoie.app.feature.welcome.JoinTripScreen
 import com.serranoie.app.feature.welcome.TravelListScreen
 import com.serranoie.app.feature.welcome.WelcomeScreen
 import com.serranoie.app.feature.welcome.camera.CameraScannerScreen
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 class WelcomeNavigationGraph : NavigationGraph {
@@ -42,23 +45,34 @@ class WelcomeNavigationGraph : NavigationGraph {
                 val uiState by viewModel.uiState.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
-                LaunchedEffect(uiState) {
-                    when (uiState) {
-                        is TravelUiState.Success<*> -> {
-                            navController.navigate(Route.TravelList.route) {
-                                popUpTo(Route.Welcome.route)
+                val currentUiState = uiState
+
+                LaunchedEffect(Unit) {
+                    viewModel.uiState.collectLatest { state ->
+                        when (state) {
+                            is TravelUiState.Success<*> -> {
+                                Log.d("ISAAC", "Success travel creation")
+
+                                navController.navigate(Route.TravelList.route) {
+                                    popUpTo(Route.Welcome.route) {
+                                        inclusive = true
+                                    }
+                                }
+                                viewModel.resetState()
                             }
-                            viewModel.resetState()
+
+                            is TravelUiState.Error -> {
+                                snackbarHostState.showSnackbar(state.message)
+                                viewModel.resetState()
+                            }
+
+                            else -> Unit
                         }
-                        is TravelUiState.Error -> {
-                            snackbarHostState.showSnackbar((uiState as TravelUiState.Error).message)
-                            viewModel.resetState()
-                        }
-                        else -> {}
                     }
                 }
 
                 CreateTravelScreen(
+                    uiState = uiState,
                     onTravelCreated = { destination, startDate, endDate, summary, accommodation, reservationCode, extraInfo, additionalInfo ->
                         viewModel.createTravel(
                             destination,

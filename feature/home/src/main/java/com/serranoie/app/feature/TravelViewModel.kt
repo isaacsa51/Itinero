@@ -1,5 +1,6 @@
 package com.serranoie.app.feature
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.itinero.core.domain.model.Travel
@@ -87,6 +88,8 @@ class TravelViewModel(
         additionalInfo: String
     ) {
         viewModelScope.launch {
+            Log.d("Isaac", "viewmodel create travel called")
+
             _uiState.value = TravelUiState.Loading
             when (val result = travelUseCase.createTravel(
                 destination,
@@ -99,6 +102,8 @@ class TravelViewModel(
                 additionalInfo
             )) {
                 is Result.Success -> {
+                    Log.d("Isaac", "Result from creation: ${result.data}")
+
                     val newTravel = result.data
                     _currentTravel.value = newTravel
                     // Add the new travel to the list

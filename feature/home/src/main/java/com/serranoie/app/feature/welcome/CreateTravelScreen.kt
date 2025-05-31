@@ -1,16 +1,14 @@
 package com.serranoie.app.feature.welcome
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,17 +18,15 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.rounded.CalendarToday
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -40,7 +36,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,13 +45,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import com.serranoie.app.designsystem.ui.theme.component.SelectField
+import com.serranoie.app.feature.TravelUiState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -64,6 +59,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateTravelScreen(
+    uiState: TravelUiState,
     onTravelCreated: (String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
@@ -89,13 +85,13 @@ fun CreateTravelScreen(
     Scaffold(topBar = {
         MediumFlexibleTopAppBar(
             title = { Text("Create New Trip") }, navigationIcon = {
-                IconButton(onClick = onNavigateBack, content = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
-                    )
-                })
-            }, scrollBehavior = scrollBehavior
+            IconButton(onClick = onNavigateBack, content = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            })
+        }, scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackState) }) { padding ->
         Column(
@@ -186,22 +182,26 @@ fun CreateTravelScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = destination.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(),
-                text = { Text("Create Trip") }
-            )
+                text = { Text("Create Trip") })
         }
 
         if (showDatePicker) {
-            DateRangePickerModal(
-                onDateRangeSelected = { (start, end) ->
-                    if (start != null && end != null) {
-                        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                        startDate = formatter.format(Date(start))
-                        endDate = formatter.format(Date(end))
-                    }
-                    showDatePicker = false
-                },
-                onDismiss = { showDatePicker = false }
-            )
+            DateRangePickerModal(onDateRangeSelected = { (start, end) ->
+                if (start != null && end != null) {
+                    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    startDate = formatter.format(Date(start))
+                    endDate = formatter.format(Date(end))
+                }
+                showDatePicker = false
+            }, onDismiss = { showDatePicker = false })
+        }
+
+        if (uiState is TravelUiState.Loading) {
+            Box(
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+            ) {
+                LoadingIndicator()
+            }
         }
     }
 }
@@ -219,34 +219,28 @@ fun SectionLabel(text: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangePickerModal(
-    onDateRangeSelected: (Pair<Long?, Long?>) -> Unit,
-    onDismiss: () -> Unit
+    onDateRangeSelected: (Pair<Long?, Long?>) -> Unit, onDismiss: () -> Unit
 ) {
     val dateRangePickerState = rememberDateRangePickerState()
 
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onDateRangeSelected(
-                        Pair(
-                            dateRangePickerState.selectedStartDateMillis,
-                            dateRangePickerState.selectedEndDateMillis
-                        )
+    DatePickerDialog(onDismissRequest = onDismiss, confirmButton = {
+        TextButton(
+            onClick = {
+                onDateRangeSelected(
+                    Pair(
+                        dateRangePickerState.selectedStartDateMillis,
+                        dateRangePickerState.selectedEndDateMillis
                     )
-                    onDismiss()
-                }
-            ) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+                )
+                onDismiss()
+            }) {
+            Text("OK")
         }
-    ) {
+    }, dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text("Cancel")
+        }
+    }) {
         DateRangePicker(
             state = dateRangePickerState,
             title = {

@@ -48,6 +48,8 @@ import com.serranoie.app.designsystem.ui.theme.component.ITextButton
 import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.compose.koinViewModel
 
+// ! TODO: When user inserts wrong credentials, error message is large and not self explanatory
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AuthScreen(

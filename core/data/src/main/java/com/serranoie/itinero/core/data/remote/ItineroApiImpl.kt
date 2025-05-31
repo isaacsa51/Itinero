@@ -1,9 +1,10 @@
 package com.serranoie.itinero.core.data.remote
 
+import android.util.Log
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
-import com.serranoie.itinero.core.domain.model.TripRequest
+import com.serranoie.itinero.core.data.remote.dto.TripDto
 import io.ktor.client.HttpClient
 
 class ItineroApiImpl(
@@ -32,13 +33,26 @@ class ItineroApiImpl(
         apiClient.postForgotPassword(email)
     }
 
-    override suspend fun getAllTrips(): List<TripRequest> {
-        // TODO: Implement when the API endpoint is ready
-        return emptyList()
+    override suspend fun getAllTrips(): List<TripDto> {
+        return apiClient.getTrips()
     }
 
-    override suspend fun createTrip(request: TripRequest) {
-        apiClient.postCreateTrip(request)
+    override suspend fun createTrip(request: TripDto) {
+        Log.d("Isaac", "createTrip api called")
+        apiClient.createTrip(
+            TripDto(
+                request.destination,
+                request.startDate,
+                request.endDate,
+                request.summary,
+                request.accommodation,
+                request.reservationCode,
+                request.extraInfo,
+                request.additionalInfo,
+                request.groupCode,
+                request.ownerId
+            )
+        )
     }
 
     override suspend fun joinTrip(groupCode: String) {

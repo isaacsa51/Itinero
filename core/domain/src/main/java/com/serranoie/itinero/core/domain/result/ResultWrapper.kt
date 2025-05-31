@@ -9,6 +9,7 @@ suspend fun <T> safeApiCall(call: suspend () -> T): Result<T> {
     return try {
         Result.Success(call())
     } catch (e: Exception) {
+        println("API_ERROR Error in API call: ${e.message}")
         Result.Error(e)
     }
 }

@@ -1,8 +1,10 @@
 package com.serranoie.itinero.core.data.remote
 
+import android.util.Log
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
+import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.domain.model.TripRequest
 import io.ktor.client.HttpClient
 
@@ -18,8 +20,8 @@ interface ItineroApi {
     suspend fun logoutUser()
     suspend fun forgotPasswordUser(email: String)
 
-    suspend fun getAllTrips(): List<TripRequest>
-    suspend fun createTrip(request: TripRequest)
+    suspend fun getAllTrips(): List<TripDto>
+    suspend fun createTrip(request: TripDto)
     suspend fun joinTrip(groupCode: String)
     suspend fun deleteTrip()
     suspend fun leaveTrip()
@@ -47,8 +49,25 @@ class ItineroApiClient(private val client: HttpClient) {
         client.postRequest<Unit, Map<String, String>>(BASE_URL, "/auth/forgot-password", body)
     }
 
-    suspend fun postCreateTrip(request: TripRequest) {
-        client.postRequest<Unit, TripRequest>(BASE_URL, "/trips/new", request)
+    suspend fun getTrips(): List<TripDto> {
+        return client.getRequest(BASE_URL, "/trips")
+    }
+
+    suspend fun createTrip(request: TripDto) {
+        Log.d("Isaac", "createTrip api called")
+
+        val tripDto = TripDto(
+            destination = request.destination,
+            startDate = request.startDate,
+            endDate = request.endDate,
+            summary = request.summary,
+            accommodation = request.accommodation,
+            reservationCode = request.reservationCode,
+            extraInfo = request.extraInfo,
+            additionalInfo = request.additionalInfo
+        )
+
+        client.postRequest<Unit, TripDto>(BASE_URL, "/trips/new", tripDto)
     }
 
     suspend fun postJoinTrip(groupCode: String) {
