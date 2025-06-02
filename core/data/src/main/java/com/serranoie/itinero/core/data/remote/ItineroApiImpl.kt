@@ -2,6 +2,7 @@ package com.serranoie.itinero.core.data.remote
 
 import android.util.Log
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
+import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
@@ -37,22 +38,8 @@ class ItineroApiImpl(
         return apiClient.getTrips()
     }
 
-    override suspend fun createTrip(request: TripDto) {
-        Log.d("Isaac", "createTrip api called")
-        apiClient.createTrip(
-            TripDto(
-                request.destination,
-                request.startDate,
-                request.endDate,
-                request.summary,
-                request.accommodation,
-                request.reservationCode,
-                request.extraInfo,
-                request.additionalInfo,
-                request.groupCode,
-                request.ownerId
-            )
-        )
+    override suspend fun createTrip(request: CreateTripDto): CreateTripDto {
+        return apiClient.createTrip(request)
     }
 
     override suspend fun joinTrip(groupCode: String) {

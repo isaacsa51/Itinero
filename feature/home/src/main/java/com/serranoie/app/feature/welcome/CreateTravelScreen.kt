@@ -55,11 +55,12 @@ import com.serranoie.app.feature.TravelUiState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateTravelScreen(
-    uiState: TravelUiState,
+    uiState: TravelUiState = TravelUiState.Idle,
     onTravelCreated: (String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
@@ -169,6 +170,10 @@ fun CreateTravelScreen(
 
             IButton(
                 onClick = {
+                    Log.d(
+                        "ISAAC",
+                        "Create Trip button clicked with destination: $destination, dates: $startDate - $endDate"
+                    )
                     onTravelCreated(
                         destination,
                         startDate,
@@ -181,8 +186,15 @@ fun CreateTravelScreen(
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = destination.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank(),
-                text = { Text("Create Trip") })
+                enabled = destination.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank() && uiState !is TravelUiState.Loading,
+                text = {
+                    if (uiState is TravelUiState.Loading) {
+                        LoadingIndicator()
+                    } else {
+                        Text("Create Trip")
+                    }
+                }
+            )
         }
 
         if (showDatePicker) {

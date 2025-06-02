@@ -88,8 +88,7 @@ class TravelViewModel(
         additionalInfo: String
     ) {
         viewModelScope.launch {
-            Log.d("Isaac", "viewmodel create travel called")
-
+            Log.d("ISAAC", "TravelViewModel.createTravel called with destination: $destination")
             _uiState.value = TravelUiState.Loading
             when (val result = travelUseCase.createTravel(
                 destination,
@@ -102,16 +101,16 @@ class TravelViewModel(
                 additionalInfo
             )) {
                 is Result.Success -> {
-                    Log.d("Isaac", "Result from creation: ${result.data}")
-
                     val newTravel = result.data
                     _currentTravel.value = newTravel
                     // Add the new travel to the list
                     _travels.value += newTravel
                     _uiState.value = TravelUiState.Success(newTravel)
+                    Log.d("ISAAC", "Travel created successfully: $newTravel")
                 }
                 is Result.Error -> {
                     _uiState.value = TravelUiState.Error(result.exception.message ?: "Unknown error")
+                    Log.e("ISAAC", "Error creating travel: ${result.exception.message}")
                 }
             }
         }

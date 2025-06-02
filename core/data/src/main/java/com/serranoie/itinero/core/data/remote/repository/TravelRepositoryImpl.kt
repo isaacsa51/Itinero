@@ -3,6 +3,7 @@ package com.serranoie.itinero.core.data.remote.repository
 import android.util.Log
 import com.serranoie.itinero.core.data.mappers.toDomain
 import com.serranoie.itinero.core.data.remote.ItineroApi
+import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.domain.model.Travel
 import com.serranoie.itinero.core.domain.repository.TravelRepository
@@ -49,7 +50,7 @@ class TravelRepositoryImpl(
         additionalInfo: String
     ): Result<Travel> {
         return safeApiCall {
-            val request = TripDto(
+            val request = CreateTripDto(
                 destination = destination,
                 startDate = startDate,
                 endDate = endDate,
@@ -62,11 +63,12 @@ class TravelRepositoryImpl(
 
             Log.d("ISAAC", "Create travel Request: $request")
 
-            // Call the API to create the trip
-            api.createTrip(request)
+            // Call the API to create the trip and get the response
+            val createdTrip = api.createTrip(request)
+            Log.d("ISAAC", "Create travel Response: $createdTrip")
 
-            // Use the mapper to create a Travel object from the request
-            request.toDomain()
+            // Map the response to domain model
+            createdTrip.toDomain()
         }
     }
 }

@@ -112,7 +112,7 @@ fun TravelListScreen(
                     ) {
                         items(travels) { travel ->
                             TravelItem(
-                                travel = travel, onClick = { onTravelClick(travel.id) })
+                                travel = travel, onClick = { travel.id?.let { onTravelClick(it) } })
                         }
                     }
                 }
