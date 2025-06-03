@@ -1,12 +1,11 @@
 package com.serranoie.itinero.core.data.remote.repository
 
-import android.util.Log
 import com.serranoie.itinero.core.data.mappers.toDomain
 import com.serranoie.itinero.core.data.remote.ItineroApi
 import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
-import com.serranoie.itinero.core.data.remote.dto.TripDto
-import com.serranoie.itinero.core.domain.model.Travel
+import com.serranoie.itinero.core.domain.model.CreateTrip
+import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.result.safeApiCall
@@ -14,7 +13,7 @@ import com.serranoie.itinero.core.domain.result.safeApiCall
 class TravelRepositoryImpl(
     private val api: ItineroApi, private val userId: String
 ) : TravelRepository {
-    override suspend fun getAllTravels(): Result<List<Travel>> {
+    override suspend fun getAllTravels(): Result<List<Trip>> {
         return safeApiCall {
             api.getAllTrips().map {
                 it.toDomain()
@@ -22,7 +21,7 @@ class TravelRepositoryImpl(
         }
     }
 
-    override suspend fun getTravelById(id: String): Result<Travel> {
+    override suspend fun getTravelById(id: String): Result<Trip> {
         return safeApiCall {
             TODO("Not yet implemented")
         }
@@ -54,7 +53,7 @@ class TravelRepositoryImpl(
         reservationCode: String,
         extraInfo: String,
         additionalInfo: String
-    ): Result<Travel> {
+    ): Result<CreateTrip> {
         return safeApiCall {
             val accommodationDto = AccommodationDto(
                 name = accommodationName,
@@ -75,14 +74,7 @@ class TravelRepositoryImpl(
                 extraInfo = extraInfo,
                 additionalInfo = additionalInfo
             )
-
-            Log.d("ISAAC", "Create travel Request: $request")
-
-            // Call the API to create the trip and get the response
             val createdTrip = api.createTrip(request)
-            Log.d("ISAAC", "Create travel Response: $createdTrip")
-
-            // Map the response to domain model
             createdTrip.toDomain()
         }
     }

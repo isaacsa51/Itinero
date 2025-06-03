@@ -1,6 +1,7 @@
 package com.serranoie.itinero.core.domain.usecase
 
-import com.serranoie.itinero.core.domain.model.Travel
+import com.serranoie.itinero.core.domain.model.CreateTrip
+import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.result.Result
 
@@ -13,11 +14,11 @@ data class TravelUseCase(
 )
 
 class GetAllTravelsUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(): Result<List<Travel>> = repository.getAllTravels()
+    suspend operator fun invoke(): Result<List<Trip>> = repository.getAllTravels()
 }
 
 class GetTravelByIdUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(id: String): Result<Travel> = repository.getTravelById(id)
+    suspend operator fun invoke(id: String): Result<Trip> = repository.getTravelById(id)
 }
 
 class JoinTravelUseCase(private val repository: TravelRepository) {
@@ -43,7 +44,7 @@ class CreateTravelUseCase(private val repository: TravelRepository) {
         reservationCode: String,
         extraInfo: String,
         additionalInfo: String
-    ): Result<Travel> = repository.createTravel(
+    ): Result<CreateTrip> = repository.createTravel(
         destination,
         startDate,
         endDate,

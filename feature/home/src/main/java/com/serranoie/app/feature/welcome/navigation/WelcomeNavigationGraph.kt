@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -128,7 +127,7 @@ class WelcomeNavigationGraph : NavigationGraph {
 
                 TravelListScreen(
                     uiState = uiState,
-                    travels = travels,
+                    trips = travels,
                     onGetAllTravels = { viewModel.getAllTravels() },
                     onResetState = { viewModel.resetState() },
                     onCreateTravelClick = {

@@ -13,13 +13,3 @@ data class CreateTripDto(
     val extraInfo: String,
     val additionalInfo: String
 )
-
-@Serializable
-data class AccommodationDto(
-    val name: String,
-    val phone: String,
-    val checkIn: String,
-    val checkOut: String,
-    val location: String,
-    val mapUri: String
-)

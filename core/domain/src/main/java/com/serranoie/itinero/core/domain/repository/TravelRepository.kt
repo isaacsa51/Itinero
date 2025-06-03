@@ -1,12 +1,13 @@
 package com.serranoie.itinero.core.domain.repository
 
-import com.serranoie.itinero.core.domain.model.Travel
+import com.serranoie.itinero.core.domain.model.CreateTrip
+import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.result.Result
 
 interface TravelRepository {
 
-    suspend fun getAllTravels(): Result<List<Travel>>
-    suspend fun getTravelById(id: String): Result<Travel>
+    suspend fun getAllTravels(): Result<List<Trip>>
+    suspend fun getTravelById(id: String): Result<Trip>
     suspend fun joinTravel(groupCode: String): Result<Unit>
     suspend fun leaveTravel(): Result<Unit>
     suspend fun createTravel(
@@ -23,6 +24,6 @@ interface TravelRepository {
         reservationCode: String,
         extraInfo: String,
         additionalInfo: String
-    ): Result<Travel>
+    ): Result<CreateTrip>
 
 }

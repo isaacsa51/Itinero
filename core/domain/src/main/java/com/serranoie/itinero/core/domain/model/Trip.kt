@@ -1,10 +1,7 @@
-package com.serranoie.itinero.core.data.remote.dto
+package com.serranoie.itinero.core.domain.model
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class TripDto(
-    val id: String,
+data class Trip(
+    val id: String?,
     val destination: String,
     val startDate: String,
     val endDate: String,
@@ -12,16 +9,16 @@ data class TripDto(
     val totalMembers: Int,
     val travelDirection: String,
     val hasPendingActions: Boolean,
-    val accommodation: AccommodationDto,
+    val accommodation: Accommodation,
     val reservationCode: String,
     val extraInfo: String,
     val additionalInfo: String,
     val groupCode: String,
-    val ownerId: String
+    val ownerId: String,
+    val isOwner: Boolean = false // need to be calculated based on the logged in user
 )
 
-@Serializable
-data class AccommodationDto(
+data class Accommodation(
     val name: String,
     val phone: String,
     val checkIn: String,

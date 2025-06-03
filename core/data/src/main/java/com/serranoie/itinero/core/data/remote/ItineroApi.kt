@@ -1,12 +1,10 @@
 package com.serranoie.itinero.core.data.remote
 
-import android.util.Log
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
-import com.serranoie.itinero.core.domain.model.TripRequest
 import io.ktor.client.HttpClient
 
 interface ItineroApi {

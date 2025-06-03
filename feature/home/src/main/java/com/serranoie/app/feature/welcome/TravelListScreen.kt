@@ -41,7 +41,7 @@ import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.feature.TravelUiState
-import com.serranoie.itinero.core.domain.model.Travel
+import com.serranoie.itinero.core.domain.model.Trip
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -49,7 +49,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TravelListScreen(
     uiState: TravelUiState,
-    travels: List<Travel>,
+    trips: List<Trip>,
     onGetAllTravels: () -> Unit,
     onResetState: () -> Unit,
     onCreateTravelClick: () -> Unit,
@@ -87,7 +87,7 @@ fun TravelListScreen(
                     LoadingIndicator()
                 }
 
-                travels.isEmpty() -> {
+                trips.isEmpty() -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -110,9 +110,9 @@ fun TravelListScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(), contentPadding = padding
                     ) {
-                        items(travels) { travel ->
+                        items(trips) { travel ->
                             TravelItem(
-                                travel = travel, onClick = { travel.id?.let { onTravelClick(it) } })
+                                trip = travel, onClick = { travel.id?.let { onTravelClick(it) } })
                         }
                     }
                 }
@@ -124,9 +124,9 @@ fun TravelListScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TravelItem(
-    travel: Travel, onClick: () -> Unit
+    trip: Trip, onClick: () -> Unit
 ) {
-    val tripStatus = determineTripStatus(travel.startDate, travel.endDate)
+    val tripStatus = determineTripStatus(trip.startDate, trip.endDate)
     val statusTextColor = when (tripStatus) {
         "Pending" -> MaterialTheme.colorScheme.onSecondaryContainer
         "In Progress" -> MaterialTheme.colorScheme.onPrimaryContainer
@@ -155,14 +155,14 @@ fun TravelItem(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = travel.destination,
+                        text = trip.destination,
                         style = MaterialTheme.typography.titleLargeEmphasized,
                         fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    if (travel.isOwner) {
+                    if (trip.isOwner) {
                         Box(
                             modifier = Modifier
                                 .background(
@@ -202,7 +202,7 @@ fun TravelItem(
                         color = statusTextColor
                     )
                     Text(
-                        text = "${travel.startDate} - ${travel.endDate}",
+                        text = "${trip.startDate} - ${trip.endDate}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -218,7 +218,7 @@ fun TravelItem(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = travel.accommodation,
+                        text = trip.accommodation,
                         color = MaterialTheme.colorScheme.outline,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -267,7 +267,7 @@ private fun TravelListPreview() {
     PreviewWrapper {
         TravelListScreen(
             uiState = TravelUiState.Idle,
-            travels = emptyList(),
+            trips = emptyList(),
             onGetAllTravels = {},
             onResetState = {},
             onCreateTravelClick = {},
@@ -279,7 +279,7 @@ private fun TravelListPreview() {
 @ComponentPreview
 @Composable
 private fun TravelItemPreview() {
-    val mockTravel = Travel(
+    val mockTrip = Trip(
         id = "1",
         groupCode = "PAR24",
         destination = "Paris, France",
@@ -293,7 +293,7 @@ private fun TravelItemPreview() {
         isOwner = false
     )
 
-    val mockOwnerTravelPending = Travel(
+    val mockOwnerTripPending = Trip(
         id = "1",
         groupCode = "PAR24",
         destination = "Tokyo, Japan",
@@ -307,7 +307,7 @@ private fun TravelItemPreview() {
         isOwner = true
     )
 
-    val mockOwnerTravelProgress = Travel(
+    val mockOwnerTripProgress = Trip(
         id = "1",
         groupCode = "PAR24",
         destination = "Paris, France",
@@ -321,7 +321,7 @@ private fun TravelItemPreview() {
         isOwner = true
     )
 
-    val mockTravelCompleted = Travel(
+    val mockTripCompleted = Trip(
         id = "1",
         groupCode = "PAR24",
         destination = "Paris, France",
@@ -339,16 +339,16 @@ private fun TravelItemPreview() {
 
         Column {
             TravelItem(
-                travel = mockTravel, onClick = {})
+                trip = mockTrip, onClick = {})
 
             TravelItem(
-                travel = mockOwnerTravelProgress, onClick = {})
+                trip = mockOwnerTripProgress, onClick = {})
 
             TravelItem(
-                travel = mockOwnerTravelPending, onClick = {})
+                trip = mockOwnerTripPending, onClick = {})
 
             TravelItem(
-                travel = mockTravelCompleted, onClick = {})
+                trip = mockTripCompleted, onClick = {})
         }
     }
 }

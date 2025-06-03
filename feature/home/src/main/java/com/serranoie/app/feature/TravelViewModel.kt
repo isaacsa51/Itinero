@@ -3,7 +3,7 @@ package com.serranoie.app.feature
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serranoie.itinero.core.domain.model.Travel
+import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,11 +25,11 @@ class TravelViewModel(
     private val _uiState = MutableStateFlow<TravelUiState>(TravelUiState.Idle)
     val uiState: StateFlow<TravelUiState> = _uiState.asStateFlow()
 
-    private val _travels = MutableStateFlow<List<Travel>>(emptyList())
-    val travels: StateFlow<List<Travel>> = _travels.asStateFlow()
+    private val _travels = MutableStateFlow<List<Trip>>(emptyList())
+    val travels: StateFlow<List<Trip>> = _travels.asStateFlow()
 
-    private val _currentTravel = MutableStateFlow<Travel?>(null)
-    val currentTravel: StateFlow<Travel?> = _currentTravel.asStateFlow()
+    private val _currentTrip = MutableStateFlow<Trip?>(null)
+    val currentTrip: StateFlow<Trip?> = _currentTrip.asStateFlow()
 
     fun getAllTravels() {
         viewModelScope.launch {
@@ -51,7 +51,7 @@ class TravelViewModel(
             _uiState.value = TravelUiState.Loading
             when (val result = travelUseCase.getTravelById(id)) {
                 is Result.Success -> {
-                    _currentTravel.value = result.data
+                    _currentTrip.value = result.data
                     _uiState.value = TravelUiState.Success(result.data)
                 }
                 is Result.Error -> {
@@ -112,7 +112,7 @@ class TravelViewModel(
             )) {
                 is Result.Success -> {
                     val newTravel = result.data
-                    _currentTravel.value = newTravel
+                    _currentTrip.value = newTravel
                     // Add the new travel to the list
                     _travels.value += newTravel
                     _uiState.value = TravelUiState.Success(newTravel)
