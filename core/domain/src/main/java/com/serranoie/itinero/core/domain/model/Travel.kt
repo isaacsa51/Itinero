@@ -6,7 +6,6 @@ data class Travel(
     val destination: String,
     val startDate: String,
     val endDate: String,
-    // val totalDays: Int,
     val summary: String,
     val accommodation: String,
     val reservationCode: String,

@@ -61,7 +61,7 @@ import android.util.Log
 @Composable
 fun CreateTravelScreen(
     uiState: TravelUiState = TravelUiState.Idle,
-    onTravelCreated: (String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _ -> },
+    onTravelCreated: (String, String, String, String, String, String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
 
@@ -75,7 +75,12 @@ fun CreateTravelScreen(
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
     var summary by remember { mutableStateOf("") }
-    var accommodation by remember { mutableStateOf("") }
+    var accommodationName by remember { mutableStateOf("") }
+    var accommodationPhone by remember { mutableStateOf("") }
+    var accommodationCheckIn by remember { mutableStateOf("") }
+    var accommodationCheckOut by remember { mutableStateOf("") }
+    var accommodationLocation by remember { mutableStateOf("") }
+    var accommodationMapUri by remember { mutableStateOf("") }
     var reservationCode by remember { mutableStateOf("") }
     var extraInfo by remember { mutableStateOf("") }
     var additionalInfo by remember { mutableStateOf("") }
@@ -134,10 +139,50 @@ fun CreateTravelScreen(
 
             SectionLabel(text = "Accommodation Details")
             ITextField(
-                value = accommodation,
-                onValueChange = { accommodation = it },
-                label = "Accommodation",
+                value = accommodationName,
+                onValueChange = { accommodationName = it },
+                label = "Accommodation Name",
                 leadingIcon = Icons.Default.Hotel,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ITextField(
+                value = accommodationPhone,
+                onValueChange = { accommodationPhone = it },
+                label = "Accommodation Phone",
+                leadingIcon = Icons.Default.Numbers,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ITextField(
+                value = accommodationCheckIn,
+                onValueChange = { accommodationCheckIn = it },
+                label = "Check-in Date/Time",
+                leadingIcon = Icons.Rounded.CalendarToday,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ITextField(
+                value = accommodationCheckOut,
+                onValueChange = { accommodationCheckOut = it },
+                label = "Check-out Date/Time",
+                leadingIcon = Icons.Rounded.CalendarToday,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ITextField(
+                value = accommodationLocation,
+                onValueChange = { accommodationLocation = it },
+                label = "Accommodation Location",
+                leadingIcon = Icons.Default.LocationOn,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            ITextField(
+                value = accommodationMapUri,
+                onValueChange = { accommodationMapUri = it },
+                label = "Map URI",
+                leadingIcon = Icons.Default.LocationOn,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -179,7 +224,12 @@ fun CreateTravelScreen(
                         startDate,
                         endDate,
                         summary,
-                        accommodation,
+                        accommodationName,
+                        accommodationPhone,
+                        accommodationCheckIn,
+                        accommodationCheckOut,
+                        accommodationLocation,
+                        accommodationMapUri,
                         reservationCode,
                         extraInfo,
                         additionalInfo,
@@ -273,6 +323,6 @@ fun DateRangePickerModal(
 @Composable
 private fun CreateTravelScreenPreview() {
     PreviewWrapper {
-//        CreateTravelScreen(onTravelCreated = {}, onNavigateBack = {})
+        //CreateTravelScreen(onTravelCreated = {""; ""; ""; ""; ""; ""; ""; ""; ""; ""; ""; ""; ""}, onNavigateBack = {})
     }
 }

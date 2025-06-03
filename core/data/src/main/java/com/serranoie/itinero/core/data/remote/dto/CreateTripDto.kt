@@ -8,8 +8,18 @@ data class CreateTripDto(
     val startDate: String,
     val endDate: String,
     val summary: String,
-    val accommodation: String,
+    val accommodation: AccommodationDto,
     val reservationCode: String,
     val extraInfo: String,
     val additionalInfo: String
+)
+
+@Serializable
+data class AccommodationDto(
+    val name: String,
+    val phone: String,
+    val checkIn: String,
+    val checkOut: String,
+    val location: String,
+    val mapUri: String
 )

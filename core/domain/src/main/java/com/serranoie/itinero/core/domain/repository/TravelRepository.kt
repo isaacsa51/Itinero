@@ -14,7 +14,12 @@ interface TravelRepository {
         startDate: String,
         endDate: String,
         summary: String,
-        accommodation: String,
+        accommodationName: String,
+        accommodationPhone: String,
+        accommodationCheckIn: String,
+        accommodationCheckOut: String,
+        accommodationLocation: String,
+        accommodationMapUri: String,
         reservationCode: String,
         extraInfo: String,
         additionalInfo: String
