@@ -3,6 +3,8 @@ package com.serranoie.app.feature
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serranoie.itinero.core.data.mappers.toTrip
+import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +32,9 @@ class TravelViewModel(
 
     private val _currentTrip = MutableStateFlow<Trip?>(null)
     val currentTrip: StateFlow<Trip?> = _currentTrip.asStateFlow()
+
+    private val _createdTrip = MutableStateFlow<Trip?>(null)
+    val createdTrip: StateFlow<Trip?> = _createdTrip.asStateFlow()
 
     fun getAllTravels() {
         viewModelScope.launch {
@@ -93,7 +98,6 @@ class TravelViewModel(
         additionalInfo: String
     ) {
         viewModelScope.launch {
-            Log.d("ISAAC", "TravelViewModel.createTravel called with destination: $destination")
             _uiState.value = TravelUiState.Loading
             when (val result = travelUseCase.createTravel(
                 destination,
@@ -111,16 +115,14 @@ class TravelViewModel(
                 additionalInfo
             )) {
                 is Result.Success -> {
-                    val newTravel = result.data
-                    _currentTrip.value = newTravel
-                    // Add the new travel to the list
-                    _travels.value += newTravel
-                    _uiState.value = TravelUiState.Success(newTravel)
-                    Log.d("ISAAC", "Travel created successfully: $newTravel")
+                    val created = result.data // CreateTrip
+                    val newTrip = created.toTrip()
+                    _createdTrip.value = newTrip
+                    _travels.value += newTrip
+                    _uiState.value = TravelUiState.Success(newTrip)
                 }
                 is Result.Error -> {
-                    _uiState.value = TravelUiState.Error(result.exception.message ?: "Unknown error")
-                    Log.e("ISAAC", "Error creating travel: ${result.exception.message}")
+                    _uiState.value = TravelUiState.Error(result.exception.toString())
                 }
             }
         }

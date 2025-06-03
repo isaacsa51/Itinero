@@ -41,6 +41,7 @@ import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.feature.TravelUiState
+import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -218,7 +219,7 @@ fun TravelItem(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = trip.accommodation,
+                        text = trip.accommodation.name,
                         color = MaterialTheme.colorScheme.outline,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -282,15 +283,25 @@ private fun TravelItemPreview() {
     val mockTrip = Trip(
         id = "1",
         groupCode = "PAR24",
+        totalMembers = 2,
+        travelDirection = "Outward",
         destination = "Paris, France",
         startDate = "2025-12-01",
         endDate = "2025-12-31",
         summary = "Romantic getaway exploring the City of Light with visits to the Eiffel Tower, Louvre Museum, and charming cafés",
-        accommodation = "Le Meurice Hotel",
+        accommodation = Accommodation(
+            name = "Le Meurice Hotel",
+            phone = "+33 1 23 45 67 89",
+            checkIn = "14:00",
+            checkOut = "11:00",
+            location = "Paris, France",
+            mapUri = "https://www.google.com/maps/place/Paris,+France/@48.85661",
+        ),
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = false
+        isOwner = false,
+        ownerId = 1.toString(),
     )
 
     val mockOwnerTripPending = Trip(
@@ -300,11 +311,21 @@ private fun TravelItemPreview() {
         startDate = "2025-12-01",
         endDate = "2025-12-31",
         summary = "Romantic getaway exploring the City of Light with visits to the Eiffel Tower, Louvre Museum, and charming cafés",
-        accommodation = "Le Meurice Hotel",
+        accommodation = Accommodation(
+            name = "Le Meurice Hotel",
+            phone = "+33 1 23 45 67 89",
+            checkIn = "14:00",
+            checkOut = "11:00",
+            location = "Paris, France",
+            mapUri = "https://www.google.com/maps/place/Paris,+France/@48.85661",
+        ),
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = true
+        isOwner = true,
+        ownerId = 1.toString(),
+        totalMembers = 2,
+        travelDirection = "Outward"
     )
 
     val mockOwnerTripProgress = Trip(
@@ -314,11 +335,21 @@ private fun TravelItemPreview() {
         startDate = "2025-05-25",
         endDate = "2025-05-30",
         summary = "Romantic getaway exploring the City of Light with visits to the Eiffel Tower, Louvre Museum, and charming cafés",
-        accommodation = "Le Meurice Hotel",
+        accommodation = Accommodation(
+            name = "Le Meurice Hotel",
+            phone = "+33 1 23 45 67 89",
+            checkIn = "14:00",
+            checkOut = "11:00",
+            location = "Paris, France",
+            mapUri = "https://www.google.com/maps/place/Paris,+France/@48.85661",
+        ),
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = true
+        isOwner = true,
+        ownerId = 1.toString(),
+        totalMembers = 2,
+        travelDirection = "Outward"
     )
 
     val mockTripCompleted = Trip(
@@ -328,11 +359,21 @@ private fun TravelItemPreview() {
         startDate = "2024-12-01",
         endDate = "2024-12-31",
         summary = "Romantic getaway exploring the City of Light with visits to the Eiffel Tower, Louvre Museum, and charming cafés",
-        accommodation = "Le Meurice Hotel",
+        accommodation = Accommodation(
+            name = "Le Meurice Hotel",
+            phone = "+33 1 23 45 67 89",
+            checkIn = "14:00",
+            checkOut = "11:00",
+            location = "Paris, France",
+            mapUri = "https://www.google.com/maps/place/Paris,+France/@48.85661",
+        ),
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = false
+        isOwner = false,
+        ownerId = 1.toString(),
+        totalMembers = 2,
+        travelDirection = "Outward"
     )
 
     PreviewWrapper {

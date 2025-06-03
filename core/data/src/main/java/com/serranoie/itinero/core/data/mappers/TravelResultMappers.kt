@@ -16,7 +16,6 @@ fun TripDto.toDomain(): Trip {
         summary = summary,
         totalMembers = totalMembers,
         travelDirection = travelDirection,
-        hasPendingActions = hasPendingActions,
         accommodation = accommodation.toDomain(),
         reservationCode = reservationCode,
         extraInfo = extraInfo,
@@ -25,7 +24,6 @@ fun TripDto.toDomain(): Trip {
         ownerId = ownerId
     )
 }
-
 
 fun CreateTripDto.toDomain(): CreateTrip {
     return CreateTrip(
@@ -39,6 +37,52 @@ fun CreateTripDto.toDomain(): CreateTrip {
         additionalInfo = additionalInfo
     )
 }
+
+fun CreateTrip.toTrip(
+    id: String = "",
+    groupCode: String = "",
+    ownerId: String = "",
+    totalMembers: Int = 1,
+    travelDirection: String = ""
+): Trip {
+    return Trip(
+        id = id,
+        destination = destination,
+        startDate = startDate,
+        endDate = endDate,
+        summary = summary,
+        totalMembers = totalMembers,
+        travelDirection = travelDirection,
+        accommodation = accommodation,
+        reservationCode = reservationCode,
+        extraInfo = extraInfo,
+        additionalInfo = additionalInfo,
+        groupCode = groupCode,
+        ownerId = ownerId,
+        isOwner = true
+    )
+}
+
+
+//fun CreateTripDto.toTrip(): Trip {
+//    return Trip(
+//        id = "",
+//        destination = destination,
+//        startDate = startDate,
+//        endDate = endDate,
+//        summary = summary,
+//        // totalMembers = totalMembers ?: 1,
+//        // travelDirection = travelDirection ?: "",
+//        accommodation = accommodation.toDomain(),
+//        reservationCode = reservationCode,
+//        extraInfo = extraInfo,
+//        additionalInfo = additionalInfo,
+//        // groupCode = groupCode ?: "",
+//        // ownerId = ownerId ?: "",
+//        // isOwner = true // o según usuario actual
+//    )
+//}
+
 
 fun AccommodationDto.toDomain(): Accommodation {
     return Accommodation(

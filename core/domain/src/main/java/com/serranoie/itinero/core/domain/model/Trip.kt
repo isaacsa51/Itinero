@@ -8,7 +8,6 @@ data class Trip(
     val summary: String,
     val totalMembers: Int,
     val travelDirection: String,
-    val hasPendingActions: Boolean,
     val accommodation: Accommodation,
     val reservationCode: String,
     val extraInfo: String,
