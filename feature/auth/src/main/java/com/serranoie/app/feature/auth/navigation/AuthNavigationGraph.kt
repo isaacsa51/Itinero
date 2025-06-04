@@ -18,23 +18,23 @@ class AuthNavigationGraph : NavigationGraph {
             route = Route.AuthNavigation.route, startDestination = Route.Authentication.route
         ) {
             composable(route = Route.Authentication.route) {
-                val viewModel: AuthViewModel = koinViewModel()
+                val authViewModel: AuthViewModel = koinViewModel()
                 
                 AuthScreen(
                     navController = navController,
-                    uiState = viewModel.uiState,
-                    onLogin = { email, password -> viewModel.login(email, password) }
+                    uiState = authViewModel.uiState,
+                    onLogin = { email, password -> authViewModel.login(email, password) }
                 )
             }
 
             composable(route = Route.Register.route) {
-                val viewModel: AuthViewModel = koinViewModel()
+                val authViewModel: AuthViewModel = koinViewModel()
                 
                 RegisterScreen(
                     navController = navController,
-                    uiState = viewModel.uiState,
+                    uiState = authViewModel.uiState,
                     onRegister = { name, lastName, number, email, password ->
-                        viewModel.register(name, lastName, number, email, password)
+                        authViewModel.register(name, lastName, number, email, password)
                     }
                 )
             }

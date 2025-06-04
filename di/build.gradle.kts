@@ -45,16 +45,15 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation("io.insert-koin:koin-android:4.0.3")
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
 
     // Ktor
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.core)
-    //implementation(libs.ktor.client.darwin)
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.logging)
-
-    // Kotlin serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation(libs.ktor.client.auth)
 }

@@ -2,7 +2,9 @@ package com.serranoie.app.core.navigation
 
 enum class Screen {
     HOME,
+    LOADING,
     ONBOARDING,
+    WELCOME,
     AUTH,
     LOGIN,
     REGISTER,
@@ -16,4 +18,8 @@ enum class Screen {
     ITINERARY,
     TRIP_SETTINGS,
     TRIP_INFO,
+    TRAVEL_LIST,
+    CREATE_TRAVEL,
+    JOIN_TRIP,
+    CAMERA_SCANNER,
 }

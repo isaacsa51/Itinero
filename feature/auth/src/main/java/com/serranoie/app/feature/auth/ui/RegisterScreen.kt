@@ -15,8 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Facebook
 import androidx.compose.material.icons.rounded.GppGood
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
@@ -55,6 +57,7 @@ data class FieldValidation(
     val errorMessage: String? = null
 )
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RegisterScreen(
     navController: NavHostController,
@@ -75,7 +78,7 @@ fun RegisterScreen(
     LaunchedEffect(state) {
         when (state) {
             is AuthUiState.Success -> {
-                navController.navigate(Route.HomeNavigation.route) {
+                navController.navigate(Route.WelcomeNavigation.route) {
                     popUpTo(Route.AuthNavigation.route) { inclusive = true }
                 }
             }
@@ -176,7 +179,7 @@ fun RegisterScreen(
                 },
                 text = {
                     if (state is AuthUiState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        LoadingIndicator()
                     } else {
                         Text("Register")
                     }

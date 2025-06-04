@@ -72,6 +72,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
     // Camera
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.compose)
@@ -81,7 +84,8 @@ dependencies {
 
     // Koin
     implementation("io.insert-koin:koin-android:4.0.3")
-
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
     // Compose navigation
     implementation("androidx.navigation:navigation-compose:2.9.0")
 

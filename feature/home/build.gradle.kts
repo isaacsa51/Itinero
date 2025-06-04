@@ -39,6 +39,7 @@ dependencies {
 
     implementation(project(":designsystem"))
     implementation(project(":core:domain"))
+    implementation(project(":core:data"))
     implementation(project(":core:navigation"))
     implementation(project(":di"))
 
@@ -50,9 +51,15 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.camera.view)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    //Koin
+    implementation("io.insert-koin:koin-android:4.0.3")
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
 
     // Compose navigation
     implementation("androidx.navigation:navigation-compose:2.9.0")
@@ -83,6 +90,15 @@ dependencies {
     // Lifecycle viewmodel
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+
+    // Camera
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.compose)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.accompanist.permissions)
+
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
 }
 
 kapt {

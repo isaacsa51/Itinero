@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 
 sealed interface AuthUiState {
     data object Idle : AuthUiState
@@ -31,14 +32,20 @@ class AuthViewModel(
             _uiState.value = AuthUiState.Loading
             try {
                 val result = authUseCase.login(email, password)
+                Log.d("ISAAC", "Login successful, saving token: ${result.token}")
                 authUseCase.saveAuthToken(result.token)
 
                 val expirationTime =
                     System.currentTimeMillis() + AuthConstants.LOGIN_EXPIRATION_TIME
                 authPreferences.saveLoginStatus(true, expirationTime)
-                
+
+                // Verify token was saved
+                val savedToken = authPreferences.getToken()
+                Log.d("ISAAC", "Token verification after save: $savedToken")
+
                 _uiState.value = AuthUiState.Success(result.name)
             } catch (e: Exception) {
+                Log.e("ISAAC", "Login error: ${e.message}")
                 _uiState.value = AuthUiState.Error(e.message ?: "Unknown error")
             }
         }

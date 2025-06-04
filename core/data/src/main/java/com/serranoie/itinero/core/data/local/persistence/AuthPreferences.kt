@@ -48,7 +48,7 @@ class AuthPreferences(context: Context) {
         }
     }
 
-    fun clear() {
+    fun clearToken() {
         prefs.edit { clear() }
     }
 }
