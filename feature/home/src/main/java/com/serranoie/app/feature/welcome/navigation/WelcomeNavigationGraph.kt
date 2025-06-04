@@ -6,7 +6,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -23,14 +25,35 @@ import com.serranoie.app.feature.welcome.camera.CameraScannerScreen
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
-class WelcomeNavigationGraph(private val initialScreen: String = Route.Welcome.route) :
-    NavigationGraph {
+class WelcomeNavigationGraph : NavigationGraph {
     @SuppressLint("UnrememberedGetBackStackEntry")
     override fun NavGraphBuilder.build(navController: NavHostController) {
         navigation(
-            route = Route.WelcomeNavigation.route, startDestination = initialScreen
+            route = Route.WelcomeNavigation.route, startDestination = Route.Welcome.route
         ) {
-            composable(route = Route.Welcome.route) {
+            composable(route = Route.Welcome.route) { backStackEntry ->
+                val parentEntry = remember(navController) {
+                    navController.getBackStackEntry(Route.WelcomeNavigation.route)
+                }
+                val viewModel: TravelViewModel = koinViewModel(viewModelStoreOwner = parentEntry)
+                val uiState by viewModel.uiState.collectAsState()
+                val travels by viewModel.travels.collectAsState()
+
+                // Load travels when entering welcome navigation
+                LaunchedEffect(Unit) {
+                    viewModel.getAllTravels()
+                }
+
+                // Navigate to TravelList if user already has travels
+                LaunchedEffect(travels) {
+                    if (travels.isNotEmpty()) {
+                        Log.d("ISAAC", "Trips from user: $travels")
+                        navController.navigate(Route.TravelList.route) {
+                            popUpTo(Route.Welcome.route) { inclusive = true }
+                        }
+                    }
+                }
+
                 WelcomeScreen(onNavigateToCreateTravel = {
                     navController.navigate(Route.CreateTravel.route)
                 }, onNavigateToJoinTrip = {
