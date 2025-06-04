@@ -10,7 +10,6 @@ data class TripDto(
     val endDate: String,
     val summary: String,
     val totalMembers: Int,
-    val travelDirection: String,
     val accommodation: AccommodationDto,
     val reservationCode: String,
     val extraInfo: String,
