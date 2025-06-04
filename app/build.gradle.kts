@@ -72,6 +72,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
     // Camera
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.compose)

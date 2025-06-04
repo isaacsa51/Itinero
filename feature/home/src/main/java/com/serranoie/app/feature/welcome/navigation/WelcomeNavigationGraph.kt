@@ -1,11 +1,12 @@
 package com.serranoie.app.feature.welcome.navigation
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 class WelcomeNavigationGraph : NavigationGraph {
+    @SuppressLint("UnrememberedGetBackStackEntry")
     override fun NavGraphBuilder.build(navController: NavHostController) {
         navigation(
             route = Route.WelcomeNavigation.route,
@@ -39,12 +41,13 @@ class WelcomeNavigationGraph : NavigationGraph {
                 )
             }
 
-            composable(route = Route.CreateTravel.route) {
-                val viewModel: TravelViewModel = koinViewModel()
+            composable(route = Route.CreateTravel.route) { backStackEntry ->
+                val parentEntry = remember(navController) {
+                    navController.getBackStackEntry(Route.WelcomeNavigation.route)
+                }
+                val viewModel: TravelViewModel = koinViewModel(viewModelStoreOwner = parentEntry)
                 val uiState by viewModel.uiState.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
-
-                val currentUiState = uiState
 
                 LaunchedEffect(Unit) {
                     viewModel.uiState.collectLatest { state ->
@@ -119,8 +122,11 @@ class WelcomeNavigationGraph : NavigationGraph {
                 )
             }
 
-            composable(route = Route.TravelList.route) {
-                val viewModel: TravelViewModel = koinViewModel()
+            composable(route = Route.TravelList.route) { backStackEntry ->
+                val parentEntry = remember(navController) {
+                    navController.getBackStackEntry(Route.WelcomeNavigation.route)
+                }
+                val viewModel: TravelViewModel = koinViewModel(viewModelStoreOwner = parentEntry)
                 val uiState by viewModel.uiState.collectAsState()
                 val travels by viewModel.travels.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }

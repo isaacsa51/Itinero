@@ -31,6 +31,8 @@ sealed class Route(val route: String) {
 
     data object Onboarding : Route(Screen.ONBOARDING.name)
 
+    data object Loading : Route(Screen.LOADING.name)
+
 //    data object Settings : Route(Screen.SETTINGS.name)
 //    data object Profile : Route(Screen.PROFILE.name)
 //    data object Notifications : Route(Screen.NOTIFICATIONS.name)

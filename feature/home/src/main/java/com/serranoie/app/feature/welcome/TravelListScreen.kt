@@ -197,7 +197,7 @@ fun TravelItem(
 
                 Column {
                     Text(
-                        text = tripStatus.format(),
+                        text = tripStatus,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = statusTextColor

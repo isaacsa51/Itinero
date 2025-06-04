@@ -2,6 +2,7 @@ package com.serranoie.app.core.navigation
 
 enum class Screen {
     HOME,
+    LOADING,
     ONBOARDING,
     WELCOME,
     AUTH,
