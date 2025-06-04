@@ -163,29 +163,30 @@ fun TravelItem(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    if (trip.isOwner) {
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                                .border(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.tertiary,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "Owner",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            )
-                        }
-                    }
+                    // TODO: Check for current user id, if it matchs it's the owner
+//                    if (trip.isOwner) {
+//                        Box(
+//                            modifier = Modifier
+//                                .background(
+//                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+//                                    shape = RoundedCornerShape(4.dp)
+//                                )
+//                                .border(
+//                                    width = 1.dp,
+//                                    color = MaterialTheme.colorScheme.tertiary,
+//                                    shape = RoundedCornerShape(4.dp)
+//                                )
+//                                .padding(horizontal = 8.dp, vertical = 4.dp)
+//                        ) {
+//                            Text(
+//                                text = "Owner",
+//                                style = MaterialTheme.typography.bodyMedium.copy(
+//                                    fontWeight = FontWeight.Bold,
+//                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+//                                )
+//                            )
+//                        }
+//                    }
                 }
 
                 Text(
@@ -300,7 +301,6 @@ private fun TravelItemPreview() {
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = false,
         ownerId = 1.toString(),
     )
 
@@ -322,7 +322,6 @@ private fun TravelItemPreview() {
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = true,
         ownerId = 1.toString(),
         totalMembers = 2,
         travelDirection = "Outward"
@@ -346,7 +345,6 @@ private fun TravelItemPreview() {
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = true,
         ownerId = 1.toString(),
         totalMembers = 2,
         travelDirection = "Outward"
@@ -370,7 +368,6 @@ private fun TravelItemPreview() {
         reservationCode = "LMH-2024-098",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
-        isOwner = false,
         ownerId = 1.toString(),
         totalMembers = 2,
         travelDirection = "Outward"

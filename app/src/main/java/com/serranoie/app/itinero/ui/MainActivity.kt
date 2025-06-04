@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
                         when {
                             !authPreferences.isOnboardingCompleted() -> Route.AppStartNavigation.route
                             !authPreferences.isUserLoggedIn() -> Route.AuthNavigation.route
-                            uiState is TravelUiState.Success<*> && travels.isNotEmpty() -> Route.TravelList.route
+                            uiState is TravelUiState.Success<*> && travels.isNotEmpty() -> Route.WelcomeNavigation.route
                             uiState is TravelUiState.Success<*> -> Route.WelcomeNavigation.route
                             else -> null
                         }

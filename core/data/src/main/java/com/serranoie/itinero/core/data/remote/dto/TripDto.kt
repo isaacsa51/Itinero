@@ -11,7 +11,6 @@ data class TripDto(
     val summary: String,
     val totalMembers: Int,
     val travelDirection: String,
-    val hasPendingActions: Boolean,
     val accommodation: AccommodationDto,
     val reservationCode: String,
     val extraInfo: String,

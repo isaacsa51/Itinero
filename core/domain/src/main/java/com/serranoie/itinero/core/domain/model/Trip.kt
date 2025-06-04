@@ -14,7 +14,6 @@ data class Trip(
     val additionalInfo: String,
     val groupCode: String,
     val ownerId: String,
-    val isOwner: Boolean = false // need to be calculated based on the logged in user
 )
 
 data class Accommodation(

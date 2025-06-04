@@ -17,7 +17,6 @@ sealed class Route(val route: String) {
 
     data object WelcomeNavigation : Route("welcomeNavigation")
     data object TravelList : Route(Screen.TRAVEL_LIST.name)
-    data object TravelNavigation : Route(Screen.TRAVEL_NAVIGATION.name)
     data object CreateTravel : Route(Screen.CREATE_TRAVEL.name)
     data object JoinTrip : Route(Screen.JOIN_TRIP.name)
     data object CameraScanner : Route(Screen.CAMERA_SCANNER.name)

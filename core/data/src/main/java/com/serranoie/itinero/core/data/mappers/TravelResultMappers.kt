@@ -59,7 +59,6 @@ fun CreateTrip.toTrip(
         additionalInfo = additionalInfo,
         groupCode = groupCode,
         ownerId = ownerId,
-        isOwner = true
     )
 }
 
