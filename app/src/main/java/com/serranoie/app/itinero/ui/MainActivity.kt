@@ -29,6 +29,7 @@ import com.serranoie.app.designsystem.ui.theme.ItineroTheme
 import com.serranoie.app.itinero.navigation.NavGraph
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import org.koin.android.ext.android.inject
+import org.koin.androidx.compose.KoinAndroidContext
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
@@ -41,32 +42,34 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            ItineroTheme {
-                navController = rememberNavController()
+            KoinAndroidContext {
+                ItineroTheme {
+                    navController = rememberNavController()
 
-                var isReady by remember { mutableStateOf(false) }
+                    var isReady by remember { mutableStateOf(false) }
 
-                splashScreen.setKeepOnScreenCondition { !isReady }
+                    splashScreen.setKeepOnScreenCondition { !isReady }
 
-                val startDestination = remember {
-                    derivedStateOf {
-                        when {
-                            !authPreferences.isOnboardingCompleted() -> Route.AppStartNavigation.route
-                            !authPreferences.isUserLoggedIn() -> Route.AuthNavigation.route
-                            else -> Route.WelcomeNavigation.route
+                    val startDestination = remember {
+                        derivedStateOf {
+                            when {
+                                !authPreferences.isOnboardingCompleted() -> Route.AppStartNavigation.route
+                                !authPreferences.isUserLoggedIn() -> Route.AuthNavigation.route
+                                else -> Route.WelcomeNavigation.route
+                            }
                         }
                     }
-                }
 
-                LaunchedEffect(Unit) {
-                    isReady = true
-                }
+                    LaunchedEffect(Unit) {
+                        isReady = true
+                    }
 
-                startDestination.value.let { start ->
-                    NavGraph(
-                        navController = navController,
-                        startDestination = start
-                    )
+                    startDestination.value.let { start ->
+                        NavGraph(
+                            navController = navController,
+                            startDestination = start
+                        )
+                    }
                 }
             }
         }

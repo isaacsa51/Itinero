@@ -1,7 +1,6 @@
 package com.serranoie.app.feature.welcome
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,12 +29,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
@@ -53,11 +55,13 @@ fun TravelListScreen(
     trips: List<Trip>,
     onGetAllTravels: () -> Unit,
     onResetState: () -> Unit,
-    onCreateTravelClick: () -> Unit,
+    onAddTravelClick: () -> Unit,
     onTravelClick: (String) -> Unit,
     onShowSnackbar: suspend (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     LaunchedEffect(key1 = true) {
         onGetAllTravels()
@@ -72,16 +76,15 @@ fun TravelListScreen(
 
     Scaffold(topBar = {
         LargeTopAppBar(
-            title = { Text("My Trips") })
+            title = { Text("My Trips") }, scrollBehavior = scrollBehavior
+        )
     }, floatingActionButton = {
-        FloatingActionButton(onClick = onCreateTravelClick) {
+        FloatingActionButton(onClick = onAddTravelClick) {
             Icon(Icons.Default.Add, contentDescription = "Add Trip")
         }
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
             when {
                 uiState is TravelUiState.Loading -> {
@@ -190,8 +193,7 @@ fun TravelItem(
                 }
 
                 Text(
-                    text = "Group trip name",
-                    style = MaterialTheme.typography.titleSmallEmphasized
+                    text = "Group trip name", style = MaterialTheme.typography.titleSmallEmphasized
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -235,14 +237,11 @@ fun TravelItem(
                     .background(
                         color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                    ), contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Completed",
-                    style = MaterialTheme.typography.titleLargeEmphasized.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                    text = "Completed", style = MaterialTheme.typography.titleLargeEmphasized.copy(
+                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -272,9 +271,72 @@ private fun TravelListPreview() {
             trips = emptyList(),
             onGetAllTravels = {},
             onResetState = {},
-            onCreateTravelClick = {},
+            onAddTravelClick = {},
             onTravelClick = {},
-            onShowSnackbar = {})
+            onShowSnackbar = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ScreenWithItemsPreview() {
+    val listDataMock = listOf(
+        Trip(
+            id = "1",
+            groupCode = "PAR24",
+            totalMembers = 2,
+            travelDirection = "Outward",
+            destination = "Paris, France",
+            startDate = "2025-12-01",
+            endDate = "2025-12-31",
+            summary = "Romantic getaway exploring the City of Light with visits to the Eiffel Tower, Louvre Museum, and charming cafés",
+            accommodation = Accommodation(
+                name = "Le Meurice Hotel",
+                phone = "+33 1 23 45 67 89",
+                checkIn = "14:00",
+                checkOut = "11:00",
+                location = "Paris, France",
+                mapUri = "https://www.google.com/maps/place/Paris,+France/@48.85661",
+            ),
+            reservationCode = "LMH-2024-098",
+            extraInfo = "Winter season with holiday decorations",
+            additionalInfo = "Museum passes and restaurant reservations confirmed",
+            ownerId = 1.toString(),
+        ), Trip(
+            id = "1",
+            groupCode = "PAR24",
+            destination = "Tokyo, Japan",
+            startDate = "2025-12-01",
+            endDate = "2025-12-31",
+            summary = "Romantic getaway exploring the City of Light with visits to the Eiffel Tower, Louvre Museum, and charming cafés",
+            accommodation = Accommodation(
+                name = "Le Meurice Hotel",
+                phone = "+33 1 23 45 67 89",
+                checkIn = "14:00",
+                checkOut = "11:00",
+                location = "Paris, France",
+                mapUri = "https://www.google.com/maps/place/Paris,+France/@48.85661",
+            ),
+            reservationCode = "LMH-2024-098",
+            extraInfo = "Winter season with holiday decorations",
+            additionalInfo = "Museum passes and restaurant reservations confirmed",
+            ownerId = 1.toString(),
+            totalMembers = 2,
+            travelDirection = "Outward"
+        )
+    )
+
+    PreviewWrapper {
+        TravelListScreen(
+            uiState = TravelUiState.Success(listDataMock),
+            trips = listDataMock,
+            onGetAllTravels = {},
+            onResetState = {},
+            onAddTravelClick = {},
+            onTravelClick = {},
+            onShowSnackbar = {},
+        )
     }
 }
 
@@ -374,7 +436,6 @@ private fun TravelItemPreview() {
     )
 
     PreviewWrapper {
-
         Column {
             TravelItem(
                 trip = mockTrip, onClick = {})

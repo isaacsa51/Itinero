@@ -36,7 +36,7 @@ import com.serranoie.app.designsystem.ui.theme.component.OtpInputField
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun JoinTripScreen(
-    onTripJoined: () -> Unit = {},
+    onTripJoined: (String) -> Unit = {},
     onNavigateBack: () -> Unit = {},
     onNavigateToCameraScanner: () -> Unit = {}
 ) {
@@ -88,7 +88,7 @@ fun JoinTripScreen(
 
             IButton(
                 text = { Text("Unirme") },
-                onClick = { onTripJoined() },
+                onClick = { onTripJoined(otpCode) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = otpCode.length == 5
             )
