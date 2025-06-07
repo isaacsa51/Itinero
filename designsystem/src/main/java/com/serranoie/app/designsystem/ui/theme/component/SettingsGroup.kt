@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -27,6 +29,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,7 +51,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun FlexibleSettingsGroup(
+fun FlexibleListGroup(
     modifier: Modifier = Modifier,
     title: String? = null,
     content: @Composable ColumnScope.() -> Unit
@@ -60,7 +66,7 @@ fun FlexibleSettingsGroup(
         }
 
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(8.dp),
             tonalElevation = 2.dp,
             color = MaterialTheme.colorScheme.surface,
             modifier = Modifier.fillMaxWidth()
@@ -68,31 +74,6 @@ fun FlexibleSettingsGroup(
             Column {
                 content()
             }
-        }
-    }
-}
-
-/**
- * A basic settings group container with automatic styling.
- *
- * @param modifier Modifier to be applied to the container
- * @param content The composable content to be displayed inside the group
- */
-@Composable
-fun SettingsGroup(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surface,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Column {
-            content()
         }
     }
 }
@@ -108,7 +89,7 @@ fun SettingsGroup(
  * @param showDivider Whether to show a divider below this item
  */
 @Composable
-fun SettingsGroupItem(
+fun ListItem(
     title: String,
     subtitle: String? = null,
     onClick: () -> Unit,
@@ -161,7 +142,6 @@ fun SettingsGroupItem(
 
 /**
  * A completely customizable settings item that provides only the clickable container.
- * You have full control over the layout within this item.
  *
  * @param onClick Click handler for the item
  * @param content The custom content layout
@@ -181,9 +161,194 @@ fun CustomSettingsItem(
     )
 }
 
-// Legacy support - can be removed if not needed elsewhere
+/**
+ * A padded list group container with rounded corners that handles item positioning automatically.
+ *
+ * @param modifier Modifier to be applied to the container
+ * @param title Optional title displayed above the group
+ * @param content The composable content to be displayed inside the group
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ListExample(sections: List<SettingItem>) {
+fun PaddedListGroup(
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(modifier = modifier.padding(16.dp)) {
+        title?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.labelLargeEmphasized,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            content()
+        }
+    }
+}
+
+/**
+ * A padded list item with automatic corner rounding based on position.
+ *
+ * @param title The main title text
+ * @param subtitle Optional subtitle text
+ * @param icon Leading icon
+ * @param onClick Click handler for the item
+ * @param position The position of this item in the list (affects corner rounding)
+ */
+@Composable
+fun PaddedListItem(
+    title: String,
+    subtitle: String? = null,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    position: PaddedListItemPosition = PaddedListItemPosition.Middle
+) {
+    val shape = when (position) {
+        PaddedListItemPosition.First -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+        PaddedListItemPosition.Last -> RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
+        PaddedListItemPosition.Single -> RoundedCornerShape(8.dp)
+        PaddedListItemPosition.Middle -> RoundedCornerShape(1.dp)
+    }
+
+    Surface(
+        shape = shape,
+        tonalElevation = 4.dp,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { onClick() }
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = icon, contentDescription = null)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(text = title, style = MaterialTheme.typography.bodyLarge)
+                subtitle?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A customizable padded list item with automatic corner rounding.
+ *
+ * @param onClick Click handler for the item
+ * @param position The position of this item in the list (affects corner rounding)
+ * @param content The custom content layout
+ */
+@Composable
+fun CustomPaddedListItem(
+    onClick: () -> Unit,
+    position: PaddedListItemPosition = PaddedListItemPosition.Middle,
+    content: @Composable RowScope.() -> Unit
+) {
+    val shape = when (position) {
+        PaddedListItemPosition.First -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+        PaddedListItemPosition.Last -> RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
+        PaddedListItemPosition.Single -> RoundedCornerShape(8.dp)
+        PaddedListItemPosition.Middle -> RoundedCornerShape(1.dp)
+    }
+
+    Surface(
+        shape = shape,
+        tonalElevation = 4.dp,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable { onClick() }
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
+    }
+}
+
+/**
+ * A customizable expandable padded list item with automatic corner rounding.
+ *
+ * @param isExpanded Whether the item is currently expanded
+ * @param onToggleExpanded Callback when the item is clicked to toggle expansion
+ * @param position The position of this item in the list (affects corner rounding)
+ * @param defaultContent The content to show when collapsed
+ * @param expandedContent The content to show when expanded
+ */
+@Composable
+fun CustomPaddedExpandableItem(
+    isExpanded: Boolean,
+    onToggleExpanded: () -> Unit,
+    position: PaddedListItemPosition = PaddedListItemPosition.Middle,
+    defaultContent: @Composable RowScope.() -> Unit,
+    expandedContent: @Composable ColumnScope.() -> Unit
+) {
+    val shape = when (position) {
+        PaddedListItemPosition.First -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+        PaddedListItemPosition.Last -> RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
+        PaddedListItemPosition.Single -> RoundedCornerShape(8.dp)
+        PaddedListItemPosition.Middle -> RoundedCornerShape(1.dp)
+    }
+
+    Surface(
+        shape = shape,
+        tonalElevation = 4.dp,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+    ) {
+        Column {
+            // Default content - always clickable
+            Row(
+                modifier = Modifier
+                    .clickable { onToggleExpanded() }
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                content = defaultContent
+            )
+
+            // Expanded content - only shown when expanded
+            if (isExpanded) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    content = expandedContent
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Enum to define the position of an item in a padded list for proper corner rounding.
+ */
+enum class PaddedListItemPosition {
+    First, Middle, Last, Single
+}
+
+/**
+ * Legacy composable for backward compatibility. Consider using PaddedListGroup with individual items instead.
+ */
+@Composable
+fun LegacyPaddedListGroup(sections: List<SettingItem>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -192,41 +357,20 @@ fun ListExample(sections: List<SettingItem>) {
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         itemsIndexed(sections) { index, item ->
-            val shape = when (index) {
-                0 -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-                sections.lastIndex -> RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
-                else -> RoundedCornerShape(1.dp)
+            val position = when {
+                sections.size == 1 -> PaddedListItemPosition.Single
+                index == 0 -> PaddedListItemPosition.First
+                index == sections.lastIndex -> PaddedListItemPosition.Last
+                else -> PaddedListItemPosition.Middle
             }
 
-            Surface(
-                shape = shape,
-                tonalElevation = 5.dp,
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(shape)
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .clickable { item.onClick() }
-                        .padding(horizontal = 16.dp, vertical = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(imageVector = item.icon, contentDescription = null)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(text = item.title, style = MaterialTheme.typography.bodyLarge)
-                        item.subtitle?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
+            PaddedListItem(
+                title = item.title,
+                subtitle = item.subtitle,
+                icon = item.icon,
+                onClick = item.onClick,
+                position = position
+            )
         }
     }
 }
@@ -238,7 +382,6 @@ data class SettingItem(
     val onClick: () -> Unit
 )
 
-// Preview Components
 @ComponentPreview
 @Composable
 fun FlexibleSettingsGroupPreview() {
@@ -246,16 +389,16 @@ fun FlexibleSettingsGroupPreview() {
         LazyColumn {
             item {
                 // Example 1: Using standard SettingsGroupItem
-                FlexibleSettingsGroup(
+                FlexibleListGroup(
                     title = "Standard Items"
                 ) {
-                    SettingsGroupItem(
+                    ListItem(
                         title = "Setting 1",
                         subtitle = "Description",
                         onClick = { },
                         showDivider = true
                     )
-                    SettingsGroupItem(
+                    ListItem(
                         title = "Setting 2",
                         onClick = { }
                     )
@@ -264,7 +407,7 @@ fun FlexibleSettingsGroupPreview() {
 
             item {
                 // Example 2: Custom content with any composables
-                FlexibleSettingsGroup(
+                FlexibleListGroup(
                     title = "Custom Content"
                 ) {
                     CustomSettingsItem(onClick = { }) {
@@ -308,59 +451,174 @@ fun FlexibleSettingsGroupPreview() {
                     }
                 }
             }
-        }
-    }
-}
 
-@ComponentPreview
-@Composable
-fun SettingsGroupPreview() {
-    PreviewWrapper {
-        SettingsGroup {
-            SettingsGroupItem(
-                title = "Notifications",
-                subtitle = "Manage your notification preferences",
-                onClick = { },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+            item {
+                FlexibleListGroup(
+                    title = "Padded Item Variations"
+                ) {
+                    // Example with leading icon and single position
+                    PaddedListItem(
+                        title = "Notifications",
+                        subtitle = "App, system, and emergency",
+                        icon = Icons.Default.Settings,
+                        onClick = {},
+                        position = PaddedListItemPosition.Single
                     )
-                },
-                showDivider = true
-            )
 
-            SettingsGroupItem(
-                title = "Privacy",
-                subtitle = "Control your privacy settings",
-                onClick = { },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                    // Example with custom icon and middle position
+                    CustomPaddedListItem(
+                        onClick = { /* Custom action */ },
+                        position = PaddedListItemPosition.Middle
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Advanced Settings",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Developer options and diagnostics",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        // Example of trailing content: badge or text
+                        Text(
+                            text = "Beta",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    // Example with no subtitle and last position
+                    PaddedListItem(
+                        title = "Reset Settings",
+                        icon = Icons.Default.Settings,
+                        onClick = {},
+                        position = PaddedListItemPosition.Last
                     )
                 }
-            )
+            }
         }
     }
 }
 
 @ComponentPreview
 @Composable
-fun SettingsPreview() {
-    val settings = listOf(
-        SettingItem("Google", "Services and preferences", Icons.Default.ArrowForward, {}),
-        SettingItem(
-            "Network and Internet",
-            "Mobile, Wi-Fi, hotspot",
-            Icons.Default.ArrowForward,
-            {}),
-        SettingItem("Connected devices", "Bluetooth, pairing", Icons.Default.ArrowForward, {}),
-        SettingItem("Apps", "Assistant, recent apps, default apps", Icons.Default.ArrowForward, {})
-    )
+fun PaddedListGroupPreview() {
     PreviewWrapper {
-        ListExample(sections = settings)
+        LazyColumn {
+            item {
+                PaddedListGroup(
+                    title = "Settings"
+                ) {
+                    PaddedListItem(
+                        title = "Google",
+                        subtitle = "Services and preferences",
+                        icon = Icons.Default.Settings,
+                        onClick = { },
+                        position = PaddedListItemPosition.First
+                    )
+                    PaddedListItem(
+                        title = "Network and Internet",
+                        subtitle = "Mobile, Wi-Fi, hotspot",
+                        icon = Icons.Default.Settings,
+                        onClick = { },
+                        position = PaddedListItemPosition.Middle
+                    )
+                    PaddedListItem(
+                        title = "Connected devices",
+                        subtitle = "Bluetooth, pairing",
+                        icon = Icons.Default.Settings,
+                        onClick = { },
+                        position = PaddedListItemPosition.Last
+                    )
+                }
+            }
+
+            item {
+                PaddedListGroup(
+                    title = "Custom Content"
+                ) {
+                    CustomPaddedListItem(
+                        onClick = { },
+                        position = PaddedListItemPosition.Single
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Custom Padded Item",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "This shows custom layout with padding",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Text(
+                            text = "Value",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    var isExpanded by remember { mutableStateOf(false) }
+                    CustomPaddedExpandableItem(
+                        isExpanded = isExpanded,
+                        onToggleExpanded = { isExpanded = !isExpanded },
+                        position = PaddedListItemPosition.Last,
+                        defaultContent = {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Expandable Item",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    text = "Click to expand/collapse",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        expandedContent = {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                            Text(
+                                text = "This is the expanded content!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "You can put any composable content here when expanded.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+            }
+        }
     }
 }

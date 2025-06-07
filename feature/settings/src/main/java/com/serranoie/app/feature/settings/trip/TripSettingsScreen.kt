@@ -1,6 +1,5 @@
 package com.serranoie.app.feature.settings.trip
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -13,10 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,20 +21,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Text
@@ -49,22 +47,17 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,11 +68,15 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedListItem
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
-import com.serranoie.app.designsystem.ui.theme.component.FlexibleSettingsGroup
-import com.serranoie.app.designsystem.ui.theme.component.SettingsGroupItem
-import com.serranoie.app.designsystem.ui.theme.component.CustomSettingsItem
+import com.serranoie.app.designsystem.ui.theme.component.FlexibleListGroup
+import com.serranoie.app.designsystem.ui.theme.component.ListItem
+import com.serranoie.app.designsystem.ui.theme.component.PaddedListGroup
+import com.serranoie.app.designsystem.ui.theme.component.PaddedListItem
+import com.serranoie.app.designsystem.ui.theme.component.PaddedListItemPosition
+import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedExpandableItem
 import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -91,7 +88,7 @@ fun TripSettingsScreen(
     viewModel: TripSettingsViewModel = viewModel()
 ) {
     val scrollBehavior =
-        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val qrBitmap = viewModel.qrBitmap.collectAsStateWithLifecycle().value
     val formattedCode = tripId.replace("ITN-", "")
     val lazyListState = rememberLazyListState()
@@ -205,60 +202,119 @@ fun TripSettingsScreen(
                 }
             }
 
-            // Registered Members
-            item {
-                RegisteredMembers()
-            }
-
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // TODO: each item naviagte to trip info settings screen
             // Trip Information Settings
             item(key = "tripInfo") {
-                FlexibleSettingsGroup(
-                    title = "TRIP INFORMATION"
+                PaddedListGroup(
+                    title = "Trip Information".uppercase(),
                 ) {
-                    SettingsGroupItem(
-                        title = "Trip Name",
-                        subtitle = "Summer Adventure 2023",
-                        onClick = { /* Navigate to edit trip name */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Navigate",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    CustomPaddedListItem(
+                        onClick = { },
+                        position = PaddedListItemPosition.First
+                    ) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Trip Name",
+                                style = MaterialTheme.typography.bodyLarge
                             )
-                        },
-                        showDivider = true
-                    )
-
-                    SettingsGroupItem(
-                        title = "Trip Dates",
-                        subtitle = "Aug 15 - Aug 25, 2023",
-                        onClick = { /* Navigate to edit trip dates */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Navigate",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        showDivider = true
-                    )
-
-                    SettingsGroupItem(
-                        title = "Trip Description",
-                        subtitle = "Our annual summer vacation exploring the coast",
-                        onClick = { /* Navigate to edit description */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Navigate",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            Text(
+                                text = "Trip name holder",
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
-                    )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null
+                        )
+                    }
+
+                    CustomPaddedListItem(
+                        onClick = { },
+                        position = PaddedListItemPosition.Middle
+                    ) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Trip Dates",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "7 of June - 10 of June, 2025",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null
+                        )
+                    }
+
+                    CustomPaddedListItem(
+                        onClick = { },
+                        position = PaddedListItemPosition.Middle
+                    ) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Accomodation Name",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "Item value holder",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null
+                        )
+                    }
+
+                    CustomPaddedListItem(
+                        onClick = { },
+                        position = PaddedListItemPosition.Middle
+                    ) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Accomodation location",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "Item value holder",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null
+                        )
+                    }
+                    CustomPaddedListItem(
+                        onClick = { },
+                        position = PaddedListItemPosition.Last
+                    ) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Trip Name",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "Trip name holder",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = null
+                        )
+                    }
                 }
             }
 
@@ -266,51 +322,119 @@ fun TripSettingsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
+            /* TODO: Show only this list if the current user is the owner
+            *       - Change the way that the members shows on the members list to display depending if its pending or already accepted
+            *       - Do the same with members on Ownership change
+            */
             // Group Management Settings
             item {
-                FlexibleSettingsGroup(
+                PaddedListGroup(
                     title = "GROUP MANAGEMENT"
                 ) {
-                    SettingsGroupItem(
-                        title = "Invite New Member",
-                        subtitle = "Share invitation code with others",
+                    CustomPaddedListItem(
                         onClick = { /* Handle invite action */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Navigate",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        position = PaddedListItemPosition.First
+                    ) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Invite New Member",
+                                style = MaterialTheme.typography.bodyLarge
                             )
-                        },
-                        showDivider = true
-                    )
-
-                    SettingsGroupItem(
-                        title = "Member Permissions",
-                        subtitle = "Manage what group members can edit",
-                        onClick = { /* Navigate to permissions screen */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Navigate",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        showDivider = true
-                    )
-
-                    SettingsGroupItem(
-                        title = "Transfer Ownership",
-                        subtitle = "Change the trip administrator",
-                        onClick = { /* Navigate to transfer ownership */ },
-                        trailingContent = {
-                            Icon(
-                                imageVector = Icons.Default.KeyboardArrowRight,
-                                contentDescription = "Navigate",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            Text(
+                                text = "Share invitation code with others",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Navigate",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Manage Members with Expandable Content
+                    var expanded by remember { mutableStateOf(false) }
+
+                    CustomPaddedExpandableItem(
+                        isExpanded = expanded,
+                        onToggleExpanded = { expanded = !expanded },
+                        position = PaddedListItemPosition.Middle,
+                        defaultContent = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Manage Members",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Manage Members",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    text = "Review pending invitations",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = if (expanded) "Collapse" else "Expand",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        expandedContent = {
+                            Text(
+                                text = "Pending Member Name",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                IButton(
+                                    text = { Text("Accept") },
+                                    onClick = { /* Handle accept action */ },
+                                    modifier = Modifier.weight(1f, false),
+                                    importance = ButtonImportance.Primary
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                IButton(
+                                    text = { Text("Ignore") },
+                                    onClick = { /* Handle ignore action */ },
+                                    modifier = Modifier.weight(1f, false),
+                                    importance = ButtonImportance.Secondary
+                                )
+                            }
+                        }
                     )
+
+                    CustomPaddedListItem(
+                        onClick = { /* Navigate to transfer ownership */ },
+                        position = PaddedListItemPosition.Last
+                    ) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Transfer Ownership",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "Change the trip administrator",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Navigate",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
@@ -441,18 +565,6 @@ fun ExpandablePendingInvites(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun RegisteredMembers() {
-    // The expandedStatus needs to be tracked with a mutable state
-    var expandedStatus by remember { mutableStateOf(false) }
-
-    Column {
-        ExpandablePendingInvites(
-            isExpanded = expandedStatus,
-            onExpandedChange = { expandedStatus = it })
     }
 }
 
