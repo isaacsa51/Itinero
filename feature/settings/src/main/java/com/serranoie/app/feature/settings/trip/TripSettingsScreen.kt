@@ -102,10 +102,7 @@ fun TripSettingsScreen(
     Scaffold(
         topBar = {
             MediumTopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                ), title = {
+                title = {
                     Text(
                         "Trip Settings",
                         maxLines = 1,

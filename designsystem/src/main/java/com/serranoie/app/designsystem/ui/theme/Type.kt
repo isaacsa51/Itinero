@@ -32,8 +32,8 @@ val displayLargeFontFamily =
         Font(
             R.font.archivo_variablefont,
             variationSettings = FontVariation.Settings(
-                FontVariation.weight(1000),
-                FontVariation.width(150f),
+                FontVariation.weight(900),
+                FontVariation.width(300f),
             )
         )
     )
@@ -87,6 +87,18 @@ val labelLargeFontFamily =
     )
 
 @OptIn(ExperimentalTextApi::class)
+val labelSmallFontFamily =
+    FontFamily(
+        Font(
+            R.font.archivo_variablefont,
+            variationSettings = FontVariation.Settings(
+                FontVariation.weight(400),
+                FontVariation.width(200f),
+            )
+        )
+    )
+
+@OptIn(ExperimentalTextApi::class)
 val bodyLargeFontFamily =
     FontFamily(
         Font(
@@ -103,8 +115,8 @@ val baseline = Typography()
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 val ItineroTypography = Typography(
-    displayLargeEmphasized = baseline.displayLargeEmphasized.copy(fontFamily = displayFontFamily),
     displayLarge = baseline.displayLarge.copy(fontFamily = displayFontFamily),
+    displayLargeEmphasized = baseline.displayLargeEmphasized.copy(fontFamily = displayFontFamily),
     displayMedium = baseline.displayMedium.copy(fontFamily = displayFontFamily),
     displaySmall = baseline.displaySmall.copy(fontFamily = displayFontFamily),
     displaySmallEmphasized = baseline.displaySmallEmphasized.copy(fontFamily = displaySmallFontFamily),
@@ -125,4 +137,5 @@ val ItineroTypography = Typography(
     labelLargeEmphasized = baseline.labelLargeEmphasized.copy(fontFamily = labelLargeFontFamily),
     labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
     labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
+    labelSmallEmphasized = baseline.labelSmallEmphasized.copy(fontFamily = labelSmallFontFamily),
 )

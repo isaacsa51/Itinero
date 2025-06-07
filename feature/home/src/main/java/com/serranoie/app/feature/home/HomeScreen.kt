@@ -13,14 +13,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,11 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.core.navigation.Route
+import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.IFilledTextField
+import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 
 
@@ -71,9 +76,15 @@ fun HomeScreen(navController: NavHostController = rememberNavController(), tripI
         )
     }, floatingActionButton = {
         ExtendedFloatingActionButton(
-            onClick = { /* Handle FAB click */ },
-            icon = { Icon(Icons.Rounded.AddCircleOutline, contentDescription = "Add") },
-            text = { Text("Add Trip") },
+            onClick = {
+                navController.navigate(
+                    Route.TripSettings.createRoute(
+                        tripId = tripId,
+                    )
+                )
+            },
+            icon = { Icon(Icons.Rounded.Edit, contentDescription = "Edit") },
+            text = { Text("Edit") },
             expanded = true
         )
     }) { paddingValues ->
@@ -88,6 +99,7 @@ fun HomeScreen(navController: NavHostController = rememberNavController(), tripI
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripDetailsScreen(navController: NavHostController, tripId: String) {
     val context = LocalContext.current
@@ -99,38 +111,6 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ExpandableCard(
-            title = "Pending actions",
-            isExpanded = isInviteExpanded,
-            onExpandedChange = { isInviteExpanded = it },
-            headerIcon = Icons.Rounded.AddCircleOutline,
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            titleStyle = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-        ) {
-            Text(
-                text = "map sdk location holder",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "ADDRESS",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-
-            Text(
-                text = "Antonio Dovali Jaime 70, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01219 Mexico City, CDMX",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         DestinationCard(
             country = "Germany",
             route = "Country 1 > Country 2",
@@ -163,13 +143,13 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
 
         Text(
             text = "Accommodation",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+            style = MaterialTheme.typography.headlineSmallEmphasized
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         ExpandableCard(
-            title = "Hotel/AirBnB Details",
+            title = "Details",
             isExpanded = isExpanded,
             onExpandedChange = { isExpanded = it },
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -186,7 +166,7 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
 
             Text(
                 text = "ADDRESS",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.labelSmallEmphasized,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
 
@@ -203,6 +183,7 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DestinationCard(
     country: String,
@@ -227,43 +208,47 @@ fun DestinationCard(
             ) {
                 Text(
                     text = "Destination",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmallEmphasized,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
 
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "Settings",
-                    modifier = Modifier.clickable {
-                        navController.navigate(
-                            Route.TripSettings.createRoute(
-                                tripId = tripId,
+                BadgedBox(
+                    badge = {
+                        Badge()
+                    }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Settings,
+                        contentDescription = "Settings",
+                        modifier = Modifier.clickable {
+                            navController.navigate(
+                                Route.TripSettings.createRoute(
+                                    tripId = tripId,
+                                )
                             )
-                        )
-                    },
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                        },
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             Text(
                 text = country,
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.displayLargeEmphasized
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = route, style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = flightTime, style = MaterialTheme.typography.bodyMedium
-                )
-            }
+            Text(
+                text = "Group name", style = MaterialTheme.typography.labelLargeEmphasized
+            )
         }
     }
 }
 
+/* TODO: Change 5 days title depending of the context of the user date to show different thing
+    - To begin
+    - N days (when date is in the data)
+    - Completed
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DateInfoCard(
     title: String,
@@ -280,12 +265,12 @@ fun DateInfoCard(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmallEmphasized,
                 color = MaterialTheme.colorScheme.outline
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.headlineSmallEmphasized
             )
             Text(
                 text = subtitle,
@@ -296,6 +281,12 @@ fun DateInfoCard(
     }
 }
 
+/* TODO: Change subtitle depending of the pending invitations like following :
+    - Group ready
+    - Waiting for more
+    - All confirmed
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PeopleInfoCard(
     confirmedCount: Int,
@@ -313,30 +304,24 @@ fun PeopleInfoCard(
         ) {
             Text(
                 text = "People",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmallEmphasized,
                 color = MaterialTheme.colorScheme.outline
             )
             Text(
                 text = "$confirmedCount total",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.headlineSmallEmphasized
             )
             Row(
                 modifier = Modifier.padding(top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                names.take(names.size).forEach {
-                    Icon(
-                        imageVector = Icons.Rounded.SupervisedUserCircle, contentDescription = null
-                    )
-                }
-                if (names.size > 2) {
-                    Text(text = "+${names.size - 2}", color = MaterialTheme.colorScheme.outline)
-                }
+                Text(text = "3 pending persons", style = MaterialTheme.typography.labelSmall)
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TravelInfoCard(navController: NavController) {
     Column {
@@ -347,7 +332,7 @@ fun TravelInfoCard(navController: NavController) {
         ) {
             Text(
                 text = "Travel Information",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineSmallEmphasized,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -359,24 +344,59 @@ fun TravelInfoCard(navController: NavController) {
             }
         }
 
-        IFilledTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            value = "",
-            onValueChange = {},
-            label = "Destination",
-            placeholder = "Enter your destination"
+        SelectField(
+            value = "Hotel Name",
+            onSelect = { },
+            label = "Accommodation",
+            leadingIcon = Icons.Rounded.SupervisedUserCircle,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        )
+
+        SelectField(
+            value = "+123 456 7890",
+            onSelect = { },
+            label = "Phone Number",
+            leadingIcon = Icons.Rounded.SupervisedUserCircle,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SelectField(
+                value = "2023-07-15 3:00 PM",
+                onSelect = { },
+                label = "Check-In Date & Time",
+                leadingIcon = Icons.Default.CalendarToday,
+                modifier = Modifier.weight(1f)
+            )
+            SelectField(
+                value = "2023-07-20 11:00 AM",
+                onSelect = { },
+                label = "Check-Out Date & Time",
+                leadingIcon = Icons.Default.CalendarToday,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        SelectField(
+            value = "RES-123456",
+            onSelect = { },
+            label = "Reservation Code",
+            leadingIcon = null,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SummarySection() {
     Column {
         Text(
             text = "Summary",
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+            style = MaterialTheme.typography.headlineSmallEmphasized
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
