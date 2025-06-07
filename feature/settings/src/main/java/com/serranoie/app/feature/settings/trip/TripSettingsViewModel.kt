@@ -22,8 +22,8 @@ class TripSettingsViewModel: ViewModel() {
     private val _qrBitmap = MutableStateFlow<Bitmap?>(null)
     val qrBitmap: StateFlow<Bitmap?> = _qrBitmap
 
-    fun setQrText(text: String) {
-        _qrText.value = text
+    fun setQrText(groupCode: String) {
+        _qrText.value = groupCode
     }
 
     fun generateQrCode() {

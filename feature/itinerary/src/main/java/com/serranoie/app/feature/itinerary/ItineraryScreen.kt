@@ -232,21 +232,3 @@ private fun ItineraryScreenPreview() {
             navController = rememberNavController(), itinerary = mockItineraryData, onSwiped = {})
     }
 }
-
-@Composable
-fun VerticalDivider(
-    modifier: Modifier = Modifier,
-    thickness: Dp = DividerDefaults.Thickness,
-    color: Color = DividerDefaults.color,
-) = Canvas(
-    modifier
-        .fillMaxHeight()
-        .width(thickness)
-) {
-    drawLine(
-        color = color,
-        strokeWidth = thickness.toPx(),
-        start = Offset(thickness.toPx() / 2, 0f),
-        end = Offset(thickness.toPx() / 2, size.height),
-    )
-}

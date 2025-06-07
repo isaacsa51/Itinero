@@ -27,6 +27,7 @@ fun OtpInputField(
     modifier: Modifier = Modifier,
     otpText: String,
     otpCount: Int = 5,
+    enabled: Boolean = true,
     onOtpTextChange: (String, Boolean) -> Unit
 ) {
     LaunchedEffect(Unit) {
@@ -39,10 +40,11 @@ fun OtpInputField(
         modifier = modifier,
         value = TextFieldValue(otpText, selection = TextRange(otpText.length)),
         onValueChange = {
-            if (it.text.length <= otpCount) {
+            if (enabled && it.text.length <= otpCount) {
                 onOtpTextChange.invoke(it.text, it.text.length == otpCount)
             }
         },
+        enabled = enabled,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
         decorationBox = {
             Row(horizontalArrangement = Arrangement.Center) {
@@ -54,7 +56,7 @@ fun OtpInputField(
                             modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
                             text = char.toString(),
                             style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             textAlign = TextAlign.Center
                         )
                     } else {
@@ -63,13 +65,13 @@ fun OtpInputField(
                                 .width(28.dp)
                                 .border(
                                     1.dp,
-                                    MaterialTheme.colorScheme.primary,
+                                    if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                     RoundedCornerShape(4.dp)
                                 )
                                 .padding(4.dp),
                             text = char.toString(),
                             style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -79,7 +81,8 @@ fun OtpInputField(
                 repeat(otpCount) { index ->
                     CharView(
                         index = index,
-                        text = otpText
+                        text = otpText,
+                        enabled = enabled
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                 }
@@ -91,7 +94,8 @@ fun OtpInputField(
 @Composable
 private fun CharView(
     index: Int,
-    text: String
+    text: String,
+    enabled: Boolean
 ) {
     val isFocused = text.length == index
     val char = when {
@@ -104,20 +108,84 @@ private fun CharView(
             .width(28.dp)
             .border(
                 1.dp, when {
-                    isFocused -> MaterialTheme.colorScheme.primary
+                    isFocused && enabled -> MaterialTheme.colorScheme.primary
                     else -> MaterialTheme.colorScheme.outline
                 }, RoundedCornerShape(4.dp)
             )
             .padding(4.dp),
         text = char,
         style = MaterialTheme.typography.titleLarge,
-        color = if (isFocused) {
+        color = if (isFocused && enabled) {
             MaterialTheme.colorScheme.primary
         } else {
             MaterialTheme.colorScheme.outline
         },
         textAlign = TextAlign.Center
     )
+}
+
+@Composable
+fun OtpDisplayField(
+    modifier: Modifier = Modifier,
+    otpText: String,
+    otpCount: Int = 5
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        // Display fixed prefix "ITN-"
+        val prefix = "ITN-"
+        prefix.forEachIndexed { _, char ->
+            if (char == '-') {
+                Text(
+                    modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
+                    text = char.toString(),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                Text(
+                    modifier = Modifier
+                        .width(28.dp)
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(4.dp)
+                        )
+                        .padding(4.dp),
+                    text = char.toString(),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Spacer(modifier = Modifier.width(4.dp))
+        }
+
+        // Display the OTP digits
+        val displayText = otpText.take(otpCount).padEnd(otpCount, ' ')
+        displayText.forEachIndexed { index, char ->
+            Text(
+                modifier = Modifier
+                    .width(28.dp)
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary,
+                        RoundedCornerShape(4.dp)
+                    )
+                    .padding(4.dp),
+                text = if (char == ' ') "" else char.toString(),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
+            )
+            if (index < otpCount - 1) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+        }
+    }
 }
 
 @ComponentPreview
@@ -141,5 +209,25 @@ private fun OtpInputFieldWithValuePreview() {
             otpText = otpValue,
             onOtpTextChange = { otp, _ -> otpValue = otp }
         )
+    }
+}
+
+@ComponentPreview
+@Composable
+private fun OtpInputFieldReadOnlyPreview() {
+    PreviewWrapper {
+        OtpInputField(
+            otpText = "72429",
+            enabled = false,
+            onOtpTextChange = { _, _ -> }
+        )
+    }
+}
+
+@ComponentPreview
+@Composable
+private fun OtpDisplayFieldPreview() {
+    PreviewWrapper {
+        OtpDisplayField(otpText = "72429")
     }
 }

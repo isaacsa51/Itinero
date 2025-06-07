@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -49,18 +48,17 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Screen
+import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.IFilledTextField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
-import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController = rememberNavController()) {
+fun HomeScreen(navController: NavHostController = rememberNavController(), tripId: String) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-
 
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         TopAppBar(
@@ -85,13 +83,13 @@ fun HomeScreen(navController: NavHostController = rememberNavController()) {
                 .verticalScroll(rememberScrollState(), true)
                 .padding(paddingValues)
         ) {
-            TripDetailsScreen(navController)
+            TripDetailsScreen(navController, tripId)
         }
     }
 }
 
 @Composable
-fun TripDetailsScreen(navController: NavHostController) {
+fun TripDetailsScreen(navController: NavHostController, tripId: String) {
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(true) }
     var isInviteExpanded by remember { mutableStateOf(false) }
@@ -137,7 +135,8 @@ fun TripDetailsScreen(navController: NavHostController) {
             country = "Germany",
             route = "Country 1 > Country 2",
             flightTime = "2 h 25 min flight",
-            navController = navController
+            navController = navController,
+            tripId = tripId
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -206,7 +205,11 @@ fun TripDetailsScreen(navController: NavHostController) {
 
 @Composable
 fun DestinationCard(
-    country: String, route: String, flightTime: String, navController: NavHostController
+    country: String,
+    route: String,
+    flightTime: String,
+    navController: NavHostController,
+    tripId: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -231,7 +234,13 @@ fun DestinationCard(
                 Icon(
                     imageVector = Icons.Filled.Settings,
                     contentDescription = "Settings",
-                    modifier = Modifier.clickable { navController.navigate(Screen.TRIP_SETTINGS.name) },
+                    modifier = Modifier.clickable {
+                        navController.navigate(
+                            Route.TripSettings.createRoute(
+                                tripId = tripId,
+                            )
+                        )
+                    },
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
@@ -388,6 +397,7 @@ fun SummarySection() {
 @Composable
 fun HomeScreenPreview() {
     PreviewWrapper {
-        HomeScreen()
+        val tripId = "123"
+        HomeScreen(tripId = tripId)
     }
 }

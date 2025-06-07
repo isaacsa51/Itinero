@@ -1,3 +1,14 @@
+/*
+ - Copyright (c) 2025 Isaac Serrano.
+ -
+ - File: Trip.kt
+ - Project: Itinero
+ - Module: Itinero.core.domain.main
+ -
+ - This file belongs to the project: Itinero.
+ - Last edited: 04 junio 2025
+ */
+
 package com.serranoie.itinero.core.domain.model
 
 data class Trip(

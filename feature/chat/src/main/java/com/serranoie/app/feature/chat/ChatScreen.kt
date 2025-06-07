@@ -33,7 +33,6 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -84,7 +83,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(navController: NavController) {
+fun ChatScreen(navController: NavController, tripId: String) {
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val scrollState = rememberLazyListState()
@@ -567,8 +566,9 @@ private val JumpToBottomThreshold = 56.dp
 @ThemePreviews
 @Composable
 private fun ChatScreenPreview() {
+    val tripId = "123"
     PreviewWrapper {
-        ChatScreen(navController = rememberNavController())
+        ChatScreen(navController = rememberNavController(), tripId = tripId)
     }
 }
 

@@ -15,25 +15,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.serranoie.app.core.navigation.Screen
+import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.onboard.navigation.bottombar.NavigationItem
 
 @Composable
 fun BottomBarNav(
-    navController: NavController
+    navController: NavController,
+    tripId: String
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val navigationItems = listOf(
         NavigationItem(
-            title = "Home", icon = Icons.Rounded.Home, route = Screen.HOME.name
+            title = "Home", icon = Icons.Rounded.Home, route = Route.Home.createRoute(tripId)
         ), NavigationItem(
-            title = "Itinerary", icon = Icons.Rounded.LibraryAddCheck, route = Screen.ITINERARY.name
+            title = "Itinerary", icon = Icons.Rounded.LibraryAddCheck, route = Route.Itinerary.route
         ), NavigationItem(
-            title = "Expenses", icon = Icons.Rounded.MonetizationOn, route = Screen.EXPENSES.name
+            title = "Expenses", icon = Icons.Rounded.MonetizationOn, route = Route.Expenses.route
         ), NavigationItem(
-            title = "Chat", icon = Icons.AutoMirrored.Rounded.Message, route = Screen.CHAT.name
+            title = "Chat", icon = Icons.AutoMirrored.Rounded.Message, route = Route.Chat.route
         )
     )
 
@@ -45,7 +46,7 @@ fun BottomBarNav(
                 selected = isSelected, onClick = {
                     if (currentRoute != item.route) {
                         navController.navigate(item.route) {
-                            popUpTo(Screen.HOME.name) {
+                            popUpTo(Route.Home.createRoute(tripId)) {
                                 saveState = true
                             }
                             launchSingleTop = true

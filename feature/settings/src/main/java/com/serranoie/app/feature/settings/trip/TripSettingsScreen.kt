@@ -1,5 +1,6 @@
-package com.serranoie.app.itinero.feature.settings.trip
+package com.serranoie.app.feature.settings.trip
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -30,9 +31,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,38 +43,43 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.OtpInputField
+import com.serranoie.app.designsystem.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
+import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripSettingsScreen(
     navController: NavController,
+    tripId: String = "",
     viewModel: TripSettingsViewModel = viewModel()
 ) {
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    var otpValue by remember { mutableStateOf("72429") }
     val qrBitmap = viewModel.qrBitmap.collectAsStateWithLifecycle().value
+    val formattedCode = tripId.replace("ITN-", "")
 
-    LaunchedEffect(otpValue) {
-        viewModel.setQrText(otpValue)
-        viewModel.generateQrCode()
+    LaunchedEffect(tripId) {
+        if (tripId.isNotEmpty()) {
+            viewModel.setQrText(tripId)
+            viewModel.generateQrCode()
+        }
     }
 
     Scaffold(
@@ -112,12 +118,11 @@ fun TripSettingsScreen(
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                         )
 
-                        OtpInputField(
+                        OtpDisplayField(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 16.dp),
-                            otpText = otpValue,
-                            onOtpTextChange = { otp, _ -> otpValue = otp }
+                            otpText = formattedCode
                         )
 
                         qrBitmap?.let { bitmap ->
@@ -421,6 +426,10 @@ fun ExpandablePendingInvites(
 private fun TripSettingsScreenPreview() {
     PreviewWrapper {
         val viewModel: TripSettingsViewModel = viewModel()
-        TripSettingsScreen(navController = rememberNavController(), viewModel = viewModel)
+        TripSettingsScreen(
+            navController = rememberNavController(),
+            tripId = "12345",
+            viewModel = viewModel
+        )
     }
 }

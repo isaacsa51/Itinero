@@ -1,31 +1,32 @@
 package com.serranoie.app.itinero.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.chat.ChatScreen
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
+import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeRootScreen() {
+fun HomeRootScreen(tripId: String) {
     val navController = rememberNavController()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    Log.d("ISAAC", "Trip ID: $tripId")
 
     Scaffold(
         bottomBar = {
@@ -35,7 +36,7 @@ fun HomeRootScreen() {
                     Route.Expenses.route,
                 )
             ) {
-                BottomBarNav(navController)
+                BottomBarNav(navController, tripId)
             }
         }
     ) { padding ->
@@ -45,13 +46,28 @@ fun HomeRootScreen() {
             modifier = Modifier.padding(padding)
         ) {
             composable(Route.Home.route) {
-                HomeScreen(navController)
+                HomeScreen(navController, tripId)
             }
 
-            itineraryGraph(navController)
-            expensesGraph(navController)
+            itineraryGraph(navController, tripId)
+
+            expensesGraph(navController, tripId)
+
             composable(Route.Chat.route) {
-                ChatScreen(navController)
+                ChatScreen(navController, tripId)
+            }
+
+            composable(
+                route = Route.TripSettings.route,
+                arguments = listOf(
+                    navArgument("tripId") { type = NavType.StringType },
+                )
+            ) { backStackEntry ->
+                val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
+                TripSettingsScreen(
+                    navController = navController,
+                    tripId = routeTripId,
+                )
             }
         }
     }
