@@ -58,15 +58,22 @@ fun HomeRootScreen(tripId: String) {
             }
 
             composable(
-                route = Route.TripSettings.route,
+                route = "trip_settings/{tripId}?scrollTo={scrollTo}",
                 arguments = listOf(
                     navArgument("tripId") { type = NavType.StringType },
+                    navArgument("scrollTo") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
                 )
             ) { backStackEntry ->
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
+                val scrollTo = backStackEntry.arguments?.getString("scrollTo")
                 TripSettingsScreen(
                     navController = navController,
                     tripId = routeTripId,
+                    scrollTo = scrollTo
                 )
             }
         }

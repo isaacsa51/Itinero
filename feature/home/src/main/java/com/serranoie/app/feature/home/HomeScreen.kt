@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
@@ -34,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,17 +45,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.IFilledTextField
 import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 
@@ -64,6 +61,8 @@ import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 @Composable
 fun HomeScreen(navController: NavHostController = rememberNavController(), tripId: String) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val isRefreshing = false
+    val onRefresh: () -> Unit = {}
 
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         TopAppBar(
@@ -79,7 +78,7 @@ fun HomeScreen(navController: NavHostController = rememberNavController(), tripI
             onClick = {
                 navController.navigate(
                     Route.TripSettings.createRoute(
-                        tripId = tripId,
+                        tripId = tripId
                     )
                 )
             },
@@ -88,13 +87,18 @@ fun HomeScreen(navController: NavHostController = rememberNavController(), tripI
             expanded = true
         )
     }) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState(), true)
-                .padding(paddingValues)
+
+        PullToRefreshBox(
+            isRefreshing = isRefreshing, onRefresh = onRefresh
         ) {
-            TripDetailsScreen(navController, tripId)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState(), true)
+                    .padding(paddingValues)
+            ) {
+                TripDetailsScreen(navController, tripId)
+            }
         }
     }
 }
@@ -142,8 +146,7 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Accommodation",
-            style = MaterialTheme.typography.headlineSmallEmphasized
+            text = "Accommodation", style = MaterialTheme.typography.headlineSmallEmphasized
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -179,7 +182,7 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TravelInfoCard(navController)
+        TravelInfoCard(navController, tripId)
     }
 }
 
@@ -222,7 +225,7 @@ fun DestinationCard(
                         modifier = Modifier.clickable {
                             navController.navigate(
                                 Route.TripSettings.createRoute(
-                                    tripId = tripId,
+                                    tripId = tripId
                                 )
                             )
                         },
@@ -232,8 +235,7 @@ fun DestinationCard(
             }
 
             Text(
-                text = country,
-                style = MaterialTheme.typography.displayLargeEmphasized
+                text = country, style = MaterialTheme.typography.displayMediumEmphasized
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -269,8 +271,7 @@ fun DateInfoCard(
                 color = MaterialTheme.colorScheme.outline
             )
             Text(
-                text = value,
-                style = MaterialTheme.typography.headlineSmallEmphasized
+                text = value, style = MaterialTheme.typography.headlineSmallEmphasized
             )
             Text(
                 text = subtitle,
@@ -323,7 +324,7 @@ fun PeopleInfoCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TravelInfoCard(navController: NavController) {
+fun TravelInfoCard(navController: NavController, tripId: String) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -336,7 +337,14 @@ fun TravelInfoCard(navController: NavController) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            IconButton(onClick = { navController.navigate(Screen.TRIP_INFO.name) }) {
+            IconButton(onClick = {
+                navController.navigate(
+                    Route.TripSettings.createRoute(
+                        tripId = tripId,
+                        scrollTo = "tripInfo"
+                    )
+                )
+            }) {
                 Icon(
                     imageVector = Icons.Rounded.Edit,
                     contentDescription = "More travel information options"
@@ -349,7 +357,9 @@ fun TravelInfoCard(navController: NavController) {
             onSelect = { },
             label = "Accommodation",
             leadingIcon = Icons.Rounded.SupervisedUserCircle,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
         )
 
         SelectField(
@@ -357,11 +367,15 @@ fun TravelInfoCard(navController: NavController) {
             onSelect = { },
             label = "Phone Number",
             leadingIcon = Icons.Rounded.SupervisedUserCircle,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SelectField(
@@ -395,8 +409,7 @@ fun TravelInfoCard(navController: NavController) {
 fun SummarySection() {
     Column {
         Text(
-            text = "Summary",
-            style = MaterialTheme.typography.headlineSmallEmphasized
+            text = "Summary", style = MaterialTheme.typography.headlineSmallEmphasized
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

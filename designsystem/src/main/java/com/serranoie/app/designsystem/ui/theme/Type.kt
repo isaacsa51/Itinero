@@ -33,7 +33,19 @@ val displayLargeFontFamily =
             R.font.archivo_variablefont,
             variationSettings = FontVariation.Settings(
                 FontVariation.weight(900),
-                FontVariation.width(300f),
+                FontVariation.width(600f),
+            )
+        )
+    )
+
+@OptIn(ExperimentalTextApi::class)
+val displayMediumFontFamily =
+    FontFamily(
+        Font(
+            R.font.archivo_variablefont,
+            variationSettings = FontVariation.Settings(
+                FontVariation.weight(800),
+                FontVariation.width(150f),
             )
         )
     )
@@ -116,8 +128,9 @@ val baseline = Typography()
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 val ItineroTypography = Typography(
     displayLarge = baseline.displayLarge.copy(fontFamily = displayFontFamily),
-    displayLargeEmphasized = baseline.displayLargeEmphasized.copy(fontFamily = displayFontFamily),
+    displayLargeEmphasized = baseline.displayLargeEmphasized.copy(fontFamily = displayLargeFontFamily),
     displayMedium = baseline.displayMedium.copy(fontFamily = displayFontFamily),
+    displayMediumEmphasized = baseline.displayMediumEmphasized.copy(fontFamily = displayMediumFontFamily),
     displaySmall = baseline.displaySmall.copy(fontFamily = displayFontFamily),
     displaySmallEmphasized = baseline.displaySmallEmphasized.copy(fontFamily = displaySmallFontFamily),
     headlineLarge = baseline.headlineLarge.copy(fontFamily = displayFontFamily),

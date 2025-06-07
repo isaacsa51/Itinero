@@ -15,8 +15,11 @@ sealed class Route(val route: String) {
     data object AddExpense : Route(Screen.ADD_EXPENSE.name)
     data object ExpenseDetails : Route(Screen.EXPENSE_DETAILS.name)
     data object Chat : Route(Screen.CHAT.name)
+
     data object TripSettings : Route("TRIP_SETTINGS/{tripId}") {
-        fun createRoute(tripId: String) = "TRIP_SETTINGS/$tripId"
+        fun createRoute(tripId: String, scrollTo: String? = null): String {
+            return "trip_settings/$tripId?scrollTo=${scrollTo ?: ""}"
+        }
     }
     data object TripInfo : Route(Screen.TRIP_INFO.name)
 

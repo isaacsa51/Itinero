@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -48,6 +49,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -85,17 +87,28 @@ import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
 fun TripSettingsScreen(
     navController: NavController,
     tripId: String = "",
+    scrollTo: String?,
     viewModel: TripSettingsViewModel = viewModel()
 ) {
     val scrollBehavior =
         TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val qrBitmap = viewModel.qrBitmap.collectAsStateWithLifecycle().value
     val formattedCode = tripId.replace("ITN-", "")
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(tripId) {
         if (tripId.isNotEmpty()) {
             viewModel.setQrText(tripId)
             viewModel.generateQrCode()
+        }
+    }
+
+    LaunchedEffect(scrollTo) {
+        if (scrollTo == "tripInfo") {
+            // Find the index of the tripInfo item
+            val tripInfoItemIndex =
+                3 // Based on the current structure: 0=group code, 1=members, 2=spacer, 3=trip info
+            lazyListState.animateScrollToItem(tripInfoItemIndex)
         }
     }
 
@@ -123,7 +136,8 @@ fun TripSettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(paddingValues)
+                .padding(paddingValues),
+            state = lazyListState
         ) {
             item {
                 OutlinedCard(
@@ -201,7 +215,7 @@ fun TripSettingsScreen(
             }
 
             // Trip Information Settings
-            item {
+            item(key = "tripInfo") {
                 FlexibleSettingsGroup(
                     title = "TRIP INFORMATION"
                 ) {
@@ -450,6 +464,7 @@ private fun TripSettingsScreenPreview() {
         TripSettingsScreen(
             navController = rememberNavController(),
             tripId = "12345",
+            scrollTo = null,
             viewModel = viewModel
         )
     }
