@@ -10,30 +10,40 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,12 +53,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,9 +75,12 @@ import com.serranoie.app.designsystem.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
+import com.serranoie.app.designsystem.ui.theme.component.FlexibleSettingsGroup
+import com.serranoie.app.designsystem.ui.theme.component.SettingsGroupItem
+import com.serranoie.app.designsystem.ui.theme.component.CustomSettingsItem
 import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripSettingsScreen(
     navController: NavController,
@@ -90,7 +107,9 @@ fun TripSettingsScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
                 ), title = {
                     Text(
-                        "Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis
+                        "Trip Settings",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }, navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }, content = {
@@ -106,6 +125,7 @@ fun TripSettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .padding(paddingValues)
         ) {
             item {
@@ -115,7 +135,7 @@ fun TripSettingsScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "ITINERO GROUP CODE",
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.labelLargeEmphasized
                         )
 
                         OtpDisplayField(
@@ -152,7 +172,8 @@ fun TripSettingsScreen(
 
                         Text(
                             text = "What's this code/QR for?",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.bodyLargeEmphasized,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
 
                         Text(
@@ -184,32 +205,48 @@ fun TripSettingsScreen(
 
             // Trip Information Settings
             item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(
-                        text = "TRIP INFORMATION",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SettingsItem(
+                FlexibleSettingsGroup(
+                    title = "TRIP INFORMATION"
+                ) {
+                    SettingsGroupItem(
                         title = "Trip Name",
                         subtitle = "Summer Adventure 2023",
                         onClick = { /* Navigate to edit trip name */ },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = "Navigate",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         showDivider = true
                     )
 
-                    SettingsItem(
+                    SettingsGroupItem(
                         title = "Trip Dates",
                         subtitle = "Aug 15 - Aug 25, 2023",
                         onClick = { /* Navigate to edit trip dates */ },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = "Navigate",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         showDivider = true
                     )
 
-                    SettingsItem(
+                    SettingsGroupItem(
                         title = "Trip Description",
                         subtitle = "Our annual summer vacation exploring the coast",
-                        onClick = { /* Navigate to edit description */ }
+                        onClick = { /* Navigate to edit description */ },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = "Navigate",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     )
                 }
             }
@@ -220,32 +257,48 @@ fun TripSettingsScreen(
 
             // Group Management Settings
             item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(
-                        text = "GROUP MANAGEMENT",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SettingsItem(
+                FlexibleSettingsGroup(
+                    title = "GROUP MANAGEMENT"
+                ) {
+                    SettingsGroupItem(
                         title = "Invite New Member",
                         subtitle = "Share invitation code with others",
                         onClick = { /* Handle invite action */ },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = "Navigate",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         showDivider = true
                     )
 
-                    SettingsItem(
+                    SettingsGroupItem(
                         title = "Member Permissions",
                         subtitle = "Manage what group members can edit",
                         onClick = { /* Navigate to permissions screen */ },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = "Navigate",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         showDivider = true
                     )
 
-                    SettingsItem(
+                    SettingsGroupItem(
                         title = "Transfer Ownership",
                         subtitle = "Change the trip administrator",
-                        onClick = { /* Navigate to transfer ownership */ }
+                        onClick = { /* Navigate to transfer ownership */ },
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowRight,
+                                contentDescription = "Navigate",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     )
                 }
             }
@@ -259,7 +312,7 @@ fun TripSettingsScreen(
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Text(
                         text = "DANGER ZONE",
-                        style = MaterialTheme.typography.labelLarge.copy(
+                        style = MaterialTheme.typography.labelLargeEmphasized.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -271,7 +324,7 @@ fun TripSettingsScreen(
                         text = {
                             Text(
                                 text = "Leave Trip Group",
-                                style = MaterialTheme.typography.labelLarge
+                                style = MaterialTheme.typography.labelLargeEmphasized
                             )
                         },
                         onClick = { /* Show leave group confirmation */ },
@@ -285,7 +338,7 @@ fun TripSettingsScreen(
                         text = {
                             Text(
                                 text = "Delete Trip",
-                                style = MaterialTheme.typography.labelLarge
+                                style = MaterialTheme.typography.labelLargeEmphasized
                             )
                         },
                         onClick = { /* Show delete trip confirmation */ },
@@ -302,50 +355,7 @@ fun TripSettingsScreen(
     }
 }
 
-@Composable
-private fun SettingsItem(
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    showDivider: Boolean = false
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        if (showDivider) {
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider()
-        }
-    }
-}
-
-@Composable
-private fun RegisteredMembers() {
-    // The expandedStatus needs to be tracked with a mutable state
-    var expandedStatus by remember { mutableStateOf(false) }
-
-    Column {
-        ExpandablePendingInvites(
-            isExpanded = expandedStatus,
-            onExpandedChange = { expandedStatus = it })
-    }
-}
-
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpandablePendingInvites(
     isExpanded: Boolean,
@@ -401,23 +411,37 @@ fun ExpandablePendingInvites(
                     .fillMaxWidth()
                     .padding(top = 12.dp)
             ) {
-                HorizontalDivider()
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                IButton(
-                    text = {
-                        Text(
-                            text = "Delete member",
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    },
-                    onClick = { /*TODO*/ },
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    importance = ButtonImportance.Error,
-                )
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    IButton(
+                        text = {
+                            Text(
+                                text = "Delete member",
+                                style = MaterialTheme.typography.labelLargeEmphasized
+                            )
+                        },
+                        onClick = { /*TODO*/ },
+                        modifier = Modifier.fillMaxWidth(),
+                        importance = ButtonImportance.Error,
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun RegisteredMembers() {
+    // The expandedStatus needs to be tracked with a mutable state
+    var expandedStatus by remember { mutableStateOf(false) }
+
+    Column {
+        ExpandablePendingInvites(
+            isExpanded = expandedStatus,
+            onExpandedChange = { expandedStatus = it })
     }
 }
 

@@ -75,6 +75,8 @@ fun TravelListScreen(
         }
     }
 
+    // TODO: On FAB click open FAB Menu with join, create options.
+
     Scaffold(topBar = {
         LargeTopAppBar(
             title = { Text("My Trips") }, scrollBehavior = scrollBehavior

@@ -80,12 +80,23 @@ val labelLargeFontFamily =
         Font(
             R.font.archivo_variablefont,
             variationSettings = FontVariation.Settings(
-                FontVariation.weight(700),
-                FontVariation.width(100f),
+                FontVariation.weight(500),
+                FontVariation.width(200f),
             )
         )
     )
 
+@OptIn(ExperimentalTextApi::class)
+val bodyLargeFontFamily =
+    FontFamily(
+        Font(
+            R.font.archivo_variablefont,
+            variationSettings = FontVariation.Settings(
+                FontVariation.weight(500),
+                FontVariation.width(200f),
+            )
+        )
+    )
 
 // Default Material 3 typography values
 val baseline = Typography()
@@ -107,6 +118,7 @@ val ItineroTypography = Typography(
     titleSmall = baseline.titleSmall.copy(fontFamily = displayFontFamily),
     titleSmallEmphasized = baseline.titleSmallEmphasized.copy(fontFamily = titleSmallFontFamily),
     bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
+    bodyLargeEmphasized = baseline.bodyLargeEmphasized.copy(fontFamily = bodyLargeFontFamily),
     bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
     bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
     labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
