@@ -1,25 +1,19 @@
 package com.serranoie.app.feature.home
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Settings
@@ -32,9 +26,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
-import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +37,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -68,10 +59,25 @@ import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController = rememberNavController(), tripId: String) {
+fun HomeScreen(
+    navController: NavHostController = rememberNavController(),
+    tripId: String,
+    uiState: HomeUiState,
+    onShowSnackbar: suspend (String) -> Unit,
+    onGetTravel: () -> Unit
+) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val isRefreshing = false
     val onRefresh: () -> Unit = {}
+
+    LaunchedEffect(uiState) {
+        if (uiState is HomeUiState.Error) {
+            onShowSnackbar(uiState.message)
+        }
+        onGetTravel()
+    }
+
+    Log.d("ISAAC", "$uiState")
 
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         TopAppBar(
@@ -150,8 +156,7 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
         Spacer(modifier = Modifier.height(16.dp))
 
         SummarySection(
-            onClick = { }
-        )
+            onClick = { })
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -443,6 +448,10 @@ fun SummarySection(onClick: () -> Unit) {
 fun HomeScreenPreview() {
     PreviewWrapper {
         val tripId = "123"
-        HomeScreen(tripId = tripId)
+        HomeScreen(
+            tripId = tripId,
+            onGetTravel = { },
+            uiState = HomeUiState.Idle,
+            onShowSnackbar = {})
     }
 }

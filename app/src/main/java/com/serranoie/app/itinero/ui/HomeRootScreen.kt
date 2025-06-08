@@ -2,8 +2,11 @@ package com.serranoie.app.itinero.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,13 +18,18 @@ import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.chat.ChatScreen
 import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
+import com.serranoie.app.feature.home.HomeViewModel
 import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 import com.serranoie.app.itinero.feature.settings.trip.TripInfoSettingsScreen
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
-fun HomeRootScreen(tripId: String) {
+fun HomeRootScreen(
+    tripId: String,
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -43,7 +51,19 @@ fun HomeRootScreen(tripId: String) {
             modifier = Modifier.padding(padding)
         ) {
             composable(Route.Home.route) {
-                HomeScreen(navController, tripId)
+                val viewmodel = koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
+                val uiState by viewmodel.uiState.collectAsState()
+                val snackbarHostState = remember { SnackbarHostState() }
+
+                HomeScreen(
+                    navController,
+                    tripId = tripId,
+                    uiState = uiState,
+                    onGetTravel = { viewmodel.getCurrentTravel(tripId) },
+                    onShowSnackbar = { message ->
+                       snackbarHostState.showSnackbar(message)
+                    }
+                )
             }
 
             itineraryGraph(navController, tripId)
@@ -62,7 +82,8 @@ fun HomeRootScreen(tripId: String) {
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
-                    })) { backStackEntry ->
+                    })
+            ) { backStackEntry ->
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
                 val scrollTo = backStackEntry.arguments?.getString("scrollTo")
                 TripSettingsScreen(
@@ -72,7 +93,8 @@ fun HomeRootScreen(tripId: String) {
 
             composable(
                 route = "trip_info/{tripId}", arguments = listOf(
-                navArgument("tripId") { type = NavType.StringType })) { backStackEntry ->
+                    navArgument("tripId") { type = NavType.StringType })
+            ) { backStackEntry ->
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
 
                 TripInfoSettingsScreen(navController, tripId = routeTripId)

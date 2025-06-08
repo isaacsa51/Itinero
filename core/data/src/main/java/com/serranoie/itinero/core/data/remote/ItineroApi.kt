@@ -20,6 +20,7 @@ interface ItineroApi {
     suspend fun forgotPasswordUser(email: String)
 
     suspend fun getAllTrips(): List<TripDto>
+    suspend fun getTripById(id: String): TripDto
     suspend fun createTrip(request: CreateTripDto): CreateTripDto
     suspend fun joinTrip(groupCode: String)
     suspend fun deleteTrip()
@@ -46,6 +47,10 @@ class ItineroApiClient(private val client: HttpClient) {
     suspend fun postForgotPassword(email: String) {
         val body = mapOf("email" to email)
         client.postRequest<Unit, Map<String, String>>(BASE_URL, "/auth/forgot-password", body)
+    }
+
+    suspend fun getTripById(id: String): TripDto {
+        return client.getRequest(BASE_URL, "/trips/$id")
     }
 
     suspend fun getTrips(): List<TripDto> {

@@ -34,6 +34,10 @@ class ItineroApiImpl(
         apiClient.postForgotPassword(email)
     }
 
+    override suspend fun getTripById(id: String): TripDto {
+        return apiClient.getTripById(id)
+    }
+
     override suspend fun getAllTrips(): List<TripDto> {
         return apiClient.getTrips()
     }

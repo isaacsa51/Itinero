@@ -23,7 +23,7 @@ class TravelRepositoryImpl(
 
     override suspend fun getTravelById(id: String): Result<Trip> {
         return safeApiCall {
-            TODO("Not yet implemented")
+            api.getTripById(id).toDomain()
         }
     }
 
