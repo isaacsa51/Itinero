@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -22,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OtpInputField(
     modifier: Modifier = Modifier,
@@ -55,7 +58,7 @@ fun OtpInputField(
                         Text(
                             modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
                             text = char.toString(),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.headlineSmallEmphasized,
                             color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             textAlign = TextAlign.Center
                         )
@@ -70,7 +73,7 @@ fun OtpInputField(
                                 )
                                 .padding(4.dp),
                             text = char.toString(),
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.headlineSmallEmphasized,
                             color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             textAlign = TextAlign.Center
                         )
@@ -91,6 +94,7 @@ fun OtpInputField(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CharView(
     index: Int,
@@ -114,7 +118,7 @@ private fun CharView(
             )
             .padding(4.dp),
         text = char,
-        style = MaterialTheme.typography.titleLarge,
+        style = MaterialTheme.typography.headlineSmallEmphasized,
         color = if (isFocused && enabled) {
             MaterialTheme.colorScheme.primary
         } else {
@@ -124,6 +128,7 @@ private fun CharView(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OtpDisplayField(
     modifier: Modifier = Modifier,
@@ -141,7 +146,7 @@ fun OtpDisplayField(
                 Text(
                     modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
                     text = char.toString(),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
@@ -156,7 +161,7 @@ fun OtpDisplayField(
                         )
                         .padding(4.dp),
                     text = char.toString(),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
@@ -177,7 +182,7 @@ fun OtpDisplayField(
                     )
                     .padding(4.dp),
                 text = if (char == ' ') "" else char.toString(),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineSmallEmphasized,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
             )

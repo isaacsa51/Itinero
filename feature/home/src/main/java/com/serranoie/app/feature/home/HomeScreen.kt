@@ -2,17 +2,24 @@ package com.serranoie.app.feature.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Settings
@@ -25,6 +32,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +66,6 @@ import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController = rememberNavController(), tripId: String) {
@@ -76,12 +85,12 @@ fun HomeScreen(navController: NavHostController = rememberNavController(), tripI
     }, floatingActionButton = {
         ExtendedFloatingActionButton(
             onClick = {
-                navController.navigate(
-                    Route.TripSettings.createRoute(
-                        tripId = tripId
-                    )
+            navController.navigate(
+                Route.TripSettings.createRoute(
+                    tripId = tripId
                 )
-            },
+            )
+        },
             icon = { Icon(Icons.Rounded.Edit, contentDescription = "Edit") },
             text = { Text("Edit") },
             expanded = true
@@ -106,7 +115,6 @@ fun HomeScreen(navController: NavHostController = rememberNavController(), tripI
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripDetailsScreen(navController: NavHostController, tripId: String) {
-    val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(true) }
     var isInviteExpanded by remember { mutableStateOf(false) }
 
@@ -141,7 +149,9 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SummarySection()
+        SummarySection(
+            onClick = { }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -340,8 +350,7 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
             IconButton(onClick = {
                 navController.navigate(
                     Route.TripSettings.createRoute(
-                        tripId = tripId,
-                        scrollTo = "tripInfo"
+                        tripId = tripId, scrollTo = "tripInfo"
                     )
                 )
             }) {
@@ -406,8 +415,11 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SummarySection() {
-    Column {
+fun SummarySection(onClick: () -> Unit) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onClick() }
+        .padding(horizontal = 16.dp)) {
         Text(
             text = "Summary", style = MaterialTheme.typography.headlineSmallEmphasized
         )

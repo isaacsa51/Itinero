@@ -21,7 +21,11 @@ sealed class Route(val route: String) {
             return "trip_settings/$tripId?scrollTo=${scrollTo ?: ""}"
         }
     }
-    data object TripInfo : Route(Screen.TRIP_INFO.name)
+    data object TripInfo : Route("TRIP_INFO/{tripId}") {
+        fun createRoute(tripId: String): String {
+            return "trip_info/$tripId"
+        }
+    }
 
     data object WelcomeNavigation : Route("welcomeNavigation")
     data object TravelList : Route(Screen.TRAVEL_LIST.name)

@@ -8,8 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,20 +27,16 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.rounded.AddCircleOutline
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -64,19 +57,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedExpandableItem
 import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedListItem
 import com.serranoie.app.designsystem.ui.theme.component.IButton
+import com.serranoie.app.designsystem.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
-import com.serranoie.app.designsystem.ui.theme.component.FlexibleListGroup
-import com.serranoie.app.designsystem.ui.theme.component.ListItem
 import com.serranoie.app.designsystem.ui.theme.component.PaddedListGroup
-import com.serranoie.app.designsystem.ui.theme.component.PaddedListItem
 import com.serranoie.app.designsystem.ui.theme.component.PaddedListItemPosition
-import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedExpandableItem
 import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -104,7 +95,7 @@ fun TripSettingsScreen(
         if (scrollTo == "tripInfo") {
             // Find the index of the tripInfo item
             val tripInfoItemIndex =
-                3 // Based on the current structure: 0=group code, 1=members, 2=spacer, 3=trip info
+                2 // Based on the current structure: 0=group code, 1=trip information, 3=management
             lazyListState.animateScrollToItem(tripInfoItemIndex)
         }
     }
@@ -113,28 +104,24 @@ fun TripSettingsScreen(
         topBar = {
             MediumTopAppBar(
                 title = {
-                    Text(
-                        "Trip Settings",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                Text(
+                    "Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis
+                )
+            }, navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }, content = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Go back"
                     )
-                }, navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }, content = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back"
-                        )
-                    })
-                }, scrollBehavior = scrollBehavior
+                })
+            }, scrollBehavior = scrollBehavior
             )
-        }
-    ) { paddingValues ->
+        }) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(paddingValues),
-            state = lazyListState
+                .padding(paddingValues), state = lazyListState
         ) {
             item {
                 OutlinedCard(
@@ -168,8 +155,7 @@ fun TripSettingsScreen(
                                     modifier = Modifier
                                         .size(200.dp)
                                         .background(
-                                            color = Color.White,
-                                            shape = RoundedCornerShape(8.dp)
+                                            color = Color.White, shape = RoundedCornerShape(8.dp)
                                         )
                                         .padding(8.dp)
                                 )
@@ -202,25 +188,24 @@ fun TripSettingsScreen(
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // TODO: each item naviagte to trip info settings screen
             // Trip Information Settings
             item(key = "tripInfo") {
                 PaddedListGroup(
                     title = "Trip Information".uppercase(),
                 ) {
                     CustomPaddedListItem(
-                        onClick = { },
-                        position = PaddedListItemPosition.First
+                        onClick = {
+                            navController.navigate(
+                                Route.TripInfo.createRoute(
+                                    tripId = tripId
+                                )
+                            )
+                        }, position = PaddedListItemPosition.First
                     ) {
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Trip Name",
-                                style = MaterialTheme.typography.bodyLarge
+                                text = "Trip Name", style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
                                 text = "Trip name holder",
@@ -234,14 +219,18 @@ fun TripSettingsScreen(
                     }
 
                     CustomPaddedListItem(
-                        onClick = { },
-                        position = PaddedListItemPosition.Middle
+                        onClick = {
+                            navController.navigate(
+                                Route.TripInfo.createRoute(
+                                    tripId = tripId
+                                )
+                            )
+                        }, position = PaddedListItemPosition.Middle
                     ) {
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Trip Dates",
-                                style = MaterialTheme.typography.bodyLarge
+                                text = "Trip Dates", style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
                                 text = "7 of June - 10 of June, 2025",
@@ -255,8 +244,13 @@ fun TripSettingsScreen(
                     }
 
                     CustomPaddedListItem(
-                        onClick = { },
-                        position = PaddedListItemPosition.Middle
+                        onClick = {
+                            navController.navigate(
+                                Route.TripInfo.createRoute(
+                                    tripId = tripId
+                                )
+                            )
+                        }, position = PaddedListItemPosition.Middle
                     ) {
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -276,8 +270,13 @@ fun TripSettingsScreen(
                     }
 
                     CustomPaddedListItem(
-                        onClick = { },
-                        position = PaddedListItemPosition.Middle
+                        onClick = {
+                            navController.navigate(
+                                Route.TripInfo.createRoute(
+                                    tripId = tripId
+                                )
+                            )
+                        }, position = PaddedListItemPosition.Middle
                     ) {
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
@@ -296,14 +295,18 @@ fun TripSettingsScreen(
                         )
                     }
                     CustomPaddedListItem(
-                        onClick = { },
-                        position = PaddedListItemPosition.Last
+                        onClick = {
+                            navController.navigate(
+                                Route.TripInfo.createRoute(
+                                    tripId = tripId
+                                )
+                            )
+                        }, position = PaddedListItemPosition.Last
                     ) {
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Trip Name",
-                                style = MaterialTheme.typography.bodyLarge
+                                text = "Trip Name", style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
                                 text = "Trip name holder",
@@ -356,62 +359,78 @@ fun TripSettingsScreen(
 
                     // Manage Members with Expandable Content
                     var expanded by remember { mutableStateOf(false) }
+                    val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
 
                     CustomPaddedExpandableItem(
                         isExpanded = expanded,
                         onToggleExpanded = { expanded = !expanded },
                         position = PaddedListItemPosition.Middle,
                         defaultContent = {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Manage Members",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Manage Members",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Text(
-                                    text = "Review pending invitations",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Manage Members",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Review pending invitations",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Icon(
+                                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = if (expanded) "Collapse" else "Expand",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
                                 )
                             }
-                            Icon(
-                                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (expanded) "Collapse" else "Expand",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         },
                         expandedContent = {
-                            Text(
-                                text = "Pending Member Name",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            AnimatedVisibility(
+                                visible = expanded, enter = expandVertically(
+                                    expandFrom = Alignment.Top
+                                ) + fadeIn(), exit = shrinkVertically() + fadeOut()
                             ) {
-                                IButton(
-                                    text = { Text("Accept") },
-                                    onClick = { /* Handle accept action */ },
-                                    modifier = Modifier.weight(1f, false),
-                                    importance = ButtonImportance.Primary
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                IButton(
-                                    text = { Text("Ignore") },
-                                    onClick = { /* Handle ignore action */ },
-                                    modifier = Modifier.weight(1f, false),
-                                    importance = ButtonImportance.Secondary
-                                )
+
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 12.dp, start = 12.dp)
+                                ) {
+                                    Text(
+                                        text = "Pending Member Name",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(bottom = 12.dp)
+                                    )
+                                    Column {
+                                        Surface(
+                                            modifier = Modifier.fillMaxWidth(),
+                                        ) {
+                                            IButton(
+                                                text = {
+                                                    Text(
+                                                        text = "Delete member",
+                                                        style = MaterialTheme.typography.labelLargeEmphasized
+                                                    )
+                                                },
+                                                onClick = { /*TODO*/ },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(36.dp),
+                                                importance = ButtonImportance.Error,
+                                            )
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    )
+                        })
 
                     CustomPaddedListItem(
                         onClick = { /* Navigate to transfer ownership */ },
@@ -448,8 +467,7 @@ fun TripSettingsScreen(
                     Text(
                         text = "DANGER ZONE",
                         style = MaterialTheme.typography.labelLargeEmphasized.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.error
+                            fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error
                         )
                     )
 
@@ -485,84 +503,6 @@ fun TripSettingsScreen(
 
             item {
                 Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun ExpandablePendingInvites(
-    isExpanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit
-) {
-    val rotationAngle by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(4.dp, shape = RoundedCornerShape(12.dp))
-            .background(
-                color = MaterialTheme.colorScheme.tertiaryContainer,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .clickable(
-                onClick = { onExpandedChange(!isExpanded) }
-            )
-            .padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-
-            Icon(
-                imageVector = Icons.Rounded.AddCircleOutline,
-                contentDescription = "Add Circle",
-                tint = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-
-            Text(
-                text = "Name LastName",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
-            )
-            Icon(
-                imageVector = Icons.Rounded.KeyboardArrowDown,
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                contentDescription = if (isExpanded) "Collapse" else "Expand",
-                modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
-            )
-        }
-
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-            ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    IButton(
-                        text = {
-                            Text(
-                                text = "Delete member",
-                                style = MaterialTheme.typography.labelLargeEmphasized
-                            )
-                        },
-                        onClick = { /*TODO*/ },
-                        modifier = Modifier.fillMaxWidth(),
-                        importance = ButtonImportance.Error,
-                    )
-                }
             }
         }
     }

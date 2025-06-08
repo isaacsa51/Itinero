@@ -1,6 +1,5 @@
 package com.serranoie.app.itinero.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -14,19 +13,18 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.chat.ChatScreen
+import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
-import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
+import com.serranoie.app.itinero.feature.settings.trip.TripInfoSettingsScreen
 
 @Composable
 fun HomeRootScreen(tripId: String) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
-    Log.d("ISAAC", "Trip ID: $tripId")
 
     Scaffold(
         bottomBar = {
@@ -38,8 +36,7 @@ fun HomeRootScreen(tripId: String) {
             ) {
                 BottomBarNav(navController, tripId)
             }
-        }
-    ) { padding ->
+        }) { padding ->
         NavHost(
             navController = navController,
             startDestination = Route.Home.route,
@@ -65,16 +62,20 @@ fun HomeRootScreen(tripId: String) {
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
-                    }
-                )
-            ) { backStackEntry ->
+                    })) { backStackEntry ->
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
                 val scrollTo = backStackEntry.arguments?.getString("scrollTo")
                 TripSettingsScreen(
-                    navController = navController,
-                    tripId = routeTripId,
-                    scrollTo = scrollTo
+                    navController = navController, tripId = routeTripId, scrollTo = scrollTo
                 )
+            }
+
+            composable(
+                route = "trip_info/{tripId}", arguments = listOf(
+                navArgument("tripId") { type = NavType.StringType })) { backStackEntry ->
+                val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
+
+                TripInfoSettingsScreen(navController, tripId = routeTripId)
             }
         }
     }
