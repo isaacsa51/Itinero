@@ -6,7 +6,7 @@
  - Module: Itinero.core.domain.main
  -
  - This file belongs to the project: Itinero.
- - Last edited: 04 junio 2025
+ - Last edited: June 04 2025
  */
 
 package com.serranoie.itinero.core.domain.model

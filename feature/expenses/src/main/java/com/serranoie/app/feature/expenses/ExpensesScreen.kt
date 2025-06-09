@@ -188,12 +188,18 @@ fun ExpensesDateSection(date: LocalDate, expenses: List<ExpenseItem>) {
                 .padding(end = 16.dp)
         ) {
             if (expenses.isEmpty()) {
-                Text(
-                    text = "NO ITEMS ADDED AT THIS DATE",
-                    style = MaterialTheme.typography.labelMediumEmphasized,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(vertical = 16.dp)
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "NO ITEMS ADDED AT THIS DATE",
+                        style = MaterialTheme.typography.labelMediumEmphasized,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                }
+
             } else {
                 expenses.forEach { item ->
                     ExpenseCard(

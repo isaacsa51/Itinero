@@ -9,7 +9,7 @@
  - Last edited: 08 June 2025
  */
 
-package com.serranoie.app.feature.welcome.di
+package com.serranoie.app.feature.di
 
 import com.serranoie.app.feature.home.HomeViewModel
 import org.koin.core.module.dsl.viewModel

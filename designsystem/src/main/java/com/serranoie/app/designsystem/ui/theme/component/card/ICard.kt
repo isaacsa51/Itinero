@@ -1,7 +1,7 @@
 /*
  - Copyright (c) 2025 Isaac Serrano.
  -
- - File: OutlinedCard.kt
+ - File: ICard.kt
  - Project: Itinero
  - Module: Itinero.designsystem.main
  -

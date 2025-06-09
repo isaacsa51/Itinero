@@ -95,7 +95,7 @@ fun TripSettingsScreen(
         if (scrollTo == "tripInfo") {
             // Find the index of the tripInfo item
             val tripInfoItemIndex =
-                2 // Based on the current structure: 0=group code, 1=trip information, 3=management
+                1 // Based on the current structure: 0=group code, 1=trip information, 2=management
             lazyListState.animateScrollToItem(tripInfoItemIndex)
         }
     }
@@ -306,10 +306,10 @@ fun TripSettingsScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Trip Name", style = MaterialTheme.typography.bodyLarge
+                                text = "Accommodation number", style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "Trip name holder",
+                                text = "+1 1231231234",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
