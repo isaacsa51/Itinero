@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,10 +30,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
 
 /**
  * Same outline card but focused on displaying expense details.
@@ -58,13 +59,10 @@ fun ExpenseCard(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.ConfirmationNumber,
     iconBackgroundColor: Color = MaterialTheme.colorScheme.surface,
-    cardBackgroundColor: Color = if (isCompleted) MaterialTheme.colorScheme.secondaryContainer.copy(
-        alpha = 0.3f
-    )
-    else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+    cardBackgroundColor: Color = if (isCompleted) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.75f) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
     borderColor: Color = MaterialTheme.colorScheme.onSecondaryContainer.copy(0.25f),
 ) {
-    OutlinedCard(
+    ICard(
         modifier = modifier,
         borderColor = borderColor,
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
@@ -81,26 +79,33 @@ fun ExpenseCard(
                 expenseName = expenseName,
                 membersCount = membersCount,
                 icon = icon,
-                iconBackgroundColor = iconBackgroundColor
+                iconBackgroundColor = iconBackgroundColor,
+                modifier = Modifier.weight(0.70f)
             )
             
             ExpenseAmount(
                 isCompleted = isCompleted,
                 isYours = isYours,
-                amountOwed = amountOwed
+                amountOwed = amountOwed,
+                modifier = Modifier.weight(0.30f)
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ExpenseInfo(
     expenseName: String,
     membersCount: Int,
     icon: ImageVector,
-    iconBackgroundColor: Color
+    iconBackgroundColor: Color,
+    modifier: Modifier = Modifier
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -117,13 +122,17 @@ private fun ExpenseInfo(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        Column {
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = expenseName,
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = MaterialTheme.typography.titleMediumEmphasized.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "$membersCount members",
@@ -135,13 +144,18 @@ private fun ExpenseInfo(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ExpenseAmount(
     isCompleted: Boolean,
     isYours: Boolean,
-    amountOwed: Double
+    amountOwed: Double,
+    modifier: Modifier = Modifier
 ) {
-    Column(horizontalAlignment = Alignment.End) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.End
+    ) {
         val secondaryTextColor = MaterialTheme.colorScheme.secondary.copy(0.75f)
         
         Text(
@@ -150,7 +164,7 @@ private fun ExpenseAmount(
                 isYours -> "They owe you"
                 else -> "You owe"
             },
-            style = MaterialTheme.typography.bodyMedium.copy(
+            style = MaterialTheme.typography.bodySmallEmphasized.copy(
                 color = secondaryTextColor,
                 fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal
             )
@@ -158,10 +172,12 @@ private fun ExpenseAmount(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        if (isCompleted) {
-            CompletedIndicator()
-        } else {
-            AmountIndicator(amountOwed)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (isCompleted) {
+                CompletedIndicator()
+            } else {
+                AmountIndicator(amountOwed)
+            }
         }
     }
 }

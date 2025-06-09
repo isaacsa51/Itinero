@@ -12,13 +12,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,15 +34,19 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
+import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import com.serranoie.app.designsystem.ui.theme.component.LocationField
 
 @Composable
-fun TripInfoSettingsScreen(navController: NavController) {
+fun TripInfoSettingsScreen(navController: NavController, tripId: String) {
 
+    var groupName by remember { mutableStateOf("Group 1") }
+    var summary by remember { mutableStateOf("Family Vacation") }
+    var tripStart by remember { mutableStateOf("10/02/2025") }
+    var tripEnd by remember { mutableStateOf("20/02/2025") }
     var name by remember { mutableStateOf("Hotel Hilton") }
     var checkIn by remember { mutableStateOf("10/02/2025 at 15:00 Hours") }
     var checkOut by remember { mutableStateOf("20/02/2025 at 12:00 Hours") }
@@ -53,8 +61,83 @@ fun TripInfoSettingsScreen(navController: NavController) {
             modifier = Modifier
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            SectionHeader(title = "GROUP INFORMATION")
+
+            ITextField(
+                value = groupName,
+                onValueChange = { groupName = it },
+                label = "Group name",
+                placeholder = "Enter group name or identifier",
+                leadingIcon = Icons.Default.Numbers
+            )
+
+            var destination by remember { mutableStateOf("Default Destination") }
+            var isConfirmDestinationDialogOpen by remember { mutableStateOf(false) }
+            var tempDestination by remember { mutableStateOf(destination) }
+
+            ITextField(
+                value = tempDestination,
+                onValueChange = {
+                    tempDestination = it
+                    isConfirmDestinationDialogOpen = true
+                },
+                label = "Destination",
+                placeholder = "Enter destination",
+                leadingIcon = Icons.Default.LocationOn
+            )
+
+            if (isConfirmDestinationDialogOpen) {
+                AlertDialog(
+                    onDismissRequest = { isConfirmDestinationDialogOpen = false },
+                    title = { Text("Confirm Destination") },
+                    text = { Text("Are you sure you want to change the destination to $tempDestination?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            destination = tempDestination
+                            isConfirmDestinationDialogOpen = false
+                        }) {
+                            Text("Confirm")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            isConfirmDestinationDialogOpen = false
+                            tempDestination = destination
+                        }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+
+            ITextField(
+                value = summary,
+                onValueChange = { summary = it },
+                label = "Summary",
+                placeholder = "Enter trip summary",
+                leadingIcon = Icons.Default.Description
+            )
+
+            SectionHeader(title = "TRIP INFORMATION")
+
+            ITextField(
+                value = tripStart,
+                onValueChange = { tripStart = it },
+                label = "Trip start date",
+                placeholder = "Enter trip start date",
+                leadingIcon = Icons.Default.CalendarToday
+            )
+
+            ITextField(
+                value = tripEnd,
+                onValueChange = { tripEnd = it },
+                label = "Trip end date",
+                placeholder = "Enter trip end date",
+                leadingIcon = Icons.Default.CalendarToday
+            )
+
             SectionHeader(title = "ACCOMMODATION DETAILS")
 
             ITextField(
@@ -146,20 +229,21 @@ fun TripInfoSettingsScreen(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SectionHeader(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(top = 8.dp),
+        style = MaterialTheme.typography.labelLargeEmphasized,
     )
 }
 
 @ThemePreviews
 @Composable
 private fun TripInfoSettingsScreenPreview() {
+    val routeTripId = "ITN-12349"
     PreviewWrapper {
-        TripInfoSettingsScreen(navController = rememberNavController())
+        TripInfoSettingsScreen(navController = rememberNavController(), tripId = routeTripId)
     }
 }

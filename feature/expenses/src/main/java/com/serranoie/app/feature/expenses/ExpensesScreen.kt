@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Shop
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ConfirmationNumber
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -53,7 +54,7 @@ import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
 import com.serranoie.app.feature.expenses.util.generateDateRange
 import java.time.LocalDate
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<ExpenseItem>>) {
     val scrollBehavior =
@@ -100,7 +101,7 @@ fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<E
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "History of expenses",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmallEmphasized,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -115,6 +116,7 @@ fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<E
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BalanceCircles(
     youOwe: Double = 50.0, youAreOwed: Double = 100.0
@@ -139,11 +141,11 @@ fun BalanceCircles(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "You owe",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.surface)
+                        style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface)
                     )
                     Text(
                         text = "$${String.format("%.2f", youOwe)}",
-                        style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.surface)
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface)
                     )
                 }
             }
@@ -160,11 +162,11 @@ fun BalanceCircles(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "You are owed",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.onTertiaryContainer)
                     )
                     Text(
                         text = "$${String.format("%.2f", youAreOwed)}",
-                        style = MaterialTheme.typography.headlineMedium.copy(
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(
                             color = MaterialTheme.colorScheme.onTertiaryContainer
                         )
                     )
@@ -174,6 +176,7 @@ fun BalanceCircles(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpensesDateSection(date: LocalDate, expenses: List<ExpenseItem>) {
     Row {
@@ -185,12 +188,18 @@ fun ExpensesDateSection(date: LocalDate, expenses: List<ExpenseItem>) {
                 .padding(end = 16.dp)
         ) {
             if (expenses.isEmpty()) {
-                Text(
-                    text = "NO ITEMS ADDED AT THIS DATE",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(vertical = 16.dp)
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "NO ITEMS ADDED AT THIS DATE",
+                        style = MaterialTheme.typography.labelMediumEmphasized,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                }
+
             } else {
                 expenses.forEach { item ->
                     ExpenseCard(

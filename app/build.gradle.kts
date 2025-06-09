@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":feature:itinerary"))
     implementation(project(":feature:expenses"))
     implementation(project(":feature:chat"))
+    implementation(project(":feature:settings"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,23 +1,21 @@
 package com.serranoie.app.feature.itinerary
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -34,18 +32,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
-import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
+import com.serranoie.app.designsystem.ui.theme.component.card.ICard
+import com.serranoie.app.designsystem.ui.theme.component.card.SwipeActionsConfig
 import com.serranoie.app.feature.itinerary.util.generateDateRange
 import java.time.LocalDate
 
@@ -108,13 +106,18 @@ fun ItineraryScreen(
         ) {
             items(generateDateRange(startDate, endDate)) { date ->
                 ItineraryDateSection(
-                    date = date, activities = currentItinerary[date].orEmpty(), onSwiped = {
-                        // Mark as complete logic
+                    date = date,
+                    activities = currentItinerary[date].orEmpty(),
+                    onActivitySwiped = { swipedActivity, isCompleting ->
+                        // Toggle the specific activity's completion status
                         val newItinerary = currentItinerary.toMutableMap()
-                        newItinerary[date] = newItinerary[date]?.map {
-                            if (it.isCompleted) it else it.copy(isCompleted = true)
+                        newItinerary[date] = newItinerary[date]?.map { activity ->
+                            if (activity == swipedActivity) {
+                                activity.copy(isCompleted = isCompleting)
+                            } else activity
                         } ?: emptyList()
                         itineraryState.value = newItinerary
+                        onSwiped()
                     }
                 )
             }
@@ -123,7 +126,11 @@ fun ItineraryScreen(
 }
 
 @Composable
-fun ItineraryDateSection(date: LocalDate, activities: List<ItineraryItem>, onSwiped: () -> Unit) {
+fun ItineraryDateSection(
+    date: LocalDate,
+    activities: List<ItineraryItem>,
+    onActivitySwiped: (ItineraryItem, Boolean) -> Unit
+) {
     Row {
         DateRangeToolbar(date = date)
 
@@ -144,13 +151,35 @@ fun ItineraryDateSection(date: LocalDate, activities: List<ItineraryItem>, onSwi
                 )
             } else {
                 activities.forEach { activity ->
-                    OutlinedCard(
+                    ICard(
                         swipeable = true,
                         isCompleted = activity.isCompleted,
-                        onSwipe = onSwiped,
+                        onSwipe = {
+                            // Toggle completion status based on current state
+                            onActivitySwiped(activity, !activity.isCompleted)
+                        },
                         headerTitle = activity.title,
                         headerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        swipeActionsConfig = if (!activity.isCompleted) {
+                            SwipeActionsConfig(
+                                threshold = 0.3f,
+                                icon = Icons.Default.Check,
+                                iconTint = MaterialTheme.colorScheme.onPrimary,
+                                background = MaterialTheme.colorScheme.primary,
+                                stayDismissed = false,
+                                onDismiss = { onActivitySwiped(activity, true) }
+                            )
+                        } else {
+                            SwipeActionsConfig(
+                                threshold = 0.3f,
+                                icon = Icons.Default.Close,
+                                iconTint = MaterialTheme.colorScheme.onError,
+                                background = MaterialTheme.colorScheme.error,
+                                stayDismissed = false,
+                                onDismiss = { onActivitySwiped(activity, false) }
+                            )
+                        }
                     ) {
                         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                             Text(
@@ -196,6 +225,16 @@ data class ItineraryItem(
     var isCompleted: Boolean = false
 )
 
+
+data class SwipeActionsConfig(
+    val threshold: Float,
+    val icon: ImageVector,
+    val iconTint: Color,
+    val background: Color,
+    val stayDismissed: Boolean,
+    val onDismiss: () -> Unit,
+)
+
 @ThemePreviews
 @Composable
 private fun ItineraryScreenPreview() {
@@ -229,24 +268,7 @@ private fun ItineraryScreenPreview() {
 
     PreviewWrapper {
         ItineraryScreen(
-            navController = rememberNavController(), itinerary = mockItineraryData, onSwiped = {})
+            navController = rememberNavController(), itinerary = mockItineraryData, onSwiped = {}
+        )
     }
-}
-
-@Composable
-fun VerticalDivider(
-    modifier: Modifier = Modifier,
-    thickness: Dp = DividerDefaults.Thickness,
-    color: Color = DividerDefaults.color,
-) = Canvas(
-    modifier
-        .fillMaxHeight()
-        .width(thickness)
-) {
-    drawLine(
-        color = color,
-        strokeWidth = thickness.toPx(),
-        start = Offset(thickness.toPx() / 2, 0f),
-        end = Offset(thickness.toPx() / 2, size.height),
-    )
 }

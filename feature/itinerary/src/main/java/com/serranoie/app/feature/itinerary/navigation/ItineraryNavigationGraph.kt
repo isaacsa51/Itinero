@@ -8,7 +8,7 @@ import com.serranoie.app.feature.itinerary.ItineraryItem
 import com.serranoie.app.feature.itinerary.ItineraryScreen
 import java.time.LocalDate
 
-fun NavGraphBuilder.itineraryGraph(navController: NavController) {
+fun NavGraphBuilder.itineraryGraph(navController: NavController, tripId: String) {
     composable(Route.Itinerary.route) {
         val mockItinerary = mapOf(
             LocalDate.now() to listOf(

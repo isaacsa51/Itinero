@@ -38,7 +38,7 @@ import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystem.ui.theme.component.ITextButton
 import com.serranoie.app.designsystem.ui.theme.component.IBackground
 import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
-import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
+import com.serranoie.app.designsystem.ui.theme.component.card.ICard
 import com.serranoie.app.designsystem.ui.theme.component.BottomSheetContent
 import com.serranoie.app.designsystem.ui.theme.component.OtpInputField
 import java.time.LocalDate
@@ -359,7 +359,7 @@ fun DesignSystemShowcase(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Basic card without header
-        OutlinedCard(
+        ICard(
             swipeable = false,
             isCompleted = false
         ) {
@@ -378,7 +378,7 @@ fun DesignSystemShowcase(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Card with colorful header
-        OutlinedCard(
+        ICard(
             swipeable = false,
             isCompleted = false,
             headerTitle = "Card with Header",
@@ -396,7 +396,7 @@ fun DesignSystemShowcase(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Swipeable card with header
-        OutlinedCard(
+        ICard(
             swipeable = true,
             isCompleted = false,
             onSwipe = { /* Handle swipe action */ },

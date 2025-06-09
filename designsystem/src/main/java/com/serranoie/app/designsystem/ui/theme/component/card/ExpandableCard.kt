@@ -78,7 +78,7 @@ fun ExpandableCard(
     headerIcon: ImageVector? = null,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    cardShape: Shape = RoundedCornerShape(12.dp),
+    cardShape: Shape = RoundedCornerShape(8.dp),
     borderStroke: BorderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     titleStyle: TextStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
     showDivider: Boolean = false,
@@ -207,6 +207,8 @@ private fun ExpandableSectionPreview() {
                     Text("Clear All")
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             var isFirstExpanded by remember { mutableStateOf(true) }
 

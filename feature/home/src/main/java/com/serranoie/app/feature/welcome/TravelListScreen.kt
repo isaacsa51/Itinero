@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,8 @@ fun TravelListScreen(
         }
     }
 
+    // TODO: On FAB click open FAB Menu with join, create options.
+
     Scaffold(topBar = {
         LargeTopAppBar(
             title = { Text("My Trips") }, scrollBehavior = scrollBehavior
@@ -84,7 +87,9 @@ fun TravelListScreen(
         }
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
             when {
                 uiState is TravelUiState.Loading -> {
@@ -116,7 +121,7 @@ fun TravelListScreen(
                     ) {
                         items(trips) { travel ->
                             TravelItem(
-                                trip = travel, onClick = { travel.id?.let { onTravelClick(it) } })
+                                trip = travel, onClick = { onTravelClick(travel.groupCode) })
                         }
                     }
                 }
@@ -273,8 +278,7 @@ private fun TravelListPreview() {
             onResetState = {},
             onAddTravelClick = {},
             onTravelClick = {},
-            onShowSnackbar = {}
-        )
+            onShowSnackbar = {})
     }
 }
 
@@ -286,7 +290,6 @@ private fun ScreenWithItemsPreview() {
             id = "1",
             groupCode = "PAR24",
             totalMembers = 2,
-            travelDirection = "Outward",
             destination = "Paris, France",
             startDate = "2025-12-01",
             endDate = "2025-12-31",
@@ -323,7 +326,6 @@ private fun ScreenWithItemsPreview() {
             additionalInfo = "Museum passes and restaurant reservations confirmed",
             ownerId = 1.toString(),
             totalMembers = 2,
-            travelDirection = "Outward"
         )
     )
 
@@ -347,7 +349,6 @@ private fun TravelItemPreview() {
         id = "1",
         groupCode = "PAR24",
         totalMembers = 2,
-        travelDirection = "Outward",
         destination = "Paris, France",
         startDate = "2025-12-01",
         endDate = "2025-12-31",
@@ -386,7 +387,6 @@ private fun TravelItemPreview() {
         additionalInfo = "Museum passes and restaurant reservations confirmed",
         ownerId = 1.toString(),
         totalMembers = 2,
-        travelDirection = "Outward"
     )
 
     val mockOwnerTripProgress = Trip(
@@ -409,7 +409,6 @@ private fun TravelItemPreview() {
         additionalInfo = "Museum passes and restaurant reservations confirmed",
         ownerId = 1.toString(),
         totalMembers = 2,
-        travelDirection = "Outward"
     )
 
     val mockTripCompleted = Trip(
@@ -432,7 +431,6 @@ private fun TravelItemPreview() {
         additionalInfo = "Museum passes and restaurant reservations confirmed",
         ownerId = 1.toString(),
         totalMembers = 2,
-        travelDirection = "Outward"
     )
 
     PreviewWrapper {

@@ -115,23 +115,40 @@ class WelcomeNavigationGraph : NavigationGraph {
             composable(route = Route.JoinTrip.route) {
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
                 val joinUiState by sharedViewModel.joinUiState.collectAsState()
+                val snackbarHostState = remember { SnackbarHostState() }
 
                 LaunchedEffect(joinUiState) {
-                    if (joinUiState is TravelUiState.Success<*>) {
-                        navController.navigate(Route.TravelList.route) {
-                            launchSingleTop = true
+                    when (val currentState = joinUiState) {
+                        is TravelUiState.Success<*> -> {
+                            Log.e("ISAAC", "Success travel join, $currentState")
+
+                            navController.navigate(Route.TravelList.route) {
+                                launchSingleTop = true
+                            }
+                            sharedViewModel.resetJoinState()
                         }
-                        sharedViewModel.resetJoinState()
+
+                        is TravelUiState.Error -> {
+                            // Error is now handled in the UI, but we still reset the state after showing
+                            // We can add a delay if needed for user to read the error
+                            Log.e("ISAAC", "Error travel join, $currentState")
+                        }
+
+                        else -> Unit
                     }
                 }
 
-                JoinTripScreen(onTripJoined = { groupCode ->
-                    sharedViewModel.joinTravel(groupCode)
-                }, onNavigateToCameraScanner = {
-                    navController.navigate(Route.CameraScanner.route)
-                }, onNavigateBack = {
-                    navController.popBackStack()
-                })
+                JoinTripScreen(
+                    uiState = joinUiState,
+                    onTripJoined = { groupCode ->
+                        sharedViewModel.joinTravel(groupCode)
+                    },
+                    onNavigateToCameraScanner = {
+                        navController.navigate(Route.CameraScanner.route)
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    })
             }
 
             composable(route = Route.CameraScanner.route) {
@@ -155,11 +172,10 @@ class WelcomeNavigationGraph : NavigationGraph {
                     onAddTravelClick = {
                         navController.navigate(Route.CreateTravel.route)
                     },
-                    onTravelClick = { travelId ->
-                        navController.navigate(Route.HomeNavigation.route) {
+                    onTravelClick = { tripId ->
+                        navController.navigate(Route.Home.createRoute(tripId)) {
                             popUpTo(Route.WelcomeNavigation.route) { inclusive = true }
                         }
-                        // TODO: Pass travelId to home navigation to load specific travel
                     },
                     onShowSnackbar = { message ->
                         snackbarHostState.showSnackbar(message)

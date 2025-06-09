@@ -5,15 +5,27 @@ sealed class Route(val route: String) {
     data object AppStartNavigation : Route("appStartNavigation")
 
     data object HomeNavigation : Route("homeNavigation")
+    data object Home : Route("HOME/{tripId}") {
+        fun createRoute(tripId: String) = "HOME/$tripId"
+    }
+
     data object Welcome : Route(Screen.WELCOME.name)
-    data object Home : Route(Screen.HOME.name)
     data object Itinerary : Route(Screen.ITINERARY.name)
     data object Expenses : Route(Screen.EXPENSES.name)
     data object AddExpense : Route(Screen.ADD_EXPENSE.name)
     data object ExpenseDetails : Route(Screen.EXPENSE_DETAILS.name)
     data object Chat : Route(Screen.CHAT.name)
-    data object TripSettings : Route(Screen.TRIP_SETTINGS.name)
-    data object TripInfo : Route(Screen.TRIP_INFO.name)
+
+    data object TripSettings : Route("TRIP_SETTINGS/{tripId}") {
+        fun createRoute(tripId: String, scrollTo: String? = null): String {
+            return "trip_settings/$tripId?scrollTo=${scrollTo ?: ""}"
+        }
+    }
+    data object TripInfo : Route("TRIP_INFO/{tripId}") {
+        fun createRoute(tripId: String): String {
+            return "trip_info/$tripId"
+        }
+    }
 
     data object WelcomeNavigation : Route("welcomeNavigation")
     data object TravelList : Route(Screen.TRAVEL_LIST.name)
@@ -30,17 +42,4 @@ sealed class Route(val route: String) {
 
     data object Onboarding : Route(Screen.ONBOARDING.name)
 
-    data object Loading : Route(Screen.LOADING.name)
-
-//    data object Settings : Route(Screen.SETTINGS.name)
-//    data object Profile : Route(Screen.PROFILE.name)
-//    data object Notifications : Route(Screen.NOTIFICATIONS.name)
-//    data object Help : Route(Screen.HELP.name)
-//    data object PrivacyPolicy : Route(Screen.PRIVACY_POLICY.name)
-
-//    data class Edit(val itemId: Int) : Route("edit/$itemId") {
-//        companion object {
-//            fun editItemRoute(itemId: Int) = "edit/$itemId"
-//        }
-//    }
 }
