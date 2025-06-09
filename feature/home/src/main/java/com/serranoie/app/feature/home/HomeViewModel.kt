@@ -35,8 +35,8 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private val _travels = MutableStateFlow<Trip?>(null)
-    val travels: StateFlow<Trip?> = _travels.asStateFlow()
+    private val _trip = MutableStateFlow<Trip?>(null)
+    val trip: StateFlow<Trip?> = _trip.asStateFlow()
 
 
     fun getCurrentTravel(groupCode: String) {
@@ -45,7 +45,7 @@ class HomeViewModel(
 
             when (val result = travelUseCase.getTravelById(groupCode)) {
                 is com.serranoie.itinero.core.domain.result.Result.Success -> {
-                    _travels.value = result.data
+                    _trip.value = result.data
                     _uiState.value = HomeUiState.Success(result.data)
                 }
 

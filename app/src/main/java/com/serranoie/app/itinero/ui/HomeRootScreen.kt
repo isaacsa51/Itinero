@@ -53,12 +53,14 @@ fun HomeRootScreen(
             composable(Route.Home.route) {
                 val viewmodel = koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
                 val uiState by viewmodel.uiState.collectAsState()
+                val tripInfo by viewmodel.trip.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
                 HomeScreen(
                     navController,
                     tripId = tripId,
                     uiState = uiState,
+                    tripInfo = tripInfo,
                     onGetTravel = { viewmodel.getCurrentTravel(tripId) },
                     onShowSnackbar = { message ->
                        snackbarHostState.showSnackbar(message)

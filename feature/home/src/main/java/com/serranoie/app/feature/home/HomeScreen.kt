@@ -56,6 +56,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
+import com.serranoie.itinero.core.domain.model.Trip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,11 +65,12 @@ fun HomeScreen(
     tripId: String,
     uiState: HomeUiState,
     onShowSnackbar: suspend (String) -> Unit,
-    onGetTravel: () -> Unit
+    onGetTravel: () -> Unit,
+    tripInfo: Trip?
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val isRefreshing = false
-    val onRefresh: () -> Unit = {}
+    val isRefreshing = uiState is HomeUiState.Loading
+    val onRefresh: () -> Unit = { onGetTravel() }
 
     LaunchedEffect(uiState) {
         if (uiState is HomeUiState.Error) {
@@ -112,7 +114,7 @@ fun HomeScreen(
                     .verticalScroll(rememberScrollState(), true)
                     .padding(paddingValues)
             ) {
-                TripDetailsScreen(navController, tripId)
+                TripDetailsScreen(navController, tripId, tripInfo)
             }
         }
     }
@@ -120,9 +122,12 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TripDetailsScreen(navController: NavHostController, tripId: String) {
+fun TripDetailsScreen(
+    navController: NavHostController,
+    tripId: String,
+    tripInfo: Trip?
+) {
     var isExpanded by remember { mutableStateOf(true) }
-    var isInviteExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -130,11 +135,10 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
             .padding(16.dp)
     ) {
         DestinationCard(
-            country = "Germany",
-            route = "Country 1 > Country 2",
-            flightTime = "2 h 25 min flight",
+            country = tripInfo?.destination.toString(),
             navController = navController,
-            tripId = tripId
+            tripId = tripId,
+            tripInfo = tripInfo
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -144,19 +148,23 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
         ) {
             DateInfoCard(
                 title = "Travel date",
-                value = "5 days",
-                subtitle = "08/02/2025 - 13/02/2025",
+                value = "5 days", // TODO: Calculate days from the trip values
+                subtitle = tripInfo?.startDate + " - " + tripInfo?.endDate,
                 modifier = Modifier.weight(1f)
             )
-            PeopleInfoCard(
-                confirmedCount = 3, names = listOf("Isaac", "Name"), modifier = Modifier.weight(1f)
-            )
+            tripInfo?.let {
+                PeopleInfoCard(
+                    confirmedCount = tripInfo.totalMembers ?: 0, modifier = Modifier.weight(1f), tripInfo = it,
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SummarySection(
-            onClick = { })
+        if (tripInfo != null) {
+            SummarySection(
+                onClick = { }, tripInfo = tripInfo)
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -189,7 +197,7 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
             )
 
             Text(
-                text = "Antonio Dovali Jaime 70, Santa Fe, Zedec Sta Fé, Álvaro Obregón, 01219 Mexico City, CDMX",
+                text = tripInfo?.accommodation?.location.toString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -197,7 +205,9 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TravelInfoCard(navController, tripId)
+        if (tripInfo != null) {
+            TravelInfoCard(navController, tripInfo)
+        }
     }
 }
 
@@ -205,10 +215,9 @@ fun TripDetailsScreen(navController: NavHostController, tripId: String) {
 @Composable
 fun DestinationCard(
     country: String,
-    route: String,
-    flightTime: String,
     navController: NavHostController,
-    tripId: String
+    tripId: String,
+    tripInfo: Trip?
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -253,9 +262,16 @@ fun DestinationCard(
                 text = country, style = MaterialTheme.typography.displayMediumEmphasized
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Group name", style = MaterialTheme.typography.labelLargeEmphasized
-            )
+            // TODO: Create and get the group name, if user didn't set any name, display the group code
+            if (tripInfo?.groupCode != null) {
+                Text(
+                    text = "Group Name", style = MaterialTheme.typography.labelLargeEmphasized
+                )
+            } else {
+                Text(
+                    text = "Group Name", style = MaterialTheme.typography.labelLargeEmphasized
+                )
+            }
         }
     }
 }
@@ -306,8 +322,8 @@ fun DateInfoCard(
 @Composable
 fun PeopleInfoCard(
     confirmedCount: Int,
-    names: List<String>,
     modifier: Modifier = Modifier,
+    tripInfo: Trip,
     cardColors: CardColors = CardDefaults.elevatedCardColors(),
 ) {
     OutlinedCard(
@@ -331,7 +347,11 @@ fun PeopleInfoCard(
                 modifier = Modifier.padding(top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "3 pending persons", style = MaterialTheme.typography.labelSmall)
+                if (confirmedCount <= 0) {
+                    Text(text = "Waiting people to join", style = MaterialTheme.typography.labelSmall)
+                } else if(confirmedCount == tripInfo.totalMembers) {
+                    Text(text = "Group ready", style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
     }
@@ -339,7 +359,7 @@ fun PeopleInfoCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TravelInfoCard(navController: NavController, tripId: String) {
+fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -355,7 +375,7 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
             IconButton(onClick = {
                 navController.navigate(
                     Route.TripSettings.createRoute(
-                        tripId = tripId, scrollTo = "tripInfo"
+                        tripId = tripInfo.groupCode, scrollTo = "tripInfo"
                     )
                 )
             }) {
@@ -367,7 +387,7 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
         }
 
         SelectField(
-            value = "Hotel Name",
+            value = tripInfo.accommodation.name,
             onSelect = { },
             label = "Accommodation",
             leadingIcon = Icons.Rounded.SupervisedUserCircle,
@@ -377,7 +397,7 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
         )
 
         SelectField(
-            value = "+123 456 7890",
+            value = tripInfo.accommodation.phone,
             onSelect = { },
             label = "Phone Number",
             leadingIcon = Icons.Rounded.SupervisedUserCircle,
@@ -393,14 +413,14 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SelectField(
-                value = "2023-07-15 3:00 PM",
+                value = tripInfo.accommodation.checkIn,
                 onSelect = { },
                 label = "Check-In Date & Time",
                 leadingIcon = Icons.Default.CalendarToday,
                 modifier = Modifier.weight(1f)
             )
             SelectField(
-                value = "2023-07-20 11:00 AM",
+                value = tripInfo.accommodation.checkOut,
                 onSelect = { },
                 label = "Check-Out Date & Time",
                 leadingIcon = Icons.Default.CalendarToday,
@@ -409,7 +429,7 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
         }
 
         SelectField(
-            value = "RES-123456",
+            value = tripInfo.reservationCode,
             onSelect = { },
             label = "Reservation Code",
             leadingIcon = null,
@@ -420,7 +440,7 @@ fun TravelInfoCard(navController: NavController, tripId: String) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SummarySection(onClick: () -> Unit) {
+fun SummarySection(onClick: () -> Unit, tripInfo: Trip) {
     Column(modifier = Modifier
         .fillMaxWidth()
         .clickable { onClick() }
@@ -430,13 +450,13 @@ fun SummarySection(onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Brief user summary goes here. AI summary will be set below users one...",
+            text = tripInfo.summary,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "• Keep the summary concise (2-3 sentences max).\n" + "• Highlight key aspects.\n" + "• Allow users to edits text.",
+            text = "AI summary generated by Gemini would be here for the moment...",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray
         )
@@ -448,10 +468,27 @@ fun SummarySection(onClick: () -> Unit) {
 fun HomeScreenPreview() {
     PreviewWrapper {
         val tripId = "123"
+        val tripInfo = Trip(
+            id = tripId,
+            destination = "Germany",
+            startDate = "2",
+            endDate = TODO(),
+            summary = TODO(),
+            totalMembers = TODO(),
+            accommodation = TODO(),
+            reservationCode = TODO(),
+            extraInfo = TODO(),
+            additionalInfo = TODO(),
+            groupCode = TODO(),
+            ownerId = TODO(),
+        )
+
         HomeScreen(
             tripId = tripId,
-            onGetTravel = { },
             uiState = HomeUiState.Idle,
-            onShowSnackbar = {})
+            onShowSnackbar = {},
+            onGetTravel = { },
+            tripInfo = tripInfo
+        )
     }
 }
