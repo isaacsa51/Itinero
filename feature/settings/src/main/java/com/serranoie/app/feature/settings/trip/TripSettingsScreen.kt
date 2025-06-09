@@ -65,7 +65,7 @@ import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedExpandableI
 import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedListItem
 import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.OtpDisplayField
-import com.serranoie.app.designsystem.ui.theme.component.OutlinedCard
+import com.serranoie.app.designsystem.ui.theme.component.card.ICard
 import com.serranoie.app.designsystem.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystem.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
@@ -124,7 +124,7 @@ fun TripSettingsScreen(
                 .padding(paddingValues), state = lazyListState
         ) {
             item {
-                OutlinedCard(
+                ICard(
                     swipeable = false, isCompleted = false, modifier = Modifier.padding(16.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {

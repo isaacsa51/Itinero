@@ -3,6 +3,7 @@ package com.serranoie.app.designsystem.ui.theme.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,14 +31,15 @@ import java.time.format.DateTimeFormatter
  * @param monthColor The color for the month text
  * @param horizontalAlignment The horizontal alignment for the text
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RowScope.DateRangeToolbar(
     modifier: Modifier = Modifier,
     date: LocalDate,
     dayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd"),
     monthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM"),
-    dayTextStyle: TextStyle = MaterialTheme.typography.bodyLarge,
-    monthTextStyle: TextStyle = MaterialTheme.typography.labelSmall,
+    dayTextStyle: TextStyle = MaterialTheme.typography.bodyLargeEmphasized,
+    monthTextStyle: TextStyle = MaterialTheme.typography.labelSmallEmphasized,
     dayColor: Color = MaterialTheme.colorScheme.onSurface,
     monthColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,

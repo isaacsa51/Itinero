@@ -1,4 +1,15 @@
-package com.serranoie.app.designsystem.ui.theme.component
+/*
+ - Copyright (c) 2025 Isaac Serrano.
+ -
+ - File: OutlinedCard.kt
+ - Project: Itinero
+ - Module: Itinero.designsystem.main
+ -
+ - This file belongs to the project: Itinero.
+ - Last edited: 08 June 2025
+ */
+
+package com.serranoie.app.designsystem.ui.theme.component.card
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -20,18 +31,16 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -39,14 +48,23 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.theme.component.card.ExpenseCard
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+
+data class SwipeActionsConfig(
+    val threshold: Float,
+    val icon: ImageVector,
+    val iconTint: Color,
+    val background: Color,
+    val stayDismissed: Boolean,
+    val onDismiss: () -> Unit,
+)
 
 /**
  * A card component with optional swipeable functionality and colorful header.
@@ -66,16 +84,18 @@ import kotlin.math.roundToInt
  * @param headerTextColor Text color for the header
  * @param headerIcon Optional icon to display in the header
  * @param headerIconContentDescription Content description for the header icon
+ * @param swipeActionsConfig Configuration for swipe actions (if null, uses default swipe behavior)
  * @param content The content of the card
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OutlinedCard(
+fun ICard(
     modifier: Modifier = Modifier,
     isCompleted: Boolean = false,
     onSwipe: (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = RoundedCornerShape(8.dp),
     colors: CardColors = CardDefaults.elevatedCardColors(
-        containerColor = if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+        containerColor = if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer
         else MaterialTheme.colorScheme.surface
     ),
     elevation: Dp = 2.dp,
@@ -88,6 +108,7 @@ fun OutlinedCard(
     headerTextColor: Color = MaterialTheme.colorScheme.onTertiaryContainer,
     headerIcon: ImageVector? = if (isCompleted) Icons.Default.CheckCircle else null,
     headerIconContentDescription: String? = if (isCompleted) "Completed" else null,
+    swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit
 ) {
     val cardContent: @Composable () -> Unit = {
@@ -99,7 +120,7 @@ fun OutlinedCard(
                         .fillMaxWidth()
                         .background(
                             color = headerColor,
-                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
                         )
                         .padding(16.dp)
                 ) {
@@ -110,7 +131,9 @@ fun OutlinedCard(
                     ) {
                         Text(
                             text = headerTitle,
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineSmallEmphasized,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             color = headerTextColor
                         )
 
@@ -132,7 +155,7 @@ fun OutlinedCard(
     }
 
     if (swipeable && onSwipe != null) {
-        SwipeableOutlinedCard(
+        ISwipeableCard(
             modifier = modifier,
             isCompleted = isCompleted,
             onSwipe = onSwipe,
@@ -142,6 +165,7 @@ fun OutlinedCard(
             borderWidth = borderWidth,
             borderColor = borderColor,
             dragThreshold = dragThreshold,
+            swipeActionsConfig = swipeActionsConfig,
             content = cardContent
         )
     } else {
@@ -157,8 +181,9 @@ fun OutlinedCard(
     }
 }
 
+@Deprecated("SwipeableOutlinedCard is deprecated. Use SwipeToDismiss with SwipeActions instead.")
 @Composable
-private fun SwipeableOutlinedCard(
+private fun ISwipeableCard(
     modifier: Modifier = Modifier,
     isCompleted: Boolean = false,
     onSwipe: () -> Unit,
@@ -168,25 +193,36 @@ private fun SwipeableOutlinedCard(
     borderWidth: Dp = 1.dp,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     dragThreshold: Float = 150f,
+    swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit
 ) {
-    var offsetX by remember { mutableStateOf(0f) }
-    var localIsCompleted by remember { mutableStateOf(isCompleted) }
+    val offsetXState = remember { mutableStateOf(0f) }
+    val localIsCompletedState = remember { mutableStateOf(isCompleted) }
+
+    // Use swipeActionsConfig if provided, otherwise use default behavior
+    val effectiveThreshold = swipeActionsConfig?.let { it.threshold * 300f } ?: dragThreshold
+    val backgroundIcon = swipeActionsConfig?.icon ?: Icons.Default.Done
+    val backgroundIconTint =
+        swipeActionsConfig?.iconTint ?: MaterialTheme.colorScheme.onTertiaryContainer
+    val backgroundColorConfig =
+        swipeActionsConfig?.background ?: MaterialTheme.colorScheme.tertiaryContainer
 
     // Animation states
-    val scale by animateFloatAsState(
-        targetValue = if (offsetX.absoluteValue > dragThreshold) 0.95f else 1f
+    val scaleState = animateFloatAsState(
+        targetValue = if (offsetXState.value.absoluteValue > effectiveThreshold) 0.95f else 1f,
+        label = "scale"
     )
 
-    val bgColor = if (offsetX.absoluteValue > dragThreshold) {
-        MaterialTheme.colorScheme.tertiaryContainer
+    val bgColor = if (offsetXState.value.absoluteValue > effectiveThreshold) {
+        backgroundColorConfig
     } else {
         Color.Transparent
     }
 
     // Background check icon visibility
-    val iconAlpha by animateFloatAsState(
-        targetValue = if (offsetX.absoluteValue > dragThreshold) 1f else 0f
+    val iconAlphaState = animateFloatAsState(
+        targetValue = if (offsetXState.value.absoluteValue > effectiveThreshold) 1f else 0f,
+        label = "iconAlpha"
     )
 
     Box(
@@ -202,10 +238,10 @@ private fun SwipeableOutlinedCard(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Done,
+                imageVector = backgroundIcon,
                 contentDescription = "Mark as done",
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier.alpha(iconAlpha)
+                tint = backgroundIconTint,
+                modifier = Modifier.alpha(iconAlphaState.value)
             )
         }
 
@@ -213,24 +249,24 @@ private fun SwipeableOutlinedCard(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                .scale(scale)
+                .offset { IntOffset(offsetXState.value.roundToInt(), 0) }
+                .scale(scaleState.value)
                 .alpha(1f)
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
                         // Only allow dragging if not already completed
-                        if (!localIsCompleted) {
-                            offsetX += delta
+                        if (!localIsCompletedState.value) {
+                            offsetXState.value = offsetXState.value + delta
                         }
                     },
                     onDragStopped = {
-                        if (offsetX.absoluteValue > dragThreshold) {
-                            localIsCompleted = true
-                            onSwipe()
+                        if (offsetXState.value.absoluteValue > effectiveThreshold) {
+                            localIsCompletedState.value = true
+                            swipeActionsConfig?.onDismiss?.invoke() ?: onSwipe()
                         }
                         // Reset position with animation
-                        offsetX = 0f
+                        offsetXState.value = 0f
                     })
                 .border(
                     width = borderWidth, color = borderColor, shape = shape
@@ -241,13 +277,54 @@ private fun SwipeableOutlinedCard(
     }
 }
 
+@Composable
+private fun ExpenseCard(
+    expenseName: String,
+    membersCount: Int,
+    amountOwed: Double,
+    isYours: Boolean = false,
+    isCompleted: Boolean = false,
+    icon: ImageVector
+) {
+    ICard(
+        swipeable = false, isCompleted = isCompleted
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = if (isYours) "You are owed" else "You owe",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isYours) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
+            }
+            Text(
+                text = expenseName, style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "$${String.format("%.2f", amountOwed)} • $membersCount people",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 @ComponentPreview
 @Composable
 private fun OutlinedCardPreview() {
     PreviewWrapper {
         Column(modifier = Modifier.padding(16.dp)) {
             // Regular non-swipeable card without header
-            OutlinedCard(
+            ICard(
                 swipeable = false, isCompleted = false
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -264,7 +341,7 @@ private fun OutlinedCardPreview() {
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Card with colorful header
-            OutlinedCard(
+            ICard(
                 swipeable = false,
                 isCompleted = false,
                 headerTitle = "Card with Header",
@@ -282,7 +359,7 @@ private fun OutlinedCardPreview() {
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Swipeable card with header
-            OutlinedCard(
+            ICard(
                 swipeable = true,
                 isCompleted = false,
                 onSwipe = { /* Handle swipe action */ },
@@ -299,8 +376,32 @@ private fun OutlinedCardPreview() {
 
             Spacer(modifier = Modifier.padding(8.dp))
 
+            // Swipeable card with custom SwipeActionsConfig
+            ICard(
+                swipeable = true,
+                isCompleted = false,
+                onSwipe = { /* Handle swipe action */ },
+                headerTitle = "Custom Swipe Card",
+                headerIcon = Icons.Default.Done,
+                swipeActionsConfig = SwipeActionsConfig(
+                    threshold = 0.3f,
+                    icon = Icons.Default.CheckCircle,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    background = MaterialTheme.colorScheme.primaryContainer,
+                    stayDismissed = false,
+                    onDismiss = { /* Custom dismiss action */ })) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Swipe me with custom config",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
             // Completed swipeable card with header
-            OutlinedCard(
+            ICard(
                 swipeable = true,
                 isCompleted = true,
                 onSwipe = { /* Handle swipe action */ },
@@ -355,7 +456,7 @@ private fun OutlinedCardPreview() {
                 amountOwed = 12.80,
                 isYours = true,
                 isCompleted = false,
-                icon = Icons.Rounded.DirectionsCar
+                icon = Icons.Filled.Restaurant
             )
         }
     }

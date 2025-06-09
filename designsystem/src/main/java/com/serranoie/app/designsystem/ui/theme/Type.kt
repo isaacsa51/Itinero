@@ -86,6 +86,19 @@ val headlineSmallFontFamily =
         )
     )
 
+
+@OptIn(ExperimentalTextApi::class)
+val titleMediumFontFamily =
+    FontFamily(
+        Font(
+            R.font.archivo_variablefont,
+            variationSettings = FontVariation.Settings(
+                FontVariation.weight(600),
+                FontVariation.width(120f),
+            )
+        )
+    )
+
 @OptIn(ExperimentalTextApi::class)
 val titleSmallFontFamily =
     FontFamily(
@@ -134,6 +147,29 @@ val bodyLargeFontFamily =
         )
     )
 
+@OptIn(ExperimentalTextApi::class)
+val bodyMediumFontFamily =
+    FontFamily(
+        Font(
+            R.font.archivo_variablefont,
+            variationSettings = FontVariation.Settings(
+                FontVariation.width(600f),
+            )
+        )
+    )
+
+@OptIn(ExperimentalTextApi::class)
+val bodySmallFontFamily =
+    FontFamily(
+        Font(
+            R.font.chivo_variablefont,
+            variationSettings = FontVariation.Settings(
+                FontVariation.width(600f),
+            )
+        )
+    )
+
+
 // Default Material 3 typography values
 val baseline = Typography()
 
@@ -153,12 +189,15 @@ val ItineroTypography = Typography(
     titleLargeEmphasized = baseline.titleLargeEmphasized.copy(fontFamily = displayLargeFontFamily),
     titleLarge = baseline.titleLarge.copy(fontFamily = displayFontFamily),
     titleMedium = baseline.titleMedium.copy(fontFamily = displayFontFamily),
+    titleMediumEmphasized = baseline.titleMediumEmphasized.copy(fontFamily = titleMediumFontFamily),
     titleSmall = baseline.titleSmall.copy(fontFamily = displayFontFamily),
     titleSmallEmphasized = baseline.titleSmallEmphasized.copy(fontFamily = titleSmallFontFamily),
     bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
     bodyLargeEmphasized = baseline.bodyLargeEmphasized.copy(fontFamily = bodyLargeFontFamily),
     bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
+    bodyMediumEmphasized = baseline.bodyMediumEmphasized.copy(fontFamily = bodyMediumFontFamily),
     bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
+    bodySmallEmphasized = baseline.bodySmallEmphasized.copy(fontFamily = bodySmallFontFamily),
     labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
     labelLargeEmphasized = baseline.labelLargeEmphasized.copy(fontFamily = labelLargeFontFamily),
     labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
