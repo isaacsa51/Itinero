@@ -1,5 +1,7 @@
 package com.serranoie.itinero.core.data.mappers
 
+import com.serranoie.itinero.core.data.local.entity.EmbeddedAccommodation
+import com.serranoie.itinero.core.data.local.entity.TripEntity
 import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
@@ -60,27 +62,6 @@ fun CreateTrip.toTrip(
     )
 }
 
-
-//fun CreateTripDto.toTrip(): Trip {
-//    return Trip(
-//        id = "",
-//        destination = destination,
-//        startDate = startDate,
-//        endDate = endDate,
-//        summary = summary,
-//        // totalMembers = totalMembers ?: 1,
-//        // travelDirection = travelDirection ?: "",
-//        accommodation = accommodation.toDomain(),
-//        reservationCode = reservationCode,
-//        extraInfo = extraInfo,
-//        additionalInfo = additionalInfo,
-//        // groupCode = groupCode ?: "",
-//        // ownerId = ownerId ?: "",
-//        // isOwner = true // o según usuario actual
-//    )
-//}
-
-
 fun AccommodationDto.toDomain(): Accommodation {
     return Accommodation(
         name = name,
@@ -94,6 +75,62 @@ fun AccommodationDto.toDomain(): Accommodation {
 
 fun Accommodation.toDto(): AccommodationDto {
     return AccommodationDto(
+        name = name,
+        phone = phone,
+        checkIn = checkIn,
+        checkOut = checkOut,
+        location = location,
+        mapUri = mapUri ?: ""
+    )
+}
+
+fun TripEntity.toDomain(): Trip {
+    return Trip(
+        id = id,
+        destination = destination,
+        startDate = startDate,
+        endDate = endDate,
+        summary = summary,
+        totalMembers = totalMembers,
+        accommodation = accommodation.toDomain(),
+        reservationCode = reservationCode,
+        extraInfo = extraInfo,
+        additionalInfo = additionalInfo,
+        groupCode = groupCode,
+        ownerId = ownerId
+    )
+}
+
+fun EmbeddedAccommodation.toDomain(): Accommodation {
+    return Accommodation(
+        name = name,
+        phone = phone,
+        checkIn = checkIn,
+        checkOut = checkOut,
+        location = location,
+        mapUri = mapUri
+    )
+}
+
+fun Trip.toEntity(): TripEntity {
+    return TripEntity(
+        id = id ?: java.util.UUID.randomUUID().toString(),
+        destination = destination,
+        startDate = startDate,
+        endDate = endDate,
+        summary = summary,
+        totalMembers = totalMembers,
+        accommodation = accommodation.toEmbedded(),
+        reservationCode = reservationCode,
+        extraInfo = extraInfo,
+        additionalInfo = additionalInfo,
+        groupCode = groupCode,
+        ownerId = ownerId
+    )
+}
+
+fun Accommodation.toEmbedded(): EmbeddedAccommodation {
+    return EmbeddedAccommodation(
         name = name,
         phone = phone,
         checkIn = checkIn,

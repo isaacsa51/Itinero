@@ -61,7 +61,7 @@ fun HomeRootScreen(
                     tripId = tripId,
                     uiState = uiState,
                     tripInfo = tripInfo,
-                    onGetTravel = { viewmodel.getCurrentTravel(tripId) },
+                    onGetTravel = { viewmodel.getCurrentTravel() },
                     onShowSnackbar = { message ->
                        snackbarHostState.showSnackbar(message)
                     }

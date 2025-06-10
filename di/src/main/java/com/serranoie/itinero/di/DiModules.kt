@@ -1,6 +1,10 @@
 package com.serranoie.itinero.di
 
+import androidx.room.Room
+import com.serranoie.itinero.core.data.local.database.AppDatabase
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import com.serranoie.itinero.core.data.local.repository.LocalTravelRepository
+import com.serranoie.itinero.core.data.local.repository.LocalTravelRepositoryImpl
 import com.serranoie.itinero.core.data.remote.ItineroApi
 import com.serranoie.itinero.core.data.remote.ItineroApiImpl
 import com.serranoie.itinero.core.data.remote.repository.AuthRepositoryImpl
@@ -23,20 +27,35 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val diModules = module {
+    // Database
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            AppDatabase::class.java,
+            "itinero_database"
+        ).build()
+    }
+
+    // DAO
+    single { get<AppDatabase>().tripDao() }
+
     // API
     single<ItineroApi> { ItineroApiImpl(get()) }
 
-    // Repository - Add base URL parameter
-    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
-    single<TravelRepository> {
-    TravelRepositoryImpl(
-            get(),
-            get<AuthPreferences>().getToken() ?: "anonymous-user"
-        )
-    }
+    // Local Repository (Room database)
+    single<LocalTravelRepository> { LocalTravelRepositoryImpl(get()) }
 
     // Preferences
     single { AuthPreferences(androidContext()) }
+
+    // Repository
+    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
+    single<TravelRepository> {
+        TravelRepositoryImpl(
+            get(), // ItineroApi
+            get()  // LocalTravelRepository
+        )
+    }
 
     // Individual Use Cases
     factory { GetAllTravelsUseCase(get()) }
@@ -56,7 +75,7 @@ val diModules = module {
         )
     }
 
-    // Similar for Auth use cases
+    // Auth use cases
     factory { LoginUseCase(get()) }
     factory { RegisterUseCase(get()) }
     factory { GetAuthTokenUseCase(get()) }

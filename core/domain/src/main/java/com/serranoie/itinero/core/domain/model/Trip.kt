@@ -11,6 +11,9 @@
 
 package com.serranoie.itinero.core.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Trip(
     val id: String?,
     val destination: String,
@@ -26,11 +29,12 @@ data class Trip(
     val ownerId: String,
 )
 
+@Serializable
 data class Accommodation(
     val name: String,
     val phone: String,
     val checkIn: String,
     val checkOut: String,
     val location: String,
-    val mapUri: String
+    val mapUri: String?
 )

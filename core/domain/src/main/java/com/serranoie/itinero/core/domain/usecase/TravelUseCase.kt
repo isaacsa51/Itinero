@@ -18,7 +18,8 @@ class GetAllTravelsUseCase(private val repository: TravelRepository) {
 }
 
 class GetTravelByIdUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(id: String): Result<Trip> = repository.getTravelById(id)
+    suspend operator fun invoke(id: String, forceRefresh: Boolean = false): Result<Trip> =
+        repository.getTravelById(id, forceRefresh)
 }
 
 class JoinTravelUseCase(private val repository: TravelRepository) {

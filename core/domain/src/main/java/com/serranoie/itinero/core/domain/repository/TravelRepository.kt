@@ -7,7 +7,7 @@ import com.serranoie.itinero.core.domain.result.Result
 interface TravelRepository {
 
     suspend fun getAllTravels(): Result<List<Trip>>
-    suspend fun getTravelById(id: String): Result<Trip>
+    suspend fun getTravelById(id: String, forceRefresh: Boolean = false): Result<Trip>
     suspend fun joinTravel(groupCode: String): Result<Unit>
     suspend fun leaveTravel(): Result<Unit>
     suspend fun createTravel(

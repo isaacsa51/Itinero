@@ -29,7 +29,8 @@ sealed interface HomeUiState {
 }
 
 class HomeViewModel(
-    private val travelUseCase: TravelUseCase, groupCode: String
+    private val travelUseCase: TravelUseCase,
+    private val groupCode: String
 ): ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
@@ -38,12 +39,15 @@ class HomeViewModel(
     private val _trip = MutableStateFlow<Trip?>(null)
     val trip: StateFlow<Trip?> = _trip.asStateFlow()
 
-
-    fun getCurrentTravel(groupCode: String) {
+    /**
+     * Gets current travel data with caching strategy
+     * @param forceRefresh If true, bypasses cache and fetches fresh data
+     */
+    fun getCurrentTravel(groupCode: String, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
-           _uiState.value = HomeUiState.Loading
+            _uiState.value = HomeUiState.Loading
 
-            when (val result = travelUseCase.getTravelById(groupCode)) {
+            when (val result = travelUseCase.getTravelById(groupCode, forceRefresh)) {
                 is com.serranoie.itinero.core.domain.result.Result.Success -> {
                     _trip.value = result.data
                     _uiState.value = HomeUiState.Success(result.data)
@@ -54,5 +58,19 @@ class HomeViewModel(
                 }
             }
         }
+    }
+
+    /**
+     * Convenience method that uses the group code from constructor
+     */
+    fun getCurrentTravel() {
+        getCurrentTravel(groupCode, forceRefresh = false)
+    }
+
+    /**
+     * Refreshes trip data by forcing a remote fetch
+     */
+    fun refreshTrip() {
+        getCurrentTravel(groupCode, forceRefresh = true)
     }
 }
