@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Trip(
     val id: String?,
+    val groupName: String,
     val destination: String,
     val startDate: String,
     val endDate: String,

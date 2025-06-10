@@ -11,6 +11,7 @@ interface TravelRepository {
     suspend fun joinTravel(groupCode: String): Result<Unit>
     suspend fun leaveTravel(): Result<Unit>
     suspend fun createTravel(
+        groupName: String,
         destination: String,
         startDate: String,
         endDate: String,

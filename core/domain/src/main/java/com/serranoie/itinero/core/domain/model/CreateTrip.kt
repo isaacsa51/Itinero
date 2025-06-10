@@ -1,6 +1,7 @@
 package com.serranoie.itinero.core.domain.model
 
 data class CreateTrip(
+    val groupName: String,
     val destination: String,
     val startDate: String,
     val endDate: String,

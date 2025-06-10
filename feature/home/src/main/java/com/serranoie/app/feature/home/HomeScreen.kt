@@ -16,10 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -56,6 +53,7 @@ import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
+import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,11 +64,11 @@ fun HomeScreen(
     uiState: HomeUiState,
     onShowSnackbar: suspend (String) -> Unit,
     onGetTravel: () -> Unit,
+    onRefresh: () -> Unit,
     tripInfo: Trip?
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val isRefreshing = uiState is HomeUiState.Loading
-    val onRefresh: () -> Unit = { onGetTravel() }
 
     LaunchedEffect(uiState) {
         if (uiState is HomeUiState.Error) {
@@ -106,8 +104,10 @@ fun HomeScreen(
     }) { paddingValues ->
 
         PullToRefreshBox(
-            isRefreshing = isRefreshing, onRefresh = onRefresh
-        ) {
+            isRefreshing = isRefreshing, onRefresh = {
+                onRefresh()
+                Log.d("ITINERO", "Refreshing data...")
+            }) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -123,9 +123,7 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripDetailsScreen(
-    navController: NavHostController,
-    tripId: String,
-    tripInfo: Trip?
+    navController: NavHostController, tripId: String, tripInfo: Trip?
 ) {
     var isExpanded by remember { mutableStateOf(true) }
 
@@ -154,7 +152,9 @@ fun TripDetailsScreen(
             )
             tripInfo?.let {
                 PeopleInfoCard(
-                    confirmedCount = tripInfo.totalMembers ?: 0, modifier = Modifier.weight(1f), tripInfo = it,
+                    confirmedCount = tripInfo.totalMembers,
+                    modifier = Modifier.weight(1f),
+                    tripInfo = it,
                 )
             }
         }
@@ -163,7 +163,8 @@ fun TripDetailsScreen(
 
         if (tripInfo != null) {
             SummarySection(
-                onClick = { }, tripInfo = tripInfo)
+                onClick = { }, tripInfo = tripInfo
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -214,10 +215,7 @@ fun TripDetailsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DestinationCard(
-    country: String,
-    navController: NavHostController,
-    tripId: String,
-    tripInfo: Trip?
+    country: String, navController: NavHostController, tripId: String, tripInfo: Trip?
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -238,38 +236,20 @@ fun DestinationCard(
                     style = MaterialTheme.typography.labelSmallEmphasized,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-
-                BadgedBox(
-                    badge = {
-                        Badge()
-                    }) {
-                    Icon(
-                        imageVector = Icons.Rounded.Settings,
-                        contentDescription = "Settings",
-                        modifier = Modifier.clickable {
-                            navController.navigate(
-                                Route.TripSettings.createRoute(
-                                    tripId = tripId
-                                )
-                            )
-                        },
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
 
             Text(
                 text = country, style = MaterialTheme.typography.displayMediumEmphasized
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // TODO: Create and get the group name, if user didn't set any name, display the group code
-            if (tripInfo?.groupCode != null) {
+            if (tripInfo?.groupName != null) {
                 Text(
-                    text = "Group Name", style = MaterialTheme.typography.labelLargeEmphasized
+                    text = tripInfo.groupName, style = MaterialTheme.typography.labelLargeEmphasized
                 )
             } else {
                 Text(
-                    text = "Group Name", style = MaterialTheme.typography.labelLargeEmphasized
+                    text = tripInfo?.groupCode.toString(),
+                    style = MaterialTheme.typography.labelLargeEmphasized
                 )
             }
         }
@@ -348,8 +328,10 @@ fun PeopleInfoCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (confirmedCount <= 0) {
-                    Text(text = "Waiting people to join", style = MaterialTheme.typography.labelSmall)
-                } else if(confirmedCount == tripInfo.totalMembers) {
+                    Text(
+                        text = "Waiting people to join", style = MaterialTheme.typography.labelSmall
+                    )
+                } else if (confirmedCount == tripInfo.totalMembers) {
                     Text(text = "Group ready", style = MaterialTheme.typography.labelSmall)
                 }
             }
@@ -467,28 +449,37 @@ fun SummarySection(onClick: () -> Unit, tripInfo: Trip) {
 @Composable
 fun HomeScreenPreview() {
     PreviewWrapper {
-        val tripId = "123"
+        val mockAccommodation = Accommodation(
+            name = "Hotel",
+            phone = "1231231",
+            checkIn = "2025/10/06",
+            checkOut = "2025/11/06",
+            location = "Germany",
+            mapUri = "test"
+        )
         val tripInfo = Trip(
-            id = tripId,
+            id = "ITN-51712",
+            groupName = "My group",
             destination = "Germany",
             startDate = "2",
-            endDate = TODO(),
-            summary = TODO(),
-            totalMembers = TODO(),
-            accommodation = TODO(),
-            reservationCode = TODO(),
-            extraInfo = TODO(),
-            additionalInfo = TODO(),
-            groupCode = TODO(),
-            ownerId = TODO(),
+            endDate = "2025/10/06",
+            summary = "2025/11/06",
+            totalMembers = 2,
+            accommodation = mockAccommodation,
+            reservationCode = "REV14123",
+            extraInfo = "Not provided",
+            additionalInfo = "Not provided",
+            groupCode = "ITN-51712",
+            ownerId = 1.toString(),
         )
 
         HomeScreen(
-            tripId = tripId,
+            tripId = "ITN-51712",
             uiState = HomeUiState.Idle,
             onShowSnackbar = {},
             onGetTravel = { },
-            tripInfo = tripInfo
+            tripInfo = tripInfo,
+            onRefresh = { },
         )
     }
 }

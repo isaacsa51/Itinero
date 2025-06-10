@@ -23,12 +23,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TripDao {
 
-    // Trip operations
     @Query("SELECT * FROM trips LIMIT 1")
     suspend fun getTrip(): TripEntity?
 
-    @Query("SELECT * FROM trips WHERE id = :tripId OR groupCode = :tripId LIMIT 1")
-    suspend fun getTripById(tripId: String): TripEntity?
+    @Query("SELECT * FROM trips WHERE id = :groupCode OR groupCode = :groupCode LIMIT 1")
+    suspend fun getTripById(groupCode: String): TripEntity?
 
     @Query("SELECT * FROM trips")
     suspend fun getAllTrips(): List<TripEntity>
@@ -48,6 +47,6 @@ interface TripDao {
     @Query("DELETE FROM trips")
     suspend fun clearAllTrips()
 
-    @Query("DELETE FROM trips WHERE id = :tripId")
-    suspend fun deleteTripById(tripId: String)
+    @Query("DELETE FROM trips WHERE id = :groupCode")
+    suspend fun deleteTripById(groupCode: String)
 }

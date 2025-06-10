@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.welcome
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -55,14 +57,12 @@ import com.serranoie.app.feature.TravelUiState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import android.util.Log
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateTravelScreen(
     uiState: TravelUiState = TravelUiState.Idle,
-    onTravelCreated: (String, String, String, String, String, String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
+    onTravelCreated: (String, String, String, String, String, String, String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
 
@@ -72,6 +72,7 @@ fun CreateTravelScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
 
+    var groupName by remember { mutableStateOf("") }
     var destination by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
@@ -92,13 +93,13 @@ fun CreateTravelScreen(
     Scaffold(topBar = {
         MediumFlexibleTopAppBar(
             title = { Text("Create New Trip") }, navigationIcon = {
-            IconButton(onClick = onNavigateBack, content = {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back"
-                )
-            })
-        }, scrollBehavior = scrollBehavior
+                IconButton(onClick = onNavigateBack, content = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Go back"
+                    )
+                })
+            }, scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackState) }) { padding ->
         Column(
@@ -112,6 +113,15 @@ fun CreateTravelScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SectionLabel(text = "Basic Information")
+
+            ITextField(
+                value = groupName,
+                onValueChange = { groupName = it },
+                label = "Group Name",
+                leadingIcon = Icons.Default.Hotel,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             ITextField(
                 value = destination,
                 onValueChange = { destination = it },
@@ -222,6 +232,7 @@ fun CreateTravelScreen(
                         "Create Trip button clicked with destination: $destination, dates: $startDate - $endDate"
                     )
                     onTravelCreated(
+                        groupName,
                         destination,
                         startDate,
                         endDate,
@@ -245,8 +256,7 @@ fun CreateTravelScreen(
                     } else {
                         Text("Create Trip")
                     }
-                }
-            )
+                })
         }
 
         if (showDatePicker) {
@@ -325,6 +335,8 @@ fun DateRangePickerModal(
 @Composable
 private fun CreateTravelScreenPreview() {
     PreviewWrapper {
-        //CreateTravelScreen(onTravelCreated = {""; ""; ""; ""; ""; ""; ""; ""; ""; ""; ""; ""; ""}, onNavigateBack = {})
+        CreateTravelScreen(onTravelCreated = { groupName, destination, startDate, endDate, summary, accommodationName, accommodationPhone, accommodationCheckIn, accommodationCheckOut, accommodationLocation, accommodationMapUri, reservationCode, extraInfo, additionalInfo ->
+            { }
+        }, onNavigateBack = {})
     }
 }

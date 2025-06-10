@@ -12,6 +12,7 @@ import com.serranoie.itinero.core.domain.model.Trip
 fun TripDto.toDomain(): Trip {
     return Trip(
         id = id,
+        groupName = groupName,
         destination = destination,
         startDate = startDate,
         endDate = endDate,
@@ -28,6 +29,7 @@ fun TripDto.toDomain(): Trip {
 
 fun CreateTripDto.toDomain(): CreateTrip {
     return CreateTrip(
+        groupName = groupName,
         destination = destination,
         startDate = startDate,
         endDate = endDate,
@@ -44,10 +46,10 @@ fun CreateTrip.toTrip(
     groupCode: String = "",
     ownerId: String = "",
     totalMembers: Int = 1,
-    travelDirection: String = ""
 ): Trip {
     return Trip(
         id = id,
+        groupName = groupName,
         destination = destination,
         startDate = startDate,
         endDate = endDate,
@@ -87,6 +89,7 @@ fun Accommodation.toDto(): AccommodationDto {
 fun TripEntity.toDomain(): Trip {
     return Trip(
         id = id,
+        groupName = groupName,
         destination = destination,
         startDate = startDate,
         endDate = endDate,
@@ -115,6 +118,7 @@ fun EmbeddedAccommodation.toDomain(): Accommodation {
 fun Trip.toEntity(): TripEntity {
     return TripEntity(
         id = id ?: java.util.UUID.randomUUID().toString(),
+        groupName = groupName,
         destination = destination,
         startDate = startDate,
         endDate = endDate,

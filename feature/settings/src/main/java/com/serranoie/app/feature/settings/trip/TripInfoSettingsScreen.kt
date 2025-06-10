@@ -1,4 +1,4 @@
-package com.serranoie.app.itinero.feature.settings.trip
+package com.serranoie.app.feature.settings.trip
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,22 +39,27 @@ import com.serranoie.app.designsystem.ui.theme.component.IButton
 import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import com.serranoie.app.designsystem.ui.theme.component.LocationField
+import com.serranoie.itinero.core.domain.model.Accommodation
+import com.serranoie.itinero.core.domain.model.Trip
 
 @Composable
-fun TripInfoSettingsScreen(navController: NavController, tripId: String) {
+fun TripInfoSettingsScreen(navController: NavController, tripId: String, trip: Trip?) {
 
-    var groupName by remember { mutableStateOf("Group 1") }
-    var summary by remember { mutableStateOf("Family Vacation") }
-    var tripStart by remember { mutableStateOf("10/02/2025") }
-    var tripEnd by remember { mutableStateOf("20/02/2025") }
-    var name by remember { mutableStateOf("Hotel Hilton") }
-    var checkIn by remember { mutableStateOf("10/02/2025 at 15:00 Hours") }
-    var checkOut by remember { mutableStateOf("20/02/2025 at 12:00 Hours") }
-    var phoneNumber by remember { mutableStateOf("+1 (555) 123-4567") }
-    var reservationCode by remember { mutableStateOf("HH123456789") }
-    var accommodationExtras by remember { mutableStateOf("Room with sea view, includes breakfast") }
-    var miscInfo by remember { mutableStateOf("Near city center, 20min walk to the beach") }
-    var location by remember { mutableStateOf("Hotel Hilton, 342 5th Avenue, New York, NY 10001") }
+    var groupName by remember { mutableStateOf(trip?.destination ?: "") }
+    var summary by remember { mutableStateOf(trip?.summary ?: "") }
+    var tripStart by remember { mutableStateOf(trip?.startDate ?: "") }
+    var tripEnd by remember { mutableStateOf(trip?.endDate ?: "") }
+    var name by remember { mutableStateOf(trip?.accommodation?.name ?: "") }
+    var checkIn by remember { mutableStateOf(trip?.accommodation?.checkIn ?: "") }
+    var checkOut by remember { mutableStateOf(trip?.accommodation?.checkOut ?: "") }
+    var phoneNumber by remember { mutableStateOf(trip?.accommodation?.phone ?: "") }
+    var reservationCode by remember { mutableStateOf(trip?.reservationCode ?: "") }
+    var accommodationExtras by remember { mutableStateOf(trip?.extraInfo ?: "") }
+    var miscInfo by remember { mutableStateOf(trip?.additionalInfo ?: "") }
+    var location by remember { mutableStateOf(trip?.accommodation?.location ?: "") }
+
+    var destination by remember { mutableStateOf(trip?.destination ?: "") }
+    var isConfirmDestinationDialogOpen by remember { mutableStateOf(false) }
 
     Scaffold { paddingValues ->
         Column(
@@ -73,44 +78,13 @@ fun TripInfoSettingsScreen(navController: NavController, tripId: String) {
                 leadingIcon = Icons.Default.Numbers
             )
 
-            var destination by remember { mutableStateOf("Default Destination") }
-            var isConfirmDestinationDialogOpen by remember { mutableStateOf(false) }
-            var tempDestination by remember { mutableStateOf(destination) }
-
             ITextField(
-                value = tempDestination,
-                onValueChange = {
-                    tempDestination = it
-                    isConfirmDestinationDialogOpen = true
-                },
+                value = destination,
+                onValueChange = { destination = it },
                 label = "Destination",
                 placeholder = "Enter destination",
                 leadingIcon = Icons.Default.LocationOn
             )
-
-            if (isConfirmDestinationDialogOpen) {
-                AlertDialog(
-                    onDismissRequest = { isConfirmDestinationDialogOpen = false },
-                    title = { Text("Confirm Destination") },
-                    text = { Text("Are you sure you want to change the destination to $tempDestination?") },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            destination = tempDestination
-                            isConfirmDestinationDialogOpen = false
-                        }) {
-                            Text("Confirm")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = {
-                            isConfirmDestinationDialogOpen = false
-                            tempDestination = destination
-                        }) {
-                            Text("Cancel")
-                        }
-                    }
-                )
-            }
 
             ITextField(
                 value = summary,
@@ -184,8 +158,7 @@ fun TripInfoSettingsScreen(navController: NavController, tripId: String) {
                 value = location,
                 label = "Accommodation location",
                 modifier = Modifier.fillMaxWidth(),
-                onValueChange = { location = it }
-            )
+                onValueChange = { location = it })
 
             SectionHeader(title = "ADDITIONAL INFORMATION")
 
@@ -212,20 +185,51 @@ fun TripInfoSettingsScreen(navController: NavController, tripId: String) {
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 IOutlineButton(
-                    onClick = { /* TODO */ },
+                    onClick = {
+                        navController.popBackStack()
+                    },
                     modifier = Modifier.weight(1f),
                     text = { Text("Cancel") })
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 IButton(
-                    onClick = { /* TODO */ },
+                    onClick = {
+                        if (destination != trip?.destination) {
+                            isConfirmDestinationDialogOpen = true
+                        } else {
+                            /* TODO: Save without confirmation */
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     text = { Text("Save") },
                     importance = ButtonImportance.Primary
                 )
             }
         }
+    }
+
+    if (isConfirmDestinationDialogOpen) {
+        AlertDialog(
+            onDismissRequest = { isConfirmDestinationDialogOpen = false },
+            title = { Text("Confirm Destination") },
+            text = { Text("Are you sure you want to change the destination to $destination?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    isConfirmDestinationDialogOpen = false
+                    /* TODO: Save all data including new destination */
+                }) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    isConfirmDestinationDialogOpen = false
+                    destination = trip?.destination ?: ""
+                }) {
+                    Text("Cancel")
+                }
+            })
     }
 }
 
@@ -244,6 +248,31 @@ fun SectionHeader(title: String) {
 private fun TripInfoSettingsScreenPreview() {
     val routeTripId = "ITN-12349"
     PreviewWrapper {
-        TripInfoSettingsScreen(navController = rememberNavController(), tripId = routeTripId)
+        TripInfoSettingsScreen(
+            navController = rememberNavController(),
+            tripId = routeTripId,
+            trip = Trip(
+                id = "12345",
+                groupName = "My Group",
+                destination = "My Trip",
+                startDate = "2025-06-07",
+                endDate = "2025-06-10",
+                summary = "Preview trip",
+                totalMembers = 3,
+                accommodation = Accommodation(
+                    name = "My Hotel",
+                    location = "123 Main St",
+                    phone = "+1 1234567890",
+                    checkIn = "15:00",
+                    checkOut = "11:00",
+                    mapUri = null
+                ),
+                reservationCode = "RES123",
+                extraInfo = "",
+                additionalInfo = "",
+                groupCode = "ITN-12345",
+                ownerId = "user123"
+            ),
+        )
     }
 }

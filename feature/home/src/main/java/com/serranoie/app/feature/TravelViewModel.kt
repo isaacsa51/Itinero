@@ -31,6 +31,7 @@ class SharedTravelViewModel(
     val joinUiState: StateFlow<TravelUiState> = _joinUiState.asStateFlow()
 
     fun createTravel(
+        groupName: String,
         destination: String,
         startDate: String,
         endDate: String,
@@ -48,6 +49,7 @@ class SharedTravelViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             _createUiState.value = TravelUiState.Loading
             when (val result = travelUseCase.createTravel(
+                groupName,
                 destination,
                 startDate,
                 endDate,

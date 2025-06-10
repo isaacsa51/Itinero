@@ -32,6 +32,7 @@ class LeaveTravelUseCase(private val repository: TravelRepository) {
 
 class CreateTravelUseCase(private val repository: TravelRepository) {
     suspend operator fun invoke(
+        groupName: String,
         destination: String,
         startDate: String,
         endDate: String,
@@ -46,6 +47,7 @@ class CreateTravelUseCase(private val repository: TravelRepository) {
         extraInfo: String,
         additionalInfo: String
     ): Result<CreateTrip> = repository.createTravel(
+        groupName,
         destination,
         startDate,
         endDate,

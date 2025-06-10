@@ -29,7 +29,7 @@ interface ItineroApi {
 
 class ItineroApiClient(private val client: HttpClient) {
     private companion object {
-        const val BASE_URL = "http://192.168.100.3:8080"
+        const val BASE_URL = "http://192.168.100.3:8080" //TODO: Handle with gradle to delete hardcoded from repo
     }
 
     suspend fun postLogin(request: LoginRequestDto): AuthResponse {

@@ -30,11 +30,6 @@ interface LocalTravelRepository {
     fun getCachedTripFlow(): Flow<Trip?>
 }
 
-/**
- * Room database implementation for local trip caching
- * Provides full CRUD operations with SQLite persistence
- * Accommodation data is embedded in the trip table matching backend structure
- */
 class LocalTravelRepositoryImpl(
     private val tripDao: TripDao
 ) : LocalTravelRepository {

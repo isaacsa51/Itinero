@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -22,7 +23,7 @@ import com.serranoie.app.feature.home.HomeViewModel
 import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
-import com.serranoie.app.itinero.feature.settings.trip.TripInfoSettingsScreen
+import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -33,6 +34,13 @@ fun HomeRootScreen(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val homeViewModel = koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
+    val tripInfo by homeViewModel.trip.collectAsState()
+
+    LaunchedEffect(tripId) {
+        homeViewModel.getCurrentTravel()
+    }
 
     Scaffold(
         bottomBar = {
@@ -64,7 +72,8 @@ fun HomeRootScreen(
                     onGetTravel = { viewmodel.getCurrentTravel() },
                     onShowSnackbar = { message ->
                        snackbarHostState.showSnackbar(message)
-                    }
+                    },
+                    onRefresh = { viewmodel.refreshTrip() }
                 )
             }
 
@@ -89,7 +98,10 @@ fun HomeRootScreen(
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
                 val scrollTo = backStackEntry.arguments?.getString("scrollTo")
                 TripSettingsScreen(
-                    navController = navController, tripId = routeTripId, scrollTo = scrollTo
+                    navController = navController,
+                    tripId = routeTripId,
+                    scrollTo = scrollTo,
+                    trip = tripInfo
                 )
             }
 
@@ -99,7 +111,7 @@ fun HomeRootScreen(
             ) { backStackEntry ->
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
 
-                TripInfoSettingsScreen(navController, tripId = routeTripId)
+                TripInfoSettingsScreen(navController, tripId = routeTripId, trip = tripInfo)
             }
         }
     }
