@@ -209,10 +209,12 @@ fun TripSettingsScreen(
                             Text(
                                 text = "Trip Name", style = MaterialTheme.typography.bodyLarge
                             )
-                            Text(
-                                text = trip?.destination ?: "Not set",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            trip?.groupName?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,

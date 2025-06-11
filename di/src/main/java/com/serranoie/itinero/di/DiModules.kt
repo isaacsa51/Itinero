@@ -23,6 +23,7 @@ import com.serranoie.itinero.core.domain.usecase.LogoutUseCase
 import com.serranoie.itinero.core.domain.usecase.RegisterUseCase
 import com.serranoie.itinero.core.domain.usecase.SaveAuthTokenUseCase
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
+import com.serranoie.itinero.core.domain.usecase.UpdateTripInfoUseCase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -30,9 +31,7 @@ val diModules = module {
     // Database
     single {
         Room.databaseBuilder(
-            androidContext(),
-            AppDatabase::class.java,
-            "itinero_database"
+            androidContext(), AppDatabase::class.java, "itinero_database"
         ).build()
     }
 
@@ -63,6 +62,7 @@ val diModules = module {
     factory { JoinTravelUseCase(get()) }
     factory { LeaveTravelUseCase(get()) }
     factory { CreateTravelUseCase(get()) }
+    factory { UpdateTripInfoUseCase(get()) }
 
     // Combined Use Case
     factory {
@@ -71,7 +71,8 @@ val diModules = module {
             getTravelById = get(),
             joinTravel = get(),
             leaveTravel = get(),
-            createTravel = get()
+            createTravel = get(),
+            updateTripInfo = get(),
         )
     }
 

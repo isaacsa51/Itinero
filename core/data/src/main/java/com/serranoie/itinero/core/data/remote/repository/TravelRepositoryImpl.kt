@@ -6,8 +6,11 @@ import com.serranoie.itinero.core.data.mappers.toDomain
 import com.serranoie.itinero.core.data.remote.ItineroApi
 import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
+import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.Trip
+import com.serranoie.itinero.core.domain.model.UpdateTrip
+import com.serranoie.itinero.core.domain.model.UpdateTripAccommodation
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.result.safeApiCall
@@ -134,45 +137,41 @@ class TravelRepositoryImpl(
         }
     }
 
-    override suspend fun createTravel(
-        groupName: String,
-        destination: String,
-        startDate: String,
-        endDate: String,
-        summary: String,
-        accommodationName: String,
-        accommodationPhone: String,
-        accommodationCheckIn: String,
-        accommodationCheckOut: String,
-        accommodationLocation: String,
-        accommodationMapUri: String,
-        reservationCode: String,
-        extraInfo: String,
-        additionalInfo: String
-    ): Result<CreateTrip> {
+    override suspend fun createTravel(request: CreateTrip): Result<CreateTrip> {
         return safeApiCall {
             val accommodationDto = AccommodationDto(
-                name = accommodationName,
-                phone = accommodationPhone,
-                checkIn = accommodationCheckIn,
-                checkOut = accommodationCheckOut,
-                location = accommodationLocation,
-                mapUri = accommodationMapUri
+                name = request.accommodation.name,
+                phone = request.accommodation.phone,
+                checkIn = request.accommodation.checkIn,
+                checkOut = request.accommodation.checkOut,
+                location = request.accommodation.location,
+                mapUri = request.accommodation.mapUri ?: ""
             )
 
-            val request = CreateTripDto(
-                groupName = groupName,
-                destination = destination,
-                startDate = startDate,
-                endDate = endDate,
-                summary = summary,
+            val createTripDto = CreateTripDto(
+                groupName = request.groupName,
+                destination = request.destination,
+                startDate = request.startDate,
+                endDate = request.endDate,
+                summary = request.summary,
                 accommodation = accommodationDto,
-                reservationCode = reservationCode,
-                extraInfo = extraInfo,
-                additionalInfo = additionalInfo
+                reservationCode = request.reservationCode,
+                extraInfo = request.extraInfo,
+                additionalInfo = request.additionalInfo
             )
-            val createdTrip = api.createTrip(request)
+            val createdTrip = api.createTrip(createTripDto)
             createdTrip.toDomain()
+        }
+    }
+
+    override suspend fun updateTripInfo(tripId: String, request: UpdateTrip): Result<Trip> {
+        return safeApiCall {
+            api.updateTripInfo(tripId, request)
+            // After updating, fetch the updated trip data
+            val updatedTrip = api.getTripById(tripId).toDomain()
+            // Update cache with fresh data
+            localRepository.cacheTrip(updatedTrip)
+            updatedTrip
         }
     }
 }

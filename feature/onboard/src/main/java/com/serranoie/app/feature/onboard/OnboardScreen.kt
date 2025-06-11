@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
 
@@ -30,6 +31,7 @@ fun OnboardScreen(
                 pageSize = PageSize.Fill,
             ) { pageIndex ->
                 OnboardItem(
+                    modifier = Modifier.padding(bottom = 16.dp),
                     page = pages[pageIndex],
                     pagerState = pagerState,
                     onFinished = onFinished

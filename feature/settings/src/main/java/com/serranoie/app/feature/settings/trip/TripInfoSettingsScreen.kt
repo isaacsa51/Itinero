@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.settings.trip
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,11 +42,18 @@ import com.serranoie.app.designsystem.ui.theme.component.ITextField
 import com.serranoie.app.designsystem.ui.theme.component.LocationField
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
+import com.serranoie.itinero.core.domain.model.UpdateTrip
+import com.serranoie.itinero.core.domain.model.UpdateTripAccommodation
 
 @Composable
-fun TripInfoSettingsScreen(navController: NavController, tripId: String, trip: Trip?) {
+fun TripInfoSettingsScreen(
+    navController: NavController,
+    tripId: String,
+    trip: Trip?,
+    onUpdateTripInfo: (String, UpdateTrip) -> Unit,
+) {
 
-    var groupName by remember { mutableStateOf(trip?.destination ?: "") }
+    var groupName by remember { mutableStateOf(trip?.groupName ?: "") }
     var summary by remember { mutableStateOf(trip?.summary ?: "") }
     var tripStart by remember { mutableStateOf(trip?.startDate ?: "") }
     var tripEnd by remember { mutableStateOf(trip?.endDate ?: "") }
@@ -195,11 +203,31 @@ fun TripInfoSettingsScreen(navController: NavController, tripId: String, trip: T
 
                 IButton(
                     onClick = {
-                        if (destination != trip?.destination) {
-                            isConfirmDestinationDialogOpen = true
-                        } else {
-                            /* TODO: Save without confirmation */
-                        }
+                        val accommodation = UpdateTripAccommodation(
+                            name = name,
+                            location = location,
+                            phone = phoneNumber,
+                            checkIn = checkIn,
+                            checkOut = checkOut,
+                            mapUri = trip?.accommodation?.mapUri
+                        )
+
+                        val updateTrip = UpdateTrip(
+                            groupName = groupName,
+                            destination = destination,
+                            startDate = tripStart,
+                            endDate = tripEnd,
+                            summary = summary,
+                            accommodation = accommodation,
+                            reservationCode = reservationCode,
+                            extraInfo = accommodationExtras,
+                            additionalInfo = miscInfo
+                        )
+
+                        Log.d("ITINERO", "Trip info: $updateTrip")
+                        Log.d("ITINERO", "Button clicked")
+
+                        onUpdateTripInfo(tripId, updateTrip)
                     },
                     modifier = Modifier.weight(1f),
                     text = { Text("Save") },
@@ -273,6 +301,7 @@ private fun TripInfoSettingsScreenPreview() {
                 groupCode = "ITN-12345",
                 ownerId = "user123"
             ),
+            onUpdateTripInfo = { _, _ -> }
         )
     }
 }

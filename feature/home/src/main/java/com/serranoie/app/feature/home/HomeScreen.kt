@@ -51,10 +51,106 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
+import com.serranoie.app.designsystem.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+data class TripDateInfo(
+    val status: TripStatus,
+    val displayText: String,
+    val subtitle: String
+)
+
+enum class TripStatus {
+    PENDING,
+    ACTIVE,
+    COMPLETED
+}
+
+fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
+    return try {
+        val formatters = listOf(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("MM/dd/yyyy")
+        )
+
+        var start: LocalDate? = null
+        var end: LocalDate? = null
+
+        for (formatter in formatters) {
+            try {
+                start = LocalDate.parse(startDate, formatter)
+                break
+            } catch (e: Exception) {
+                continue
+            }
+        }
+
+        for (formatter in formatters) {
+            try {
+                end = LocalDate.parse(endDate, formatter)
+                break
+            } catch (e: Exception) {
+                continue
+            }
+        }
+
+        if (start == null || end == null) {
+            return TripDateInfo(
+                status = TripStatus.PENDING,
+                displayText = "Invalid dates",
+                subtitle = "$startDate - $endDate"
+            )
+        }
+
+        val today = LocalDate.now()
+        val totalDays =
+            ChronoUnit.DAYS.between(start, end).toInt() + 1
+
+        when {
+            today.isBefore(start) -> {
+                val daysUntilStart = ChronoUnit.DAYS.between(today, start).toInt()
+                TripDateInfo(
+                    status = TripStatus.PENDING,
+                    displayText = "$daysUntilStart days until start",
+                    subtitle = "$startDate - $endDate"
+                )
+            }
+
+            today.isAfter(end) -> {
+                TripDateInfo(
+                    status = TripStatus.COMPLETED,
+                    displayText = "Completed",
+                    subtitle = "$totalDays days total"
+                )
+            }
+
+            else -> {
+                val daysRemaining = ChronoUnit.DAYS.between(today, end).toInt() + 1
+                TripDateInfo(
+                    status = TripStatus.ACTIVE,
+                    displayText = "$daysRemaining days left",
+                    subtitle = "$totalDays days total"
+                )
+            }
+        }
+
+    } catch (e: Exception) {
+        Log.e("TripDateCalculation", "Error calculating trip dates: ${e.message}")
+        TripDateInfo(
+            status = TripStatus.PENDING,
+            displayText = "Date error",
+            subtitle = "$startDate - $endDate"
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,8 +173,6 @@ fun HomeScreen(
         onGetTravel()
     }
 
-    Log.d("ISAAC", "$uiState")
-
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         TopAppBar(
             title = {
@@ -91,12 +185,12 @@ fun HomeScreen(
     }, floatingActionButton = {
         ExtendedFloatingActionButton(
             onClick = {
-            navController.navigate(
-                Route.TripSettings.createRoute(
-                    tripId = tripId
+                navController.navigate(
+                    Route.TripSettings.createRoute(
+                        tripId = tripId
+                    )
                 )
-            )
-        },
+            },
             icon = { Icon(Icons.Rounded.Edit, contentDescription = "Edit") },
             text = { Text("Edit") },
             expanded = true
@@ -144,12 +238,15 @@ fun TripDetailsScreen(
         Row(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            DateInfoCard(
-                title = "Travel date",
-                value = "5 days", // TODO: Calculate days from the trip values
-                subtitle = tripInfo?.startDate + " - " + tripInfo?.endDate,
-                modifier = Modifier.weight(1f)
-            )
+            tripInfo?.let {
+                val dateInfo = calculateTripDateInfo(it.startDate, it.endDate)
+                DateInfoCard(
+                    title = "Travel date",
+                    value = dateInfo.displayText,
+                    subtitle = dateInfo.subtitle,
+                    modifier = Modifier.weight(1f),
+                )
+            }
             tripInfo?.let {
                 PeopleInfoCard(
                     confirmedCount = tripInfo.totalMembers,
@@ -256,11 +353,6 @@ fun DestinationCard(
     }
 }
 
-/* TODO: Change 5 days title depending of the context of the user date to show different thing
-    - To begin
-    - N days (when date is in the data)
-    - Completed
- */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DateInfoCard(
@@ -281,8 +373,10 @@ fun DateInfoCard(
                 style = MaterialTheme.typography.labelSmallEmphasized,
                 color = MaterialTheme.colorScheme.outline
             )
-            Text(
-                text = value, style = MaterialTheme.typography.headlineSmallEmphasized
+            MarqueeText(
+                text = value,
+                style = MaterialTheme.typography.headlineSmallEmphasized,
+                gradientEdgeColor = CardDefaults.elevatedCardColors().containerColor
             )
             Text(
                 text = subtitle,
@@ -423,10 +517,11 @@ fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SummarySection(onClick: () -> Unit, tripInfo: Trip) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onClick() }
-        .padding(horizontal = 16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp)) {
         Text(
             text = "Summary", style = MaterialTheme.typography.headlineSmallEmphasized
         )
@@ -461,9 +556,9 @@ fun HomeScreenPreview() {
             id = "ITN-51712",
             groupName = "My group",
             destination = "Germany",
-            startDate = "2",
-            endDate = "2025/10/06",
-            summary = "2025/11/06",
+            startDate = "2024/05/05",
+            endDate = "2025/04/05",
+            summary = "Just a summary regarding this amazin trip to Japan...",
             totalMembers = 2,
             accommodation = mockAccommodation,
             reservationCode = "REV14123",
