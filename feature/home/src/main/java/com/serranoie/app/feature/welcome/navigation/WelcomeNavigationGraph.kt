@@ -90,8 +90,9 @@ class WelcomeNavigationGraph : NavigationGraph {
 
                 CreateTravelScreen(
                     uiState = createUiState,
-                    onTravelCreated = { destination, startDate, endDate, summary, accommodationName, accommodationPhone, accommodationCheckIn, accommodationCheckOut, accommodationLocation, accommodationMapUri, reservationCode, extraInfo, additionalInfo ->
+                    onTravelCreated = { groupName, destination, startDate, endDate, summary, accommodationName, accommodationPhone, accommodationCheckIn, accommodationCheckOut, accommodationLocation, accommodationMapUri, reservationCode, extraInfo, additionalInfo ->
                         sharedViewModel.createTravel(
+                            groupName,
                             destination,
                             startDate,
                             endDate,

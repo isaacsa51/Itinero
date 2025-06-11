@@ -3,6 +3,8 @@ package com.serranoie.app.feature
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.itinero.core.data.mappers.toTrip
+import com.serranoie.itinero.core.domain.model.Accommodation
+import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
@@ -31,6 +33,7 @@ class SharedTravelViewModel(
     val joinUiState: StateFlow<TravelUiState> = _joinUiState.asStateFlow()
 
     fun createTravel(
+        groupName: String,
         destination: String,
         startDate: String,
         endDate: String,
@@ -47,21 +50,29 @@ class SharedTravelViewModel(
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             _createUiState.value = TravelUiState.Loading
-            when (val result = travelUseCase.createTravel(
-                destination,
-                startDate,
-                endDate,
-                summary,
-                accommodationName,
-                accommodationPhone,
-                accommodationCheckIn,
-                accommodationCheckOut,
-                accommodationLocation,
-                accommodationMapUri,
-                reservationCode,
-                extraInfo,
-                additionalInfo
-            )) {
+
+            val accommodation = Accommodation(
+                name = accommodationName,
+                phone = accommodationPhone,
+                checkIn = accommodationCheckIn,
+                checkOut = accommodationCheckOut,
+                location = accommodationLocation,
+                mapUri = accommodationMapUri.takeIf { it.isNotBlank() }
+            )
+
+            val createTripRequest = CreateTrip(
+                groupName = groupName,
+                destination = destination,
+                startDate = startDate,
+                endDate = endDate,
+                summary = summary,
+                accommodation = accommodation,
+                reservationCode = reservationCode,
+                extraInfo = extraInfo,
+                additionalInfo = additionalInfo
+            )
+
+            when (val result = travelUseCase.createTravel(createTripRequest)) {
                 is Result.Success -> {
                     val created = result.data
                     val newTrip = created.toTrip()

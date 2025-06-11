@@ -198,7 +198,7 @@ fun TravelItem(
                 }
 
                 Text(
-                    text = "Group trip name", style = MaterialTheme.typography.titleSmallEmphasized
+                    text = trip.groupName, style = MaterialTheme.typography.titleSmallEmphasized
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -206,13 +206,13 @@ fun TravelItem(
                 Column {
                     Text(
                         text = tripStatus,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMediumEmphasized,
                         fontWeight = FontWeight.SemiBold,
                         color = statusTextColor
                     )
                     Text(
                         text = "${trip.startDate} - ${trip.endDate}",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodySmallEmphasized
                     )
                 }
 
@@ -221,7 +221,7 @@ fun TravelItem(
                 Row {
                     Text(
                         text = "Accommodation:",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmallEmphasized,
                         color = MaterialTheme.colorScheme.outline,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -229,7 +229,7 @@ fun TravelItem(
                     Text(
                         text = trip.accommodation.name,
                         color = MaterialTheme.colorScheme.outline,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmallEmphasized
                     )
                 }
             }
@@ -289,6 +289,7 @@ private fun ScreenWithItemsPreview() {
         Trip(
             id = "1",
             groupCode = "PAR24",
+            groupName = "My Group",
             totalMembers = 2,
             destination = "Paris, France",
             startDate = "2025-12-01",
@@ -308,6 +309,7 @@ private fun ScreenWithItemsPreview() {
             ownerId = 1.toString(),
         ), Trip(
             id = "1",
+            groupName = "My Group",
             groupCode = "PAR24",
             destination = "Tokyo, Japan",
             startDate = "2025-12-01",
@@ -347,6 +349,7 @@ private fun ScreenWithItemsPreview() {
 private fun TravelItemPreview() {
     val mockTrip = Trip(
         id = "1",
+        groupName = "My Group",
         groupCode = "PAR24",
         totalMembers = 2,
         destination = "Paris, France",
@@ -369,6 +372,7 @@ private fun TravelItemPreview() {
 
     val mockOwnerTripPending = Trip(
         id = "1",
+        groupName = "My Group",
         groupCode = "PAR24",
         destination = "Tokyo, Japan",
         startDate = "2025-12-01",
@@ -391,6 +395,7 @@ private fun TravelItemPreview() {
 
     val mockOwnerTripProgress = Trip(
         id = "1",
+        groupName = "My Group",
         groupCode = "PAR24",
         destination = "Paris, France",
         startDate = "2025-05-25",
@@ -413,6 +418,7 @@ private fun TravelItemPreview() {
 
     val mockTripCompleted = Trip(
         id = "1",
+        groupName = "My Group",
         groupCode = "PAR24",
         destination = "Paris, France",
         startDate = "2024-12-01",

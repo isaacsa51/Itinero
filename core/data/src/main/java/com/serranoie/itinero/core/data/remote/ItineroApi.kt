@@ -5,6 +5,7 @@ import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
+import com.serranoie.itinero.core.domain.model.UpdateTrip
 import io.ktor.client.HttpClient
 
 interface ItineroApi {
@@ -22,6 +23,7 @@ interface ItineroApi {
     suspend fun getAllTrips(): List<TripDto>
     suspend fun getTripById(id: String): TripDto
     suspend fun createTrip(request: CreateTripDto): CreateTripDto
+    suspend fun updateTripInfo(groupCode: String, request: UpdateTrip)
     suspend fun joinTrip(groupCode: String)
     suspend fun deleteTrip()
     suspend fun leaveTrip()
@@ -29,7 +31,7 @@ interface ItineroApi {
 
 class ItineroApiClient(private val client: HttpClient) {
     private companion object {
-        const val BASE_URL = "http://192.168.100.3:8080"
+        const val BASE_URL = "http://192.168.100.3:8080" //TODO: Handle with gradle to delete hardcoded from repo
     }
 
     suspend fun postLogin(request: LoginRequestDto): AuthResponse {
@@ -59,6 +61,10 @@ class ItineroApiClient(private val client: HttpClient) {
 
     suspend fun createTrip(request: CreateTripDto): CreateTripDto {
         return client.postRequest(BASE_URL, "/trips/new", request)
+    }
+
+    suspend fun updateTripInfo(groupCode: String, request: UpdateTrip) {
+        return client.putRequest(BASE_URL, "/trips/$groupCode/info", request)
     }
 
     suspend fun postJoinTrip(groupCode: String) {

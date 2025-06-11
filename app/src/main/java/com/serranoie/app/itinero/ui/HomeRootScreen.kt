@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,10 +20,11 @@ import com.serranoie.app.feature.chat.ChatScreen
 import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.HomeViewModel
+import com.serranoie.app.feature.home.HomeUiState
 import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
+import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
-import com.serranoie.app.itinero.feature.settings.trip.TripInfoSettingsScreen
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -33,6 +35,14 @@ fun HomeRootScreen(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val homeViewModel = koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
+    val tripInfo by homeViewModel.trip.collectAsState()
+    val uiState by homeViewModel.uiState.collectAsState()
+
+    LaunchedEffect(tripId) {
+        homeViewModel.getCurrentTravel()
+    }
 
     Scaffold(
         bottomBar = {
@@ -61,11 +71,11 @@ fun HomeRootScreen(
                     tripId = tripId,
                     uiState = uiState,
                     tripInfo = tripInfo,
-                    onGetTravel = { viewmodel.getCurrentTravel(tripId) },
+                    onGetTravel = { viewmodel.getCurrentTravel() },
                     onShowSnackbar = { message ->
-                       snackbarHostState.showSnackbar(message)
-                    }
-                )
+                        snackbarHostState.showSnackbar(message)
+                    },
+                    onRefresh = { viewmodel.refreshTrip() })
             }
 
             itineraryGraph(navController, tripId)
@@ -89,7 +99,10 @@ fun HomeRootScreen(
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
                 val scrollTo = backStackEntry.arguments?.getString("scrollTo")
                 TripSettingsScreen(
-                    navController = navController, tripId = routeTripId, scrollTo = scrollTo
+                    navController = navController,
+                    tripId = routeTripId,
+                    scrollTo = scrollTo,
+                    trip = tripInfo
                 )
             }
 
@@ -98,8 +111,31 @@ fun HomeRootScreen(
                     navArgument("tripId") { type = NavType.StringType })
             ) { backStackEntry ->
                 val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
+                val snackbarHostState = remember { SnackbarHostState() }
 
-                TripInfoSettingsScreen(navController, tripId = routeTripId)
+                LaunchedEffect(uiState) {
+                    when (val currentState = uiState) {
+                        is HomeUiState.Success -> {
+                            snackbarHostState.showSnackbar("Trip information updated successfully")
+                            navController.popBackStack()
+                        }
+
+                        is HomeUiState.Error -> {
+                            snackbarHostState.showSnackbar(currentState.message)
+                        }
+
+                        else -> {}
+                    }
+                }
+
+                TripInfoSettingsScreen(
+                    navController = navController,
+                    tripId = routeTripId,
+                    trip = tripInfo,
+                    onUpdateTripInfo = { tripId, updateTrip ->
+                        homeViewModel.updateTripInfo(tripId, updateTrip)
+                    }
+                )
             }
         }
     }

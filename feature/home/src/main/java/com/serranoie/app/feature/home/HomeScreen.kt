@@ -16,10 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -54,9 +51,107 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystem.ui.PreviewWrapper
 import com.serranoie.app.designsystem.ui.ThemePreviews
+import com.serranoie.app.designsystem.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
+import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
+import java.time.DateTimeException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+data class TripDateInfo(
+    val status: TripStatus,
+    val displayText: String,
+    val subtitle: String
+)
+
+enum class TripStatus {
+    PENDING,
+    ACTIVE,
+    COMPLETED
+}
+
+fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
+    return try {
+        val formatters = listOf(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("MM/dd/yyyy")
+        )
+
+        var start: LocalDate? = null
+        var end: LocalDate? = null
+
+        for (formatter in formatters) {
+            try {
+                start = LocalDate.parse(startDate, formatter)
+                break
+            } catch (e: DateTimeException) {
+                continue
+            }
+        }
+
+        for (formatter in formatters) {
+            try {
+                end = LocalDate.parse(endDate, formatter)
+                break
+            } catch (e: DateTimeException) {
+                continue
+            }
+        }
+
+        if (start == null || end == null) {
+            return TripDateInfo(
+                status = TripStatus.PENDING,
+                displayText = "Invalid dates",
+                subtitle = "$startDate - $endDate"
+            )
+        }
+
+        val today = LocalDate.now()
+        val totalDays =
+            ChronoUnit.DAYS.between(start, end).toInt() + 1
+
+        when {
+            today.isBefore(start) -> {
+                val daysUntilStart = ChronoUnit.DAYS.between(today, start).toInt()
+                TripDateInfo(
+                    status = TripStatus.PENDING,
+                    displayText = "$daysUntilStart days until start",
+                    subtitle = "$startDate - $endDate"
+                )
+            }
+
+            today.isAfter(end) -> {
+                TripDateInfo(
+                    status = TripStatus.COMPLETED,
+                    displayText = "Completed",
+                    subtitle = "$totalDays days total"
+                )
+            }
+
+            else -> {
+                val daysRemaining = ChronoUnit.DAYS.between(today, end).toInt() + 1
+                TripDateInfo(
+                    status = TripStatus.ACTIVE,
+                    displayText = "$daysRemaining days left",
+                    subtitle = "$totalDays days total"
+                )
+            }
+        }
+
+    } catch (e: Exception) {
+        Log.e("TripDateCalculation", "Error calculating trip dates: ${e.message}")
+        TripDateInfo(
+            status = TripStatus.PENDING,
+            displayText = "Date error",
+            subtitle = "$startDate - $endDate"
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,11 +161,11 @@ fun HomeScreen(
     uiState: HomeUiState,
     onShowSnackbar: suspend (String) -> Unit,
     onGetTravel: () -> Unit,
+    onRefresh: () -> Unit,
     tripInfo: Trip?
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val isRefreshing = uiState is HomeUiState.Loading
-    val onRefresh: () -> Unit = { onGetTravel() }
 
     LaunchedEffect(uiState) {
         if (uiState is HomeUiState.Error) {
@@ -78,8 +173,6 @@ fun HomeScreen(
         }
         onGetTravel()
     }
-
-    Log.d("ISAAC", "$uiState")
 
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         TopAppBar(
@@ -93,12 +186,12 @@ fun HomeScreen(
     }, floatingActionButton = {
         ExtendedFloatingActionButton(
             onClick = {
-            navController.navigate(
-                Route.TripSettings.createRoute(
-                    tripId = tripId
+                navController.navigate(
+                    Route.TripSettings.createRoute(
+                        tripId = tripId
+                    )
                 )
-            )
-        },
+            },
             icon = { Icon(Icons.Rounded.Edit, contentDescription = "Edit") },
             text = { Text("Edit") },
             expanded = true
@@ -106,8 +199,10 @@ fun HomeScreen(
     }) { paddingValues ->
 
         PullToRefreshBox(
-            isRefreshing = isRefreshing, onRefresh = onRefresh
-        ) {
+            isRefreshing = isRefreshing, onRefresh = {
+                onRefresh()
+                Log.d("ITINERO", "Refreshing data...")
+            }) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -123,9 +218,7 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripDetailsScreen(
-    navController: NavHostController,
-    tripId: String,
-    tripInfo: Trip?
+    navController: NavHostController, tripId: String, tripInfo: Trip?
 ) {
     var isExpanded by remember { mutableStateOf(true) }
 
@@ -146,15 +239,20 @@ fun TripDetailsScreen(
         Row(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            DateInfoCard(
-                title = "Travel date",
-                value = "5 days", // TODO: Calculate days from the trip values
-                subtitle = tripInfo?.startDate + " - " + tripInfo?.endDate,
-                modifier = Modifier.weight(1f)
-            )
+            tripInfo?.let {
+                val dateInfo = calculateTripDateInfo(it.startDate, it.endDate)
+                DateInfoCard(
+                    title = "Travel date",
+                    value = dateInfo.displayText,
+                    subtitle = dateInfo.subtitle,
+                    modifier = Modifier.weight(1f),
+                )
+            }
             tripInfo?.let {
                 PeopleInfoCard(
-                    confirmedCount = tripInfo.totalMembers ?: 0, modifier = Modifier.weight(1f), tripInfo = it,
+                    confirmedCount = tripInfo.totalMembers,
+                    modifier = Modifier.weight(1f),
+                    tripInfo = it,
                 )
             }
         }
@@ -163,7 +261,8 @@ fun TripDetailsScreen(
 
         if (tripInfo != null) {
             SummarySection(
-                onClick = { }, tripInfo = tripInfo)
+                onClick = { }, tripInfo = tripInfo
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -214,10 +313,7 @@ fun TripDetailsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DestinationCard(
-    country: String,
-    navController: NavHostController,
-    tripId: String,
-    tripInfo: Trip?
+    country: String, navController: NavHostController, tripId: String, tripInfo: Trip?
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -238,49 +334,26 @@ fun DestinationCard(
                     style = MaterialTheme.typography.labelSmallEmphasized,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-
-                BadgedBox(
-                    badge = {
-                        Badge()
-                    }) {
-                    Icon(
-                        imageVector = Icons.Rounded.Settings,
-                        contentDescription = "Settings",
-                        modifier = Modifier.clickable {
-                            navController.navigate(
-                                Route.TripSettings.createRoute(
-                                    tripId = tripId
-                                )
-                            )
-                        },
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
 
             Text(
                 text = country, style = MaterialTheme.typography.displayMediumEmphasized
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // TODO: Create and get the group name, if user didn't set any name, display the group code
-            if (tripInfo?.groupCode != null) {
+            if (tripInfo?.groupName != null) {
                 Text(
-                    text = "Group Name", style = MaterialTheme.typography.labelLargeEmphasized
+                    text = tripInfo.groupName, style = MaterialTheme.typography.labelLargeEmphasized
                 )
             } else {
                 Text(
-                    text = "Group Name", style = MaterialTheme.typography.labelLargeEmphasized
+                    text = tripInfo?.groupCode.toString(),
+                    style = MaterialTheme.typography.labelLargeEmphasized
                 )
             }
         }
     }
 }
 
-/* TODO: Change 5 days title depending of the context of the user date to show different thing
-    - To begin
-    - N days (when date is in the data)
-    - Completed
- */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DateInfoCard(
@@ -301,8 +374,10 @@ fun DateInfoCard(
                 style = MaterialTheme.typography.labelSmallEmphasized,
                 color = MaterialTheme.colorScheme.outline
             )
-            Text(
-                text = value, style = MaterialTheme.typography.headlineSmallEmphasized
+            MarqueeText(
+                text = value,
+                style = MaterialTheme.typography.headlineSmallEmphasized,
+                gradientEdgeColor = CardDefaults.elevatedCardColors().containerColor
             )
             Text(
                 text = subtitle,
@@ -348,8 +423,10 @@ fun PeopleInfoCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (confirmedCount <= 0) {
-                    Text(text = "Waiting people to join", style = MaterialTheme.typography.labelSmall)
-                } else if(confirmedCount == tripInfo.totalMembers) {
+                    Text(
+                        text = "Waiting people to join", style = MaterialTheme.typography.labelSmall
+                    )
+                } else if (confirmedCount == tripInfo.totalMembers) {
                     Text(text = "Group ready", style = MaterialTheme.typography.labelSmall)
                 }
             }
@@ -441,10 +518,11 @@ fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SummarySection(onClick: () -> Unit, tripInfo: Trip) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { onClick() }
-        .padding(horizontal = 16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp)) {
         Text(
             text = "Summary", style = MaterialTheme.typography.headlineSmallEmphasized
         )
@@ -467,28 +545,37 @@ fun SummarySection(onClick: () -> Unit, tripInfo: Trip) {
 @Composable
 fun HomeScreenPreview() {
     PreviewWrapper {
-        val tripId = "123"
+        val mockAccommodation = Accommodation(
+            name = "Hotel",
+            phone = "1231231",
+            checkIn = "2025/10/06",
+            checkOut = "2025/11/06",
+            location = "Germany",
+            mapUri = "test"
+        )
         val tripInfo = Trip(
-            id = tripId,
+            id = "ITN-51712",
+            groupName = "My group",
             destination = "Germany",
-            startDate = "2",
-            endDate = TODO(),
-            summary = TODO(),
-            totalMembers = TODO(),
-            accommodation = TODO(),
-            reservationCode = TODO(),
-            extraInfo = TODO(),
-            additionalInfo = TODO(),
-            groupCode = TODO(),
-            ownerId = TODO(),
+            startDate = "2024/05/05",
+            endDate = "2025/04/05",
+            summary = "Just a summary regarding this amazin trip to Japan...",
+            totalMembers = 2,
+            accommodation = mockAccommodation,
+            reservationCode = "REV14123",
+            extraInfo = "Not provided",
+            additionalInfo = "Not provided",
+            groupCode = "ITN-51712",
+            ownerId = 1.toString(),
         )
 
         HomeScreen(
-            tripId = tripId,
+            tripId = "ITN-51712",
             uiState = HomeUiState.Idle,
             onShowSnackbar = {},
             onGetTravel = { },
-            tripInfo = tripInfo
+            tripInfo = tripInfo,
+            onRefresh = { },
         )
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystem.ui.ComponentPreview
 import com.serranoie.app.designsystem.ui.PreviewWrapper
+import java.util.Locale
 
 /**
  * Same outline card but focused on displaying expense details.
@@ -223,7 +224,7 @@ private fun AmountIndicator(amountOwed: Double) {
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
-            text = "$${String.format("%.2f", amountOwed)}",
+            text = "$${String.format(Locale.US, "%.2f", amountOwed)}",
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onErrorContainer

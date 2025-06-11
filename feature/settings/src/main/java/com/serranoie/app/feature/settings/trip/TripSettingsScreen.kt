@@ -69,6 +69,7 @@ import com.serranoie.app.designsystem.ui.theme.component.card.ICard
 import com.serranoie.app.designsystem.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystem.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
+import com.serranoie.itinero.core.domain.model.Trip
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -76,6 +77,7 @@ fun TripSettingsScreen(
     navController: NavController,
     tripId: String = "",
     scrollTo: String?,
+    trip: Trip?,
     viewModel: TripSettingsViewModel = viewModel()
 ) {
     val scrollBehavior =
@@ -207,10 +209,12 @@ fun TripSettingsScreen(
                             Text(
                                 text = "Trip Name", style = MaterialTheme.typography.bodyLarge
                             )
-                            Text(
-                                text = "Trip name holder",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            trip?.groupName?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
@@ -233,7 +237,7 @@ fun TripSettingsScreen(
                                 text = "Trip Dates", style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "7 of June - 10 of June, 2025",
+                                text = if (trip != null) "${trip.startDate} - ${trip.endDate}" else "Not set",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -259,7 +263,7 @@ fun TripSettingsScreen(
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "Item value holder",
+                                text = trip?.accommodation?.name ?: "Not set",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -285,7 +289,7 @@ fun TripSettingsScreen(
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "Item value holder",
+                                text = trip?.accommodation?.location ?: "Not set",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -309,7 +313,7 @@ fun TripSettingsScreen(
                                 text = "Accommodation number", style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "+1 1231231234",
+                                text = trip?.accommodation?.phone ?: "Not set",
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         }
@@ -517,6 +521,28 @@ private fun TripSettingsScreenPreview() {
             navController = rememberNavController(),
             tripId = "12345",
             scrollTo = null,
+            trip = Trip(
+                id = "12345",
+                groupName = "My Group",
+                destination = "My Trip",
+                startDate = "2025-06-07",
+                endDate = "2025-06-10",
+                summary = "Preview trip",
+                totalMembers = 3,
+                accommodation = com.serranoie.itinero.core.domain.model.Accommodation(
+                    name = "My Hotel",
+                    location = "123 Main St",
+                    phone = "+1 1234567890",
+                    checkIn = "15:00",
+                    checkOut = "11:00",
+                    mapUri = null
+                ),
+                reservationCode = "RES123",
+                extraInfo = "",
+                additionalInfo = "",
+                groupCode = "ITN-12345",
+                ownerId = "user123"
+            ),
             viewModel = viewModel
         )
     }
