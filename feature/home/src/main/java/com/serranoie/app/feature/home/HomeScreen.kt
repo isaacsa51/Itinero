@@ -56,6 +56,7 @@ import com.serranoie.app.designsystem.ui.theme.component.SelectField
 import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
+import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -88,7 +89,7 @@ fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
             try {
                 start = LocalDate.parse(startDate, formatter)
                 break
-            } catch (e: Exception) {
+            } catch (e: DateTimeException) {
                 continue
             }
         }
@@ -97,7 +98,7 @@ fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
             try {
                 end = LocalDate.parse(endDate, formatter)
                 break
-            } catch (e: Exception) {
+            } catch (e: DateTimeException) {
                 continue
             }
         }

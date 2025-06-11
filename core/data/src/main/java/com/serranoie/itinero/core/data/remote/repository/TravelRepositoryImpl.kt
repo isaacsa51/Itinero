@@ -6,16 +6,13 @@ import com.serranoie.itinero.core.data.mappers.toDomain
 import com.serranoie.itinero.core.data.remote.ItineroApi
 import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
-import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.UpdateTrip
-import com.serranoie.itinero.core.domain.model.UpdateTripAccommodation
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.result.safeApiCall
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 class TravelRepositoryImpl(
     private val api: ItineroApi,
@@ -45,20 +42,8 @@ class TravelRepositoryImpl(
     override suspend fun getTravelById(groupCode: String, forceRefresh: Boolean): Result<Trip> {
         // If not forcing refresh, try cache first
         if (!forceRefresh) {
-            when (val cacheResult = localRepository.getCachedTrip()) {
-                is Result.Success -> {
-                    cacheResult.data?.let { cachedTrip ->
-                        // Check if cached trip matches the requested ID
-                        if (cachedTrip.groupCode == groupCode || cachedTrip.id == groupCode) {
-                            return Result.Success(cachedTrip)
-                        }
-                    }
-                }
-
-                is Result.Error -> {
-                    // Cache error, continue to remote fetch
-                    Log.e("ITINERO - TravelRepository", "Cache error: ${cacheResult.exception.message}")
-                }
+            getCachedTripIfMatches(groupCode)?.let { cachedTrip ->
+                return Result.Success(cachedTrip)
             }
         }
 
@@ -73,20 +58,13 @@ class TravelRepositoryImpl(
             is Result.Error -> {
                 // If remote fails and we have cached data, return cached data
                 if (!forceRefresh) {
-                    when (val cacheResult = localRepository.getCachedTrip()) {
-                        is Result.Success -> {
-                            cacheResult.data?.let { cachedTrip ->
-                                if (cachedTrip.groupCode == groupCode || cachedTrip.id == groupCode) {
-                                    return Result.Success(cachedTrip)
-                                }
-                            }
-                        }
-
-                        is Result.Error -> {
-                            // Both remote and cache failed
-                            Log.e("ITINERO - TravelRepository", "Remote and cache failed: ${remoteResult.exception.message}")
-                        }
+                    getCachedTripIfMatches(groupCode)?.let { cachedTrip ->
+                        return Result.Success(cachedTrip)
                     }
+                    Log.e(
+                        "ITINERO - TravelRepository",
+                        "Remote and cache failed: ${remoteResult.exception.message}"
+                    )
                 }
                 remoteResult
             }
@@ -116,8 +94,13 @@ class TravelRepositoryImpl(
     override suspend fun joinTravel(groupCode: String): Result<Unit> {
         return when (val result = safeApiCall { api.joinTrip(groupCode) }) {
             is Result.Success -> {
-                // After joining, fetch and cache the trip data
-                getTravelById(groupCode, forceRefresh = true)
+                val fetchResult = getTravelById(groupCode, true)
+                if (fetchResult is Result.Error) {
+                    Log.e(
+                        "ITINERO - TravelRepository",
+                        "Failed to fetch joined trip: ${fetchResult.exception.message}"
+                    )
+                }
                 result
             }
 
@@ -168,10 +151,30 @@ class TravelRepositoryImpl(
         return safeApiCall {
             api.updateTripInfo(tripId, request)
             // After updating, fetch the updated trip data
-            val updatedTrip = api.getTripById(tripId).toDomain()
-            // Update cache with fresh data
-            localRepository.cacheTrip(updatedTrip)
-            updatedTrip
+            try {
+                val updatedTrip = api.getTripById(tripId).toDomain()
+                // Update cache with fresh data
+                localRepository.cacheTrip(updatedTrip)
+                updatedTrip
+            } catch (e: Exception) {
+                // Clear cache to avoid stale data
+                localRepository.clearAllTrips()
+                throw e
+            }
         }
     }
+
+    private suspend fun getCachedTripIfMatches(groupCode: String): Trip? {
+        return when (val result = localRepository.getCachedTrip()) {
+            is Result.Success -> {
+                result.data?.takeIf { it.groupCode == groupCode }
+            }
+
+            is Result.Error -> {
+                Log.e("ITINERO - TravelRepository", "Cache error: ${result.exception.message}")
+                null
+            }
+        }
+    }
+
 }

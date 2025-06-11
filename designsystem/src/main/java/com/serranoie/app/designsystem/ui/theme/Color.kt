@@ -1,5 +1,7 @@
-package com.example.compose
+package com.serranoie.app.designsystem.ui.theme
 import androidx.compose.ui.graphics.Color
+
+val SeedColor = Color(0xFF68A500)
 
 val primaryLight = Color(0xFF126B56)
 val onPrimaryLight = Color(0xFFFFFFFF)

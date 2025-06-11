@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TripDto(
     val id: String,
-    val groupName: String,
+    val groupName: String? = null,
     val destination: String,
     val startDate: String,
     val endDate: String,

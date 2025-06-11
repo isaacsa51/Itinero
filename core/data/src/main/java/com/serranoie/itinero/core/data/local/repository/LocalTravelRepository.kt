@@ -11,6 +11,7 @@
 
 package com.serranoie.itinero.core.data.local.repository
 
+import android.database.sqlite.SQLiteException
 import com.serranoie.itinero.core.data.local.dao.TripDao
 import com.serranoie.itinero.core.data.mappers.toDomain
 import com.serranoie.itinero.core.data.mappers.toEntity
@@ -35,76 +36,64 @@ class LocalTravelRepositoryImpl(
 ) : LocalTravelRepository {
 
     override suspend fun getCachedTrip(): Result<Trip?> {
-        return try {
+        return safeQueryCall {
             val tripEntity = tripDao.getTrip()
-            val trip = tripEntity?.toDomain()
-            Result.Success(trip)
-        } catch (e: Exception) {
-            Result.Error(e)
+            tripEntity?.toDomain()
         }
     }
 
     override suspend fun getCachedTripById(tripId: String): Result<Trip?> {
-        return try {
+        return safeQueryCall {
             val tripEntity = tripDao.getTripById(tripId)
-            val trip = tripEntity?.toDomain()
-            Result.Success(trip)
-        } catch (e: Exception) {
-            Result.Error(e)
+            tripEntity?.toDomain()
         }
     }
 
     override suspend fun getAllCachedTrips(): Result<List<Trip>> {
-        return try {
+        return safeQueryCall {
             val tripEntities = tripDao.getAllTrips()
-            val trips = tripEntities.map { it.toDomain() }
-            Result.Success(trips)
-        } catch (e: Exception) {
-            Result.Error(e)
+            tripEntities.map { it.toDomain() }
         }
     }
 
     override suspend fun cacheTrip(trip: Trip): Result<Unit> {
-        return try {
+        return safeQueryCall {
             val tripEntity = trip.toEntity()
             tripDao.insertTrip(tripEntity)
-            Result.Success(Unit)
-        } catch (e: Exception) {
-            Result.Error(e)
         }
     }
 
     override suspend fun updateTrip(trip: Trip): Result<Unit> {
-        return try {
+        return safeQueryCall {
             val tripEntity = trip.toEntity()
             tripDao.updateTrip(tripEntity)
-            Result.Success(Unit)
-        } catch (e: Exception) {
-            Result.Error(e)
         }
     }
 
     override suspend fun deleteTripById(tripId: String): Result<Unit> {
-        return try {
+        return safeQueryCall {
             tripDao.deleteTripById(tripId)
-            Result.Success(Unit)
-        } catch (e: Exception) {
-            Result.Error(e)
         }
     }
 
     override suspend fun clearAllTrips(): Result<Unit> {
-        return try {
+        return safeQueryCall {
             tripDao.clearAllTrips()
-            Result.Success(Unit)
-        } catch (e: Exception) {
-            Result.Error(e)
         }
     }
+
 
     override fun getCachedTripFlow(): Flow<Trip?> {
         return tripDao.getTripFlow().map { tripEntity ->
             tripEntity?.toDomain()
         }
     }
+}
+
+private inline fun <T> safeQueryCall(block: () -> T): Result<T> = try {
+    Result.Success(block())
+} catch (e: SQLiteException) {
+    Result.Error(e)
+} catch (e: IllegalStateException) {
+    Result.Error(e)
 }

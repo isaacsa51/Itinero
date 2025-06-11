@@ -10,21 +10,23 @@ import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.Trip
 
 fun TripDto.toDomain(): Trip {
-    return Trip(
-        id = id,
-        groupName = groupName,
-        destination = destination,
-        startDate = startDate,
-        endDate = endDate,
-        summary = summary,
-        totalMembers = totalMembers,
-        accommodation = accommodation.toDomain(),
-        reservationCode = reservationCode,
-        extraInfo = extraInfo,
-        additionalInfo = additionalInfo,
-        groupCode = groupCode,
-        ownerId = ownerId
-    )
+    return groupName?.let {
+        Trip(
+            id = id,
+            groupName = it,
+            destination = destination,
+            startDate = startDate,
+            endDate = endDate,
+            summary = summary,
+            totalMembers = totalMembers,
+            accommodation = accommodation.toDomain(),
+            reservationCode = reservationCode,
+            extraInfo = extraInfo,
+            additionalInfo = additionalInfo,
+            groupCode = groupCode,
+            ownerId = ownerId
+        )
+    }!!
 }
 
 fun CreateTripDto.toDomain(): CreateTrip {

@@ -5,7 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import com.example.compose.*
+import com.materialkolor.DynamicMaterialTheme
+import com.materialkolor.PaletteStyle
+import com.materialkolor.rememberDynamicMaterialThemeState
 
 // Generated using MaterialKolor Builder version 1.0.1 (101)
 // https://materialkolor.com/?color_seed=FF68A500&dark_mode=true&selected_preset_id=res-0
@@ -252,5 +254,18 @@ fun ItineroTheme(
         colorScheme = colorScheme,
         content = content,
         typography = ItineroTypography
+    )
+
+    val dynamicThemeState = rememberDynamicMaterialThemeState(
+        isDark = isSystemInDarkTheme(),
+        style = PaletteStyle.FruitSalad,
+        seedColor = SeedColor,
+    )
+
+    DynamicMaterialTheme(
+        state = dynamicThemeState,
+        typography = ItineroTypography,
+        animate = true,
+        content = content,
     )
 }

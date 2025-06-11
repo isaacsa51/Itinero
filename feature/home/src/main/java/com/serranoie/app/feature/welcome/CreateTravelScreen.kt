@@ -93,13 +93,13 @@ fun CreateTravelScreen(
     Scaffold(topBar = {
         MediumFlexibleTopAppBar(
             title = { Text("Create New Trip") }, navigationIcon = {
-                IconButton(onClick = onNavigateBack, content = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
-                    )
-                })
-            }, scrollBehavior = scrollBehavior
+            IconButton(onClick = onNavigateBack, content = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            })
+        }, scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackState) }) { padding ->
         Column(
@@ -335,8 +335,8 @@ fun DateRangePickerModal(
 @Composable
 private fun CreateTravelScreenPreview() {
     PreviewWrapper {
-        CreateTravelScreen(onTravelCreated = { groupName, destination, startDate, endDate, summary, accommodationName, accommodationPhone, accommodationCheckIn, accommodationCheckOut, accommodationLocation, accommodationMapUri, reservationCode, extraInfo, additionalInfo ->
-            { }
-        }, onNavigateBack = {})
+        CreateTravelScreen(
+            onTravelCreated = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
+            onNavigateBack = {})
     }
 }

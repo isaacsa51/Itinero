@@ -20,8 +20,8 @@ class GetAllTravelsUseCase(private val repository: TravelRepository) {
 }
 
 class GetTravelByIdUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(id: String, forceRefresh: Boolean = false): Result<Trip> =
-        repository.getTravelById(id, forceRefresh)
+    suspend operator fun invoke(groupCode: String, forceRefresh: Boolean = false): Result<Trip> =
+        repository.getTravelById(groupCode, forceRefresh)
 }
 
 class JoinTravelUseCase(private val repository: TravelRepository) {
@@ -38,6 +38,6 @@ class CreateTravelUseCase(private val repository: TravelRepository) {
 }
 
 class UpdateTripInfoUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(tripId: String, request: UpdateTrip): Result<Trip> =
-        repository.updateTripInfo(tripId, request)
+    suspend operator fun invoke(groupCode: String, request: UpdateTrip): Result<Trip> =
+        repository.updateTripInfo(groupCode, request)
 }
