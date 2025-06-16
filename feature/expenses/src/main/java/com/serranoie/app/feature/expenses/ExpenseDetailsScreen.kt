@@ -54,8 +54,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable

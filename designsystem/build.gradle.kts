@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
@@ -9,7 +9,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
+        applicationId = "com.serranoie.app.designsystem"
         minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,6 +40,9 @@ android {
 }
 
 dependencies {
+    // Shared design system library
+    implementation(project(":designsystem-lib"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

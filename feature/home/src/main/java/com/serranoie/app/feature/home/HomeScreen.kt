@@ -49,11 +49,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.MarqueeText
-import com.serranoie.app.designsystem.ui.theme.component.SelectField
-import com.serranoie.app.designsystem.ui.theme.component.card.ExpandableCard
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
+import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 import java.time.DateTimeException

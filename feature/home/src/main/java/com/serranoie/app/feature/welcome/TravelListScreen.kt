@@ -40,9 +40,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystem.ui.ComponentPreview
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.ComponentPreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.feature.TravelUiState
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip

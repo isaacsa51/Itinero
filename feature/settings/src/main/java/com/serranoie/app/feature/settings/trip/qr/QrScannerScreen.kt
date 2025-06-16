@@ -62,7 +62,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.serranoie.app.designsystem.ui.theme.component.BottomSheetContent
+import com.serranoie.app.designsystemlib.ui.theme.component.BottomSheetContent
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)

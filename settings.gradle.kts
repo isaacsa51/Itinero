@@ -22,6 +22,7 @@ dependencyResolutionManagement {
 rootProject.name = "Itinero"
 include(":app")
 include(":designsystem")
+include(":designsystem-lib")
 include(":core:data")
 include(":core:domain")
 include(":di")

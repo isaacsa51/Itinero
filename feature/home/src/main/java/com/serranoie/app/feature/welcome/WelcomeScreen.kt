@@ -29,8 +29,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.feature.home.R
 
 @Composable

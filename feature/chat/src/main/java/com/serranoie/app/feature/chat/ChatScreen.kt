@@ -73,10 +73,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.JumpToBottom
-import com.serranoie.app.designsystem.ui.theme.component.UserInput
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.JumpToBottom
+import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
 import com.serranoie.app.feature.chat.util.SymbolAnnotationType
 import com.serranoie.app.feature.chat.util.messageFormatter
 import kotlinx.coroutines.launch

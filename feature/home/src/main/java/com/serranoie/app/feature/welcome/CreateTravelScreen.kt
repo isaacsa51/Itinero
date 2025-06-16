@@ -48,11 +48,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.IButton
-import com.serranoie.app.designsystem.ui.theme.component.ITextField
-import com.serranoie.app.designsystem.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.IButton
+import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
+import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
 import com.serranoie.app.feature.TravelUiState
 import java.text.SimpleDateFormat
 import java.util.Date
