@@ -29,11 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.IButton
-import com.serranoie.app.designsystem.ui.theme.component.IOutlineButton
-import com.serranoie.app.designsystem.ui.theme.component.OtpInputField
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.IButton
+import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
+import com.serranoie.app.designsystemlib.ui.theme.component.OtpInputField
 import com.serranoie.app.feature.TravelUiState
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)

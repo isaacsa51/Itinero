@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.ITextField
-import com.serranoie.app.designsystem.ui.theme.component.IButton
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
+import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 
 // ! TODO: Add functionality after backend is ready to send OTP to email.
 

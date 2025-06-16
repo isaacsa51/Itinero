@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":designsystem"))
+    implementation(project(":designsystem-lib"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
     implementation(project(":core:data"))

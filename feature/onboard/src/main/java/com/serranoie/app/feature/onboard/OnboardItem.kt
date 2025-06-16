@@ -27,9 +27,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystem.ui.theme.UiUtils.MediumPadding1
-import com.serranoie.app.designsystem.ui.theme.component.IIconButton
-import com.serranoie.app.designsystem.ui.theme.component.ITextButton
+import com.serranoie.app.designsystemlib.ui.theme.UiUtils.MediumPadding1
+import com.serranoie.app.designsystemlib.ui.theme.component.IIconButton
+import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
 import kotlinx.coroutines.launch
 
 @Composable

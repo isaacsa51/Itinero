@@ -39,11 +39,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.DateRangeToolbar
-import com.serranoie.app.designsystem.ui.theme.component.card.ICard
-import com.serranoie.app.designsystem.ui.theme.component.card.SwipeActionsConfig
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeActionsConfig
 import com.serranoie.app.feature.itinerary.util.generateDateRange
 import java.time.LocalDate
 

@@ -58,16 +58,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.designsystem.ui.PreviewWrapper
-import com.serranoie.app.designsystem.ui.ThemePreviews
-import com.serranoie.app.designsystem.ui.theme.component.ButtonImportance
-import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedExpandableItem
-import com.serranoie.app.designsystem.ui.theme.component.CustomPaddedListItem
-import com.serranoie.app.designsystem.ui.theme.component.IButton
-import com.serranoie.app.designsystem.ui.theme.component.OtpDisplayField
-import com.serranoie.app.designsystem.ui.theme.component.card.ICard
-import com.serranoie.app.designsystem.ui.theme.component.PaddedListGroup
-import com.serranoie.app.designsystem.ui.theme.component.PaddedListItemPosition
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedExpandableItem
+import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
+import com.serranoie.app.designsystemlib.ui.theme.component.IButton
+import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
+import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
 import com.serranoie.itinero.core.domain.model.Trip
 

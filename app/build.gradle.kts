@@ -43,7 +43,7 @@ android {
 dependencies {
 
     // Project modules
-    implementation(project(":designsystem"))
+    implementation(project(":designsystem-lib"))
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
