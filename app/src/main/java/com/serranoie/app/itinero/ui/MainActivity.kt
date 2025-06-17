@@ -48,7 +48,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private val authPreferences: AuthPreferences by inject()
 
-    @SuppressLint("RememberReturnType")
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 

@@ -62,15 +62,11 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 data class TripDateInfo(
-    val status: TripStatus,
-    val displayText: String,
-    val subtitle: String
+    val status: TripStatus, val displayText: String, val subtitle: String
 )
 
 enum class TripStatus {
-    PENDING,
-    ACTIVE,
-    COMPLETED
+    PENDING, ACTIVE, COMPLETED
 }
 
 fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
@@ -112,8 +108,7 @@ fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
         }
 
         val today = LocalDate.now()
-        val totalDays =
-            ChronoUnit.DAYS.between(start, end).toInt() + 1
+        val totalDays = ChronoUnit.DAYS.between(start, end).toInt() + 1
 
         when {
             today.isBefore(start) -> {
@@ -183,19 +178,6 @@ fun HomeScreen(
             },
             scrollBehavior = scrollBehavior,
         )
-    }, floatingActionButton = {
-        ExtendedFloatingActionButton(
-            onClick = {
-                navController.navigate(
-                    Route.TripSettings.createRoute(
-                        tripId = tripId
-                    )
-                )
-            },
-            icon = { Icon(Icons.Rounded.Edit, contentDescription = "Edit") },
-            text = { Text("Edit") },
-            expanded = true
-        )
     }) { paddingValues ->
 
         PullToRefreshBox(
@@ -245,13 +227,13 @@ fun TripDetailsScreen(
                     title = "Travel date",
                     value = dateInfo.displayText,
                     subtitle = dateInfo.subtitle,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).height(100.dp),
                 )
             }
             tripInfo?.let {
                 PeopleInfoCard(
                     confirmedCount = tripInfo.totalMembers,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).height(100.dp),
                     tripInfo = it,
                 )
             }
@@ -361,7 +343,10 @@ fun DateInfoCard(
     value: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    cardColors: CardColors = CardDefaults.elevatedCardColors(),
+    cardColors: CardColors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 ) {
     OutlinedCard(
         modifier = modifier, shape = RoundedCornerShape(16.dp), colors = cardColors
@@ -377,7 +362,7 @@ fun DateInfoCard(
             MarqueeText(
                 text = value,
                 style = MaterialTheme.typography.headlineSmallEmphasized,
-                gradientEdgeColor = CardDefaults.elevatedCardColors().containerColor
+                gradientEdgeColor = MaterialTheme.colorScheme.tertiaryContainer
             )
             Text(
                 text = subtitle,
@@ -399,7 +384,10 @@ fun PeopleInfoCard(
     confirmedCount: Int,
     modifier: Modifier = Modifier,
     tripInfo: Trip,
-    cardColors: CardColors = CardDefaults.elevatedCardColors(),
+    cardColors: CardColors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 ) {
     OutlinedCard(
         modifier = modifier,
@@ -518,11 +506,10 @@ fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SummarySection(onClick: () -> Unit, tripInfo: Trip) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onClick() }
+        .padding(horizontal = 16.dp)) {
         Text(
             text = "Summary", style = MaterialTheme.typography.headlineSmallEmphasized
         )

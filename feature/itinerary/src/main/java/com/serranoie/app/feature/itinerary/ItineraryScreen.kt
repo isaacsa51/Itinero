@@ -1,5 +1,7 @@
 package com.serranoie.app.feature.itinerary
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Arrangement.Bottom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,38 +9,63 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
+import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
+import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
@@ -59,41 +86,32 @@ fun ItineraryScreen(
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
-    Scaffold(
-        topBar = {
-            MediumTopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                ), title = {
-                    Text(
-                        "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
-                    )
-                }, navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }, content = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back"
-                        )
-                    })
-                }, actions = {
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior
+    Scaffold(topBar = {
+        MediumTopAppBar(
+            colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.inverseOnSurface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+        ), title = {
+            Text(
+                "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Handle FAB click */ },
-                content = { Icon(Icons.Rounded.Add, contentDescription = "Add") },
-            )
-        }
-    ) { paddingValues ->
+        }, navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }, content = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            })
+        }, actions = {
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    imageVector = Icons.Rounded.MoreVert,
+                    contentDescription = "Localized description"
+                )
+            }
+        }, scrollBehavior = scrollBehavior
+        )
+    }) { paddingValues ->
         val itineraryState = remember { mutableStateOf(itinerary) }
         val currentItinerary by itineraryState
 
@@ -118,8 +136,7 @@ fun ItineraryScreen(
                         } ?: emptyList()
                         itineraryState.value = newItinerary
                         onSwiped()
-                    }
-                )
+                    })
             }
         }
     }
@@ -168,8 +185,7 @@ fun ItineraryDateSection(
                                 iconTint = MaterialTheme.colorScheme.onPrimary,
                                 background = MaterialTheme.colorScheme.primary,
                                 stayDismissed = false,
-                                onDismiss = { onActivitySwiped(activity, true) }
-                            )
+                                onDismiss = { onActivitySwiped(activity, true) })
                         } else {
                             SwipeActionsConfig(
                                 threshold = 0.3f,
@@ -177,10 +193,8 @@ fun ItineraryDateSection(
                                 iconTint = MaterialTheme.colorScheme.onError,
                                 background = MaterialTheme.colorScheme.error,
                                 stayDismissed = false,
-                                onDismiss = { onActivitySwiped(activity, false) }
-                            )
-                        }
-                    ) {
+                                onDismiss = { onActivitySwiped(activity, false) })
+                        }) {
                         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                             Text(
                                 text = "🕒 ${activity.time}",
@@ -268,7 +282,6 @@ private fun ItineraryScreenPreview() {
 
     PreviewWrapper {
         ItineraryScreen(
-            navController = rememberNavController(), itinerary = mockItineraryData, onSwiped = {}
-        )
+            navController = rememberNavController(), itinerary = mockItineraryData, onSwiped = {})
     }
 }
