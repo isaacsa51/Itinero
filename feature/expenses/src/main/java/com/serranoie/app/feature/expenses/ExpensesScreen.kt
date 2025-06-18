@@ -199,7 +199,6 @@ fun ExpensesDateSection(date: LocalDate, expenses: List<ExpenseItem>) {
                         modifier = Modifier.padding(vertical = 16.dp),
                     )
                 }
-
             } else {
                 expenses.forEach { item ->
                     ExpenseCard(

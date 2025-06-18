@@ -87,7 +87,7 @@ fun HomeRootScreen(
                         onRefresh = { viewmodel.refreshTrip() })
                 }
 
-                itineraryGraph(navController, tripId)
+                itineraryGraph(navController, tripId, tripInfo)
 
                 expensesGraph(navController, tripId)
 
@@ -181,6 +181,7 @@ fun HomeRootScreen(
                             Route.Itinerary.route -> {
                                 FloatingToolbarDefaults.VibrantFloatingActionButton(
                                     onClick = {
+                                        navController.navigate(Screen.ADD_ITINERARY.name)
                                     }) {
                                     Icon(
                                         Icons.Filled.Add, contentDescription = "Add itinerary item"

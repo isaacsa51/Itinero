@@ -39,7 +39,6 @@ class WelcomeNavigationGraph : NavigationGraph {
 
                 // Load travels when entering welcome navigation (only once)
                 LaunchedEffect(Unit) {
-                    Log.d("ISAAC", "Loading travels when entering welcome navigation")
                     travelListViewModel.getAllTravels()
                 }
 

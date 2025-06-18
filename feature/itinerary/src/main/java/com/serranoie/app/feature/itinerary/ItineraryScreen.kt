@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -88,10 +89,7 @@ fun ItineraryScreen(
 
     Scaffold(topBar = {
         MediumTopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.inverseOnSurface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-        ), title = {
+            title = {
             Text(
                 "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
             )
@@ -120,7 +118,6 @@ fun ItineraryScreen(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .padding(paddingValues)
-                .padding(top = 16.dp)
         ) {
             items(generateDateRange(startDate, endDate)) { date ->
                 ItineraryDateSection(
@@ -142,6 +139,7 @@ fun ItineraryScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ItineraryDateSection(
     date: LocalDate,
@@ -157,12 +155,17 @@ fun ItineraryDateSection(
                 .padding(end = 16.dp)
         ) {
             if (activities.isEmpty()) {
-                Text(
-                    text = "NO ITEMS ADDED AT THIS DATE",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(vertical = 16.dp)
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "NO ITEMS ADDED AT THIS DATE",
+                        style = MaterialTheme.typography.labelMediumEmphasized,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
+                }
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp), thickness = 1.dp
                 )
@@ -194,7 +197,8 @@ fun ItineraryDateSection(
                                 background = MaterialTheme.colorScheme.error,
                                 stayDismissed = false,
                                 onDismiss = { onActivitySwiped(activity, false) })
-                        }) {
+                        }
+                    ) {
                         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                             Text(
                                 text = "🕒 ${activity.time}",
