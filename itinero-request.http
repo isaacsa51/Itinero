@@ -119,6 +119,57 @@ groupCode: {{group_code}}
 memberId: 2
 
 ### ========================================
+### ITINERARY MANAGEMENT ENDPOINTS
+### ========================================
+
+### Get all itinerary items for a trip
+GET {{base_url}}/trips/{{group_code}}/itinerary
+Authorization: Bearer {{auth_token}}
+
+### Create new itinerary item
+POST {{base_url}}/trips/{{group_code}}/itinerary
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "title": "Visit Tokyo Skytree",
+  "description": "Visit the famous Tokyo Skytree tower",
+  "date": "2025-12-13",
+  "time": "10:00",
+  "location": "Tokyo Skytree, Tokyo, Japan",
+  "category": "sightseeing",
+  "notes": "Buy tickets in advance"
+}
+
+### Get specific itinerary item
+@item_id = 1
+GET {{base_url}}/itinerary/{{item_id}}
+Authorization: Bearer {{auth_token}}
+
+### Update itinerary item
+PUT {{base_url}}/itinerary/{{item_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Tokyo Skytree Visit",
+  "description": "Updated visit to Tokyo Skytree with dinner",
+  "date": "2025-12-13",
+  "time": "14:00",
+  "location": "Tokyo Skytree, Tokyo, Japan",
+  "category": "sightseeing",
+  "notes": "Updated notes - dinner reservation at 18:00"
+}
+
+### Delete itinerary item
+DELETE {{base_url}}/itinerary/{{item_id}}
+Authorization: Bearer {{auth_token}}
+
+### Toggle completion status of itinerary item
+PATCH {{base_url}}/itinerary/{{item_id}}/complete
+Authorization: Bearer {{auth_token}}
+
+### ========================================
 ### TESTING WITH DIFFERENT PARAMETERS
 ### ========================================
 

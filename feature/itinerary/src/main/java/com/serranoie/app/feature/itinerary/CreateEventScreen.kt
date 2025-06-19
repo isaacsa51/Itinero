@@ -6,10 +6,10 @@
  - Module: Itinero.feature.itinerary.main
  -
  - This file belongs to the project: Itinero.
- - Last edited: 17 junio 2025
+ - Last edited: 18 junio 2025
  */
 
-package com.serranoie.app.feature
+package com.serranoie.app.feature.itinerary
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

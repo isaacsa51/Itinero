@@ -4,7 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.feature.CreateEventScreen
+import com.serranoie.app.feature.itinerary.CreateEventScreen
 import com.serranoie.app.feature.itinerary.ItineraryItem
 import com.serranoie.app.feature.itinerary.ItineraryScreen
 import com.serranoie.itinero.core.domain.model.Trip
