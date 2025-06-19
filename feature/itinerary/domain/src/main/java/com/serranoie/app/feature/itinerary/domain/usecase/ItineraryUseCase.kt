@@ -13,8 +13,9 @@ package com.serranoie.app.feature.itinerary.domain.usecase
 
 import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem
 import com.serranoie.app.feature.itinerary.domain.repository.ItineraryRepository
+import com.serranoie.itinero.core.domain.result.Result
 
-data class ItineraryUseCase (
+data class ItineraryUseCase(
     val getAllActivitiesUseCase: GetAllActivitiesUseCase,
     val getActivityByIdUseCase: GetActivityByIdUseCase,
     val createActivityUseCase: CreateActivityUseCase,
@@ -46,7 +47,7 @@ class DeleteActivityByIdUseCase(private val repository: ItineraryRepository) {
             repository.deleteActivityById(itineraryId)
             Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Failure(e)
+            Result.Error(e)
         }
     }
 }

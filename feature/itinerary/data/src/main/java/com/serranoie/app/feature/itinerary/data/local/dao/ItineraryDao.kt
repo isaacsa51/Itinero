@@ -1,7 +1,7 @@
 /*
  - Copyright (c) 2025 Isaac Serrano.
  -
- - File: ItneraryApi.kt
+ - File: ItineraryDao.kt
  - Project: Itinero
  - Module: Itinero.feature.itinerary.data.main
  -
@@ -9,5 +9,7 @@
  - Last edited: 18 junio 2025
  */
 
-package com.serranoie.app.feature.itinerary.data.remote
+package com.serranoie.app.feature.itinerary.data.local.dao
 
+class ItineraryDao {
+}
