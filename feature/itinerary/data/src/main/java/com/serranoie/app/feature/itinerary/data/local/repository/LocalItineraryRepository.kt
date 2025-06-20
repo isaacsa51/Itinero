@@ -11,7 +11,7 @@
 
 package com.serranoie.app.feature.itinerary.data.local.repository
 
-import com.serranoie.app.feature.itinerary.data.local.dao.ItineraryDao
+import com.serranoie.itinero.core.data.local.dao.ItineraryDao
 import com.serranoie.app.feature.itinerary.data.mappers.toDomain
 import com.serranoie.app.feature.itinerary.data.mappers.toEntity
 import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem

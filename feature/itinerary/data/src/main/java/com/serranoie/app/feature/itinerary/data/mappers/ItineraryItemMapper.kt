@@ -11,13 +11,13 @@
 
 package com.serranoie.app.feature.itinerary.data.mappers
 
-import com.serranoie.app.feature.itinerary.data.local.entity.ItineraryItemEntity
 import com.serranoie.app.feature.itinerary.data.remote.dto.CreateItineraryItemDto
 import com.serranoie.app.feature.itinerary.data.remote.dto.ItineraryItemDto
 import com.serranoie.app.feature.itinerary.data.remote.dto.UpdateItineraryItemDto
 import com.serranoie.app.feature.itinerary.domain.model.CreateItineraryItem
 import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem
 import com.serranoie.app.feature.itinerary.domain.model.UpdateItineraryItem
+import com.serranoie.itinero.core.data.local.entity.ItineraryItemEntity
 
 fun ItineraryItemEntity.toDomain(): ItineraryItem {
     return ItineraryItem(
