@@ -1,20 +1,22 @@
 /*
  - Copyright (c) 2025 Isaac Serrano.
  -
- - File: ItineraryItem.kt
+ - File: ItineraryItemEntity.kt
  - Project: Itinero
- - Module: Itinero.feature.itinerary.domain.main
+ - Module: Itinero.feature.itinerary.data.main
  -
  - This file belongs to the project: Itinero.
  - Last edited: 18 junio 2025
  */
 
-package com.serranoie.app.feature.itinerary.domain.model
+package com.serranoie.app.feature.itinerary.data.local.entity
 
-import kotlinx.serialization.Serializable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Serializable
-data class ItineraryItem(
+@Entity(tableName = "itinerary_items")
+data class ItineraryItemEntity(
+    @PrimaryKey
     val id: Int,
     val groupCode: String,
     val name: String,

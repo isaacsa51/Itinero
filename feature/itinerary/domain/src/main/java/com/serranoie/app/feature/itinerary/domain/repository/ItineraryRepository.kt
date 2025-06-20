@@ -11,13 +11,32 @@
 
 package com.serranoie.app.feature.itinerary.domain.repository
 
+import com.serranoie.app.feature.itinerary.domain.model.CreateItineraryItem
 import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem
+import com.serranoie.app.feature.itinerary.domain.model.UpdateItineraryItem
 import com.serranoie.itinero.core.domain.result.Result
 
 interface ItineraryRepository {
-    suspend fun getAllActivities(): Result<List<ItineraryItem>>
-    suspend fun getActivityById(itineraryId: String): Result<ItineraryItem>
-    suspend fun createActivity(): Result<ItineraryItem>
-    suspend fun deleteActivityById(itineraryId: String)
-    suspend fun updateActivityInfo(itineraryId: String): Result<ItineraryItem>
+    suspend fun getAllActivities(
+        groupCode: String,
+        forceRefresh: Boolean = false
+    ): Result<List<ItineraryItem>>
+
+    suspend fun getActivityById(
+        itemId: String,
+        forceRefresh: Boolean = false
+    ): Result<ItineraryItem>
+
+    suspend fun createActivity(
+        groupCode: String,
+        request: CreateItineraryItem
+    ): Result<ItineraryItem>
+
+    suspend fun deleteActivityById(itemId: String): Result<Unit>
+    suspend fun updateActivityInfo(
+        itemId: String,
+        request: UpdateItineraryItem
+    ): Result<ItineraryItem>
+
+    suspend fun toggleActivityCompletion(itemId: String): Result<Unit>
 }

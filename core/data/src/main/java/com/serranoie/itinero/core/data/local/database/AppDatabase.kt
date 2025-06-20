@@ -1,10 +1,10 @@
 /*
  - Copyright (c) 2025 Isaac Serrano.
- -
+-
  - File: AppDatabase.kt
  - Project: Itinero
  - Module: Itinero.core.data.main
- -
+-
  - This file belongs to the project: Itinero.
  - Last edited: 09 June 2025
  */

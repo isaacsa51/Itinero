@@ -1,7 +1,7 @@
 /*
  - Copyright (c) 2025 Isaac Serrano.
  -
- - File: ItineraryItem.kt
+ - File: CreateItineraryItem.kt
  - Project: Itinero
  - Module: Itinero.feature.itinerary.domain.main
  -
@@ -14,12 +14,11 @@ package com.serranoie.app.feature.itinerary.domain.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ItineraryItem(
-    val id: Int,
-    val groupCode: String,
+data class CreateItineraryItem(
     val name: String,
+    val summary: String,
     val dateTime: String,
     val location: String,
-    val summary: String,
-    val isCompleted: Boolean = false
+    val category: String? = null,
+    val notes: String? = null
 )
