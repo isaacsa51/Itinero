@@ -16,6 +16,5 @@ kotlin {
 }
 
 dependencies {
-    // Kotlin serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 }

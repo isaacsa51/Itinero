@@ -11,6 +11,7 @@ sealed class Route(val route: String) {
 
     data object Welcome : Route(Screen.WELCOME.name)
     data object Itinerary : Route(Screen.ITINERARY.name)
+    data object AddItinerary : Route(Screen.ADD_ITINERARY.name)
     data object Expenses : Route(Screen.EXPENSES.name)
     data object AddExpense : Route(Screen.ADD_EXPENSE.name)
     data object ExpenseDetails : Route(Screen.EXPENSE_DETAILS.name)

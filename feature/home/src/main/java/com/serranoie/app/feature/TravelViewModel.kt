@@ -141,5 +141,6 @@ class TravelListViewModel(
 
     fun resetState() {
         _uiState.value = TravelUiState.Idle
+        _travels.value = emptyList()
     }
 }

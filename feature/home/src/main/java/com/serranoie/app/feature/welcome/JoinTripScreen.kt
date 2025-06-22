@@ -81,9 +81,8 @@ fun JoinTripScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             OtpInputField(
-                otpText = otpCode, otpCount = 5, onOtpTextChange = { otp, isComplete ->
+                otpText = otpCode, otpCount = 5, onOtpTextChange = { otp, _ ->
                     otpCode = otp
-                    // You can handle completion here if needed
                 }, modifier = Modifier.fillMaxWidth()
             )
 
@@ -107,11 +106,9 @@ fun JoinTripScreen(
                 LoadingIndicator()
                 Spacer(modifier = Modifier.height(16.dp))
             } else {
-                Log.e("ISAAC", "UI State: $uiState")
-
                 IButton(
                     text = { Text("Unirme") },
-                    onClick = { onTripJoined(otpCode) },
+                    onClick = { onTripJoined("ITN-$otpCode") },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = otpCode.length == 5
                 )

@@ -96,7 +96,6 @@ fun WelcomeOptions(onCreateTrip: () -> Unit, onJoinTrip: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ActionTripButton(
     title: String,

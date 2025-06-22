@@ -1,0 +1,185 @@
+### Environment Variables
+@base_url = http://127.0.0.1:8080
+@auth_token = {{auth_token}}
+@group_code = ITN-70432
+
+### ========================================
+### AUTHENTICATION ENDPOINTS
+### ========================================
+
+### Register new user
+POST {{base_url}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Ani",
+  "surname": "Serrano",
+  "phone": "1234567890",
+  "email": "ani",
+  "password": "ani"
+}
+
+### Login user - Save token for subsequent requests
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ani",
+  "password": "ani"
+}
+
+> {%
+ client.global.set("auth_token", response.body.token);
+%}
+
+### ========================================
+### TRIP MANAGEMENT ENDPOINTS
+### ========================================
+
+### Get all trips for authenticated user
+GET {{base_url}}/trips
+Authorization: Bearer {{auth_token}}
+
+### Create new trip
+POST {{base_url}}/trips/new
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "destination": "Alemania",
+  "groupName": "Invite accepted test",
+  "startDate": "2025-12-12",
+  "endDate": "2026-06-09",
+  "summary": "test summary",
+  "accommodation": {
+    "name": "Hotel Hilton",
+    "phone": "1231231231",
+    "checkIn": "2025-12-12",
+    "checkOut": "2026-06-09",
+    "location": "Tokyo Downtown",
+    "mapUri": "https://maps.google.com/..."
+  },
+  "reservationCode": "1512361",
+  "extraInfo": "don't have any",
+  "additionalInfo": "free breakfast"
+}
+
+### Get specific trip by group code
+GET {{base_url}}/trips/{{group_code}}
+Authorization: Bearer {{auth_token}}
+
+### ========================================
+### TRIP INFO ENDPOINTS
+### ========================================
+
+### Get trip info
+GET {{base_url}}/trips/{{group_code}}/info
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+groupCode: {{group_code}}
+
+### Update trip info
+PUT {{base_url}}/trips/{{group_code}}/info
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+groupCode: {{group_code}}
+
+{
+  "groupName": "Updated Trip Name",
+  "destination": "Nurburg, Germany",
+  "startDate": "2025-06-18",
+  "endDate": "2025-06-26",
+  "summary": "Updated summary",
+  "accommodation": {
+    "name": "Updated Hotel",
+    "phone": "123123123",
+    "checkIn": "2025-06-12",
+    "checkOut": "2025-10-12",
+    "location": "Hilton",
+    "mapUri": "https://updated-map-uri.com"
+  },
+  "reservationCode": "123122",
+  "extraInfo": "Updated extra info",
+  "additionalInfo": "Updated additional info"
+}
+
+### ========================================
+### TRIP MEMBER MANAGEMENT ENDPOINTS
+### ========================================
+
+### Join trip with group code
+POST {{base_url}}/trips/{{group_code}}/join
+Authorization: Bearer {{auth_token}}
+groupCode: {{group_code}}
+
+### Accept member to trip (for trip owners)
+POST {{base_url}}/trips/{{group_code}}/members/2/accept
+Authorization: Bearer {{auth_token}}
+groupCode: {{group_code}}
+
+### ========================================
+### ITINERARY MANAGEMENT ENDPOINTS
+### ========================================
+
+### Get all itinerary items for a trip
+GET {{base_url}}/trips/{{group_code}}/itinerary
+Authorization: Bearer {{auth_token}}
+
+### Create new itinerary item
+POST {{base_url}}/trips/{{group_code}}/itinerary
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "title": "Visit Tokyo Skytree",
+  "description": "Visit the famous Tokyo Skytree tower",
+  "date": "2025-12-13",
+  "time": "10:00",
+  "location": "Tokyo Skytree, Tokyo, Japan",
+  "category": "sightseeing",
+  "notes": "Buy tickets in advance"
+}
+
+### Get specific itinerary item
+@item_id = 1
+GET {{base_url}}/itinerary/{{item_id}}
+Authorization: Bearer {{auth_token}}
+
+### Update itinerary item
+PUT {{base_url}}/itinerary/{{item_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Tokyo Skytree Visit",
+  "description": "Updated visit to Tokyo Skytree with dinner",
+  "date": "2025-12-13",
+  "time": "14:00",
+  "location": "Tokyo Skytree, Tokyo, Japan",
+  "category": "sightseeing",
+  "notes": "Updated notes - dinner reservation at 18:00"
+}
+
+### Delete itinerary item
+DELETE {{base_url}}/itinerary/{{item_id}}
+Authorization: Bearer {{auth_token}}
+
+### Toggle completion status of itinerary item
+PATCH {{base_url}}/itinerary/{{item_id}}/complete
+Authorization: Bearer {{auth_token}}
+
+### ========================================
+### TESTING WITH DIFFERENT PARAMETERS
+### ========================================
+
+### Test with different group code
+@test_group_code = ITN-12345
+
+### Get trip with test group code
+GET {{base_url}}/trips/{{test_group_code}}
+Authorization: Bearer {{auth_token}}
+
+### Join trip with test group code
+POST {{base_url}}/trips/{{test_group_code}}/join
+Authorization: Bearer {{auth_token}}
+groupCode: {{test_group_code}}

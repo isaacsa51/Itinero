@@ -10,48 +10,45 @@ import io.ktor.client.HttpClient
 
 class ItineroApiImpl(
     client: HttpClient
-) : ItineroApi {
-
-    private val apiClient = ItineroApiClient(client)
+) : BaseApiClient(client), ItineroApi {
 
     override suspend fun loginUser(email: String, password: String): AuthResponse {
-        return apiClient.postLogin(LoginRequestDto(email, password))
+        return post("/auth/login", LoginRequestDto(email, password))
     }
 
     override suspend fun registerUser(
         email: String, password: String, name: String, surname: String, phone: String
     ): AuthResponse {
-        return apiClient.postRegister(
-            RegisterRequestDto(name, surname, email, password, phone)
-        )
+        return post("/auth/register", RegisterRequestDto(name, surname, email, password, phone))
     }
 
     override suspend fun logoutUser() {
-        apiClient.postLogout()
+        post<Unit, Unit>("/auth/logout")
     }
 
     override suspend fun forgotPasswordUser(email: String) {
-        apiClient.postForgotPassword(email)
+        val body = mapOf("email" to email)
+        post<Unit, Map<String, String>>("/auth/forgot-password", body)
     }
 
     override suspend fun getTripById(id: String): TripDto {
-        return apiClient.getTripById(id)
+        return get("/trips/$id")
     }
 
     override suspend fun getAllTrips(): List<TripDto> {
-        return apiClient.getTrips()
+        return get("/trips")
     }
 
     override suspend fun createTrip(request: CreateTripDto): CreateTripDto {
-        return apiClient.createTrip(request)
+        return post("/trips/new", request)
     }
 
     override suspend fun updateTripInfo(groupCode: String, request: UpdateTrip) {
-        apiClient.updateTripInfo(groupCode, request)
+        put<Unit, UpdateTrip>("/trips/$groupCode/info", request)
     }
 
     override suspend fun joinTrip(groupCode: String) {
-        apiClient.postJoinTrip(groupCode)
+        post<Unit, Unit>("/trips/$groupCode/join")
     }
 
     override suspend fun deleteTrip() {

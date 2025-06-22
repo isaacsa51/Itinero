@@ -1,45 +1,145 @@
 package com.serranoie.app.feature.itinerary.navigation
 
+import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.feature.itinerary.ItineraryItem
+import com.serranoie.app.feature.itinerary.CreateEventScreen
 import com.serranoie.app.feature.itinerary.ItineraryScreen
+import com.serranoie.app.feature.itinerary.ItineraryViewModel
+import com.serranoie.itinero.core.domain.model.Trip
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import com.serranoie.app.feature.itinerary.ItineraryItem as ScreenItineraryItem
+import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem as DomainItineraryItem
 
-fun NavGraphBuilder.itineraryGraph(navController: NavController, tripId: String) {
+fun NavGraphBuilder.itineraryGraph(
+    navController: NavController, tripId: String, tripData: Trip? = null
+) {
     composable(Route.Itinerary.route) {
-        val mockItinerary = mapOf(
-            LocalDate.now() to listOf(
-                ItineraryItem(
-                    title = "Visit Museum",
-                    time = "12:00 PM",
-                    location = "Art Museum",
-                    description = "Explore the modern art section"
-                ),
-                ItineraryItem(
-                    title = "Lunch",
-                    time = "2:00 PM",
-                    location = "City Café",
-                    description = "Try the local special"
-                )
-            ),
-            LocalDate.now().plusDays(1) to listOf(
-                ItineraryItem(
-                    title = "Beach Day",
-                    time = "10:00 AM",
-                    location = "Palm Beach",
-                    description = "Sunbathing and volleyball"
-                )
-            ),
-            LocalDate.now().plusDays(2) to emptyList()
-        )
+        val groupCode = tripData?.groupCode ?: tripId
+        val viewModel = koinViewModel<ItineraryViewModel> { parametersOf(groupCode) }
+
+        val uiState by viewModel.uiState.collectAsState()
+        val itineraryData by viewModel.itineraryData.collectAsState()
+
+        LaunchedEffect(groupCode) {
+            viewModel.fetchItinerary(groupCode)
+        }
+
+        val screenItineraryData = convertDomainToScreenModel(itineraryData)
 
         ItineraryScreen(
             navController = navController,
-            itinerary = mockItinerary,
-            onSwiped = { /* Implementation */ }
+            itinerary = screenItineraryData,
+            uiState = uiState,
+            onRefresh = {
+                viewModel.fetchItinerary(groupCode, forceRefresh = true)
+            },
+            onToggleCompletion = { itemId ->
+                viewModel.toggleActivityCompletion(itemId)
+            },
+            onSwiped = {
+                Log.d("ITINERO - ITNavGraph", "=== SWIPE ACTION ===")
+                viewModel.refreshData()
+            })
+    }
+
+    composable(Route.AddItinerary.route) {
+        val groupCode = tripData?.groupCode ?: tripId
+        val viewModel = koinViewModel<ItineraryViewModel> { parametersOf(groupCode) }
+
+        CreateEventScreen(
+            navController = navController,
+            existingItem = null, // For creating new items
+            onCreateActivity = { name, time, location, summary ->
+                Log.d("ItineraryNavGraph", "=== CREATE ACTIVITY ===")
+                Log.d("ItineraryNavGraph", "Name: $name, Time: $time, Location: $location")
+
+                // Create the CreateItineraryItem request
+                val createRequest =
+                    com.serranoie.app.feature.itinerary.domain.model.CreateItineraryItem(
+                        name = name,
+                        dateTime = time, // Note: You might want to convert this to proper ISO format
+                        location = location,
+                        summary = summary
+                    )
+
+                viewModel.createActivity(groupCode, createRequest)
+            },
+            onUpdateActivity = { id, name, time, location, summary ->
+                Log.d("ItineraryNavGraph", "=== UPDATE ACTIVITY ===")
+                Log.d("ItineraryNavGraph", "ID: $id, Name: $name")
+
+                // Create the UpdateItineraryItem request
+                val updateRequest =
+                    com.serranoie.app.feature.itinerary.domain.model.UpdateItineraryItem(
+                        name = name,
+                        dateTime = time, // Note: You might want to convert this to proper ISO format
+                        location = location,
+                        summary = summary
+                    )
+
+                viewModel.updateActivity(id, updateRequest)
+            },
+            onSaveComplete = {
+                Log.d("ItineraryNavGraph", "=== SAVE COMPLETE ===")
+                // Navigate back to itinerary screen
+                navController.popBackStack()
+            }
         )
+    }
+}
+
+// Convert domain model to screen model
+private fun convertDomainToScreenModel(
+    domainItems: List<DomainItineraryItem>
+): Map<LocalDate, List<ScreenItineraryItem>> {
+    if (domainItems.isEmpty()) {
+        return emptyMap()
+    }
+
+    val result = domainItems.groupBy { item ->
+        try {
+            LocalDate.parse(item.dateTime.split("T")[0], DateTimeFormatter.ISO_LOCAL_DATE)
+        } catch (e: Exception) {
+            LocalDate.now()
+        }
+    }.mapValues { (date, items) ->
+        items.map { domainItem ->
+            ScreenItineraryItem(
+                id = domainItem.id.toString(),
+                title = domainItem.name,
+                time = extractTime(domainItem.dateTime),
+                location = domainItem.location,
+                description = domainItem.summary,
+                isCompleted = domainItem.isCompleted
+            )
+        }
+    }
+    return result
+}
+
+private fun extractTime(dateTime: String): String {
+    return try {
+        val timePart = dateTime.split("T").getOrNull(1)?.split(":")
+        if (timePart != null && timePart.size >= 2) {
+            val hour = timePart[0].toInt()
+            val minute = timePart[1]
+            val amPm = if (hour >= 12) "PM" else "AM"
+            val displayHour = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
+            "$displayHour:$minute $amPm"
+        } else {
+            "TBD"
+        }
+    } catch (e: Exception) {
+        Log.w("ITINERO - ITNavGraph", "Time extraction failed for $dateTime")
+        "TBD"
     }
 }

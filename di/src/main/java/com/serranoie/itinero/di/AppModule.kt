@@ -6,5 +6,8 @@ val appModule = module {
     includes(
         diModules,
         networkModule,
+        persistenceModule,
+        repositoryModule,
+        useCaseModule,
     )
 }

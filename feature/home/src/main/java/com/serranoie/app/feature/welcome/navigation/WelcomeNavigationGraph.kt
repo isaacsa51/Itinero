@@ -2,13 +2,24 @@ package com.serranoie.app.feature.welcome.navigation
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -29,34 +40,68 @@ class WelcomeNavigationGraph : NavigationGraph {
     @SuppressLint("UnrememberedGetBackStackEntry")
     override fun NavGraphBuilder.build(navController: NavHostController) {
         navigation(
-            route = Route.WelcomeNavigation.route, startDestination = Route.Welcome.route
+            route = Route.WelcomeNavigation.route,
+            startDestination = "loading_check"
         ) {
-            composable(route = Route.Welcome.route) {
+            // Loading screen that checks for existing trips before showing any UI
+            composable(route = "loading_check") {
                 val travelListViewModel = koinViewModel<TravelListViewModel>()
                 val travels by travelListViewModel.travels.collectAsState()
                 val uiState by travelListViewModel.uiState.collectAsState()
-                var hasNavigated by remember { mutableStateOf(false) }
 
-                // Load travels when entering welcome navigation (only once)
+                // Single LaunchedEffect that handles everything
                 LaunchedEffect(Unit) {
-                    Log.d("ISAAC", "Loading travels when entering welcome navigation")
+                    Log.d("ITINERO", "Starting trip check...")
+
+                    // Reset and fetch
+                    travelListViewModel.resetState()
                     travelListViewModel.getAllTravels()
                 }
 
-                // Navigate to TravelList if user already has travels (only on successful load)
+                // React to state changes immediately
                 LaunchedEffect(uiState) {
-                    if (!hasNavigated && uiState is TravelUiState.Success<*> && travels.isNotEmpty()) {
-                        Log.d("ISAAC", "Initial navigation - Trips from user: $travels")
-                        navController.navigate(Route.TravelList.route) {
-                            launchSingleTop = true
+                    Log.d("ITINERO", "State changed: $uiState, trips: ${travels.size}")
+
+                    when (val currentState = uiState) {
+                        is TravelUiState.Success<*> -> {
+                            if (travels.isNotEmpty()) {
+                                Log.d(
+                                    "ITINERO",
+                                    "Navigating to TravelList with ${travels.size} trips"
+                                )
+                                navController.navigate(Route.TravelList.route) {
+                                    popUpTo("loading_check") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                Log.d("ITINERO", "No trips found, navigating to Welcome")
+                                navController.navigate(Route.Welcome.route) {
+                                    popUpTo("loading_check") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
                         }
-                        hasNavigated = true
-                    } else if (!hasNavigated && uiState is TravelUiState.Success<*>) {
-                        Log.d("ISAAC", "Initial navigation - No trips from user")
-                        hasNavigated = true
+                        is TravelUiState.Error -> {
+                            Log.e("ITINERO", "Error loading trips: ${currentState.message}")
+                            navController.navigate(Route.Welcome.route) {
+                                popUpTo("loading_check") { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                        is TravelUiState.Loading -> {
+                            Log.d("ITINERO", "Loading trips...")
+                        }
+                        is TravelUiState.Idle -> {
+                            Log.d("ITINERO", "State idle")
+                        }
                     }
                 }
 
+                // Show loading screen while checking for trips
+                LoadingScreen()
+            }
+
+            composable(route = Route.Welcome.route) {
                 WelcomeScreen(onNavigateToCreateTravel = {
                     navController.navigate(Route.CreateTravel.route)
                 }, onNavigateToJoinTrip = {
@@ -130,8 +175,6 @@ class WelcomeNavigationGraph : NavigationGraph {
                         }
 
                         is TravelUiState.Error -> {
-                            // Error is now handled in the UI, but we still reset the state after showing
-                            // We can add a delay if needed for user to read the error
                             Log.e("ISAAC", "Error travel join, $currentState")
                         }
 
@@ -182,6 +225,29 @@ class WelcomeNavigationGraph : NavigationGraph {
                         snackbarHostState.showSnackbar(message)
                     })
             }
+        }
+    }
+}
+
+@Composable
+private fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Loading your trips...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
     }
 }

@@ -36,6 +36,9 @@ dependencies {
 
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
+    implementation(project(":feature:itinerary:data"))
+    implementation(project(":feature:itinerary:domain"))
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
