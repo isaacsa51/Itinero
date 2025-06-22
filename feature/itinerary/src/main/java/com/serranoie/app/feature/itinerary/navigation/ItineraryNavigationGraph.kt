@@ -52,7 +52,48 @@ fun NavGraphBuilder.itineraryGraph(
     }
 
     composable(Route.AddItinerary.route) {
-        CreateEventScreen(navController)
+        val groupCode = tripData?.groupCode ?: tripId
+        val viewModel = koinViewModel<ItineraryViewModel> { parametersOf(groupCode) }
+
+        CreateEventScreen(
+            navController = navController,
+            existingItem = null, // For creating new items
+            onCreateActivity = { name, time, location, summary ->
+                Log.d("ItineraryNavGraph", "=== CREATE ACTIVITY ===")
+                Log.d("ItineraryNavGraph", "Name: $name, Time: $time, Location: $location")
+
+                // Create the CreateItineraryItem request
+                val createRequest =
+                    com.serranoie.app.feature.itinerary.domain.model.CreateItineraryItem(
+                        name = name,
+                        dateTime = time, // Note: You might want to convert this to proper ISO format
+                        location = location,
+                        summary = summary
+                    )
+
+                viewModel.createActivity(groupCode, createRequest)
+            },
+            onUpdateActivity = { id, name, time, location, summary ->
+                Log.d("ItineraryNavGraph", "=== UPDATE ACTIVITY ===")
+                Log.d("ItineraryNavGraph", "ID: $id, Name: $name")
+
+                // Create the UpdateItineraryItem request
+                val updateRequest =
+                    com.serranoie.app.feature.itinerary.domain.model.UpdateItineraryItem(
+                        name = name,
+                        dateTime = time, // Note: You might want to convert this to proper ISO format
+                        location = location,
+                        summary = summary
+                    )
+
+                viewModel.updateActivity(id, updateRequest)
+            },
+            onSaveComplete = {
+                Log.d("ItineraryNavGraph", "=== SAVE COMPLETE ===")
+                // Navigate back to itinerary screen
+                navController.popBackStack()
+            }
+        )
     }
 }
 

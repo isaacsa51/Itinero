@@ -1,14 +1,3 @@
-/*
- - Copyright (c) 2025 Isaac Serrano.
- -
- - File: CreateEventScreen.kt
- - Project: Itinero
- - Module: Itinero.feature.itinerary.main
- -
- - This file belongs to the project: Itinero.
- - Last edited: 18 junio 2025
- */
-
 package com.serranoie.app.feature.itinerary
 
 import androidx.compose.animation.core.LinearEasing
@@ -55,7 +44,6 @@ import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -64,19 +52,31 @@ import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
-import java.util.Locale
+import android.graphics.BlurMaskFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun CreateEventScreen(navController: NavController) {
+fun CreateEventScreen(
+    navController: NavController,
+    existingItem: ItineraryItem? = null,
+    onCreateActivity: (name: String, time: String, location: String, summary: String) -> Unit = { _, _, _, _ -> },
+    onUpdateActivity: (id: String, name: String, time: String, location: String, summary: String) -> Unit = { _, _, _, _, _ -> },
+    onSaveComplete: () -> Unit = {}
+) {
+    // Initialize fields with existing item data or empty values
+    var eventName by remember { mutableStateOf(existingItem?.title ?: "") }
+    var eventTime by remember { mutableStateOf(existingItem?.time ?: "") }
+    var eventLocation by remember { mutableStateOf(existingItem?.location ?: "") }
+    var eventSummary by remember { mutableStateOf(existingItem?.description ?: "") }
 
-    var eventName by remember { mutableStateOf("") }
-    var eventTime by remember { mutableStateOf("") }
-    var eventLocation by remember { mutableStateOf("") }
-    var eventSummary by remember { mutableStateOf("") }
+    // Check if we're in edit mode (any field has data)
+    val isEditMode = eventName.isNotEmpty() || eventTime.isNotEmpty() ||
+            eventLocation.isNotEmpty() || eventSummary.isNotEmpty()
 
     val sampleTask = TaskInfo(
         name = "Visit the Eiffel Tower",
@@ -92,41 +92,62 @@ fun CreateEventScreen(navController: NavController) {
                 .verticalScroll(rememberScrollState())
         ) {
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Need help planning your day?",
-                    style = MaterialTheme.typography.headlineLargeEmphasized
+            // Only show the help section and AI suggestion if NOT in edit mode
+            if (!isEditMode) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Need help planning your day?",
+                        style = MaterialTheme.typography.headlineLargeEmphasized
+                    )
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                    Text(
+                        text = "Take a look at the suggestion below and add them to your itinerary. You can always edit them later.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.padding(8.dp))
+
+                    Text(
+                        text = "AI Text suggestion holder...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+
+                AnimatedBorderCard(
+                    modifier = Modifier.clickable {
+                        eventName = sampleTask.name
+                        eventTime = sampleTask.time
+                        eventLocation = sampleTask.location
+                        eventSummary = sampleTask.summary
+                    },
+                    title = sampleTask.name,
+                    time = sampleTask.time,
+                    location = sampleTask.location,
+                    description = sampleTask.summary,
                 )
+            } else {
+                // Show edit mode header
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = if (existingItem != null) "Edit Activity" else "Create Activity",
+                        style = MaterialTheme.typography.headlineLargeEmphasized
+                    )
 
-                Spacer(modifier = Modifier.padding(8.dp))
+                    Spacer(modifier = Modifier.padding(4.dp))
 
-                Text(
-                    text = "Take a look at the suggestion below and add them to your itinerary. You can always edit them later.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.padding(8.dp))
-
-                Text(
-                    text = "AI Text suggestion holder...",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+                    Text(
+                        text = if (existingItem != null)
+                            "Update the activity details below" else
+                            "Fill in the activity details below",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-
-            AnimatedBorderCard(
-                modifier = Modifier.clickable {
-                    eventName = sampleTask.name
-                    eventTime = sampleTask.time
-                    eventLocation = sampleTask.location
-                    eventSummary = sampleTask.summary
-                },
-                title = sampleTask.name,
-                time = sampleTask.time,
-                location = sampleTask.location,
-                description = sampleTask.summary,
-            )
 
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -165,10 +186,37 @@ fun CreateEventScreen(navController: NavController) {
                     .padding(16.dp)
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                onClick = { },
+                onClick = {
+                    // Validate that required fields are not empty
+                    if (eventName.isNotBlank() && eventTime.isNotBlank() &&
+                        eventLocation.isNotBlank() && eventSummary.isNotBlank()
+                    ) {
+
+                        if (existingItem != null) {
+                            // Update existing item
+                            onUpdateActivity(
+                                existingItem.id ?: "",
+                                eventName,
+                                eventTime,
+                                eventLocation,
+                                eventSummary
+                            )
+                        } else {
+                            // Create new item
+                            onCreateActivity(
+                                eventName,
+                                eventTime,
+                                eventLocation,
+                                eventSummary
+                            )
+                        }
+
+                        onSaveComplete()
+                    }
+                },
                 text = {
                     Text(
-                        text = "Save activity",
+                        text = if (existingItem != null) "Update activity" else "Save activity",
                         style = MaterialTheme.typography.labelLargeEmphasized
                     )
                 },
@@ -230,8 +278,8 @@ fun AnimatedBorderCard(
                         ), colors = gradientColors, colorStops = null
                     )
 
-                    maskFilter = android.graphics.BlurMaskFilter(
-                        30f, android.graphics.BlurMaskFilter.Blur.NORMAL
+                    maskFilter = BlurMaskFilter(
+                        30f, BlurMaskFilter.Blur.NORMAL
                     )
                 }
 
@@ -338,6 +386,12 @@ fun InfoRow(
 @Composable
 private fun CreateEventScreenPreview() {
     PreviewWrapper {
-        CreateEventScreen(navController = rememberNavController())
+        CreateEventScreen(
+            navController = rememberNavController(),
+            existingItem = null,
+            onCreateActivity = { _, _, _, _ -> },
+            onUpdateActivity = { _, _, _, _, _ -> },
+            onSaveComplete = { }
+        )
     }
 }
