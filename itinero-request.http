@@ -47,7 +47,7 @@ Content-Type: application/json
 
 {
   "destination": "Tokyo, Japan",
-  "groupName": "ani iti",
+  "groupName": "Itinero New Trip!",
   "startDate": "2025-12-12",
   "endDate": "2026-06-09",
   "summary": "test summary",

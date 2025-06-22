@@ -31,7 +31,8 @@ sealed interface ItineraryUiState {
     data class Error(val message: String) : ItineraryUiState
 }
 
-class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase) : ViewModel() {
+class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCode: String) :
+    ViewModel() {
 
     private val _uiState = MutableStateFlow<ItineraryUiState>(ItineraryUiState.Idle)
     val uiState: StateFlow<ItineraryUiState> = _uiState.asStateFlow()
@@ -53,6 +54,7 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase) : ViewM
                     _itineraryData.value = result.data
                     _uiState.value = ItineraryUiState.Success(result.data)
                 }
+
                 is Result.Error -> {
                     _uiState.value =
                         ItineraryUiState.Error(result.exception.message ?: "Unknown error")
@@ -69,9 +71,11 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase) : ViewM
                     _selectedItem.value = result.data
                     _uiState.value = ItineraryUiState.Success(result.data)
                 }
+
                 is Result.Error -> {
-                    _uiState.value =
-                        ItineraryUiState.Error(result.exception.message ?: "Unknown error")
+                    _uiState.value = ItineraryUiState.Error(
+                        result.exception.message ?: "Unknown error"
+                    )
                 }
             }
         }
@@ -136,6 +140,7 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase) : ViewM
                         fetchItinerary(currentGroupCode, forceRefresh = true)
                     }
                 }
+
                 is Result.Error -> {
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Failed to delete activity"

@@ -1,13 +1,21 @@
 package com.serranoie.app.feature.itinerary.navigation
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.itinerary.CreateEventScreen
-import com.serranoie.app.feature.itinerary.ItineraryItem
+import com.serranoie.app.feature.itinerary.ItineraryItem as ScreenItineraryItem
 import com.serranoie.app.feature.itinerary.ItineraryScreen
+import com.serranoie.app.feature.itinerary.ItineraryUiState
+import com.serranoie.app.feature.itinerary.ItineraryViewModel
+import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem as DomainItineraryItem
 import com.serranoie.itinero.core.domain.model.Trip
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -18,30 +26,28 @@ fun NavGraphBuilder.itineraryGraph(
     tripData: Trip? = null
 ) {
     composable(Route.Itinerary.route) {
-        val itineraryData = tripData?.let { trip ->
-            // Parse date strings to LocalDate
-            val startDate = try {
-                LocalDate.parse(trip.startDate, DateTimeFormatter.ISO_LOCAL_DATE)
-            } catch (e: DateTimeParseException) {
-                LocalDate.now()
-            }
+        val groupCode = tripData?.groupCode ?: tripId
+        val viewModel = koinViewModel<ItineraryViewModel> { parametersOf(groupCode) }
+        val uiState by viewModel.uiState.collectAsState()
+        val itineraryData by viewModel.itineraryData.collectAsState()
 
-            val endDate = try {
-                LocalDate.parse(trip.endDate, DateTimeFormatter.ISO_LOCAL_DATE)
-            } catch (e: DateTimeParseException) {
-                startDate.plusDays(7) // Default 7 days if parsing fails
-            }
+        // Fetch data when the screen is first loaded
+        LaunchedEffect(groupCode) {
+            viewModel.fetchItinerary(groupCode)
+        }
 
-            // Generate itinerary items per day
-            generateItineraryFromTrip(startDate, endDate, trip)
-        } ?: generateMockItinerary() // Fallback to mock data
+        // Convert domain model to screen model - only use real data from ViewModel
+        val screenItineraryData = convertDomainToScreenModel(itineraryData)
 
         ItineraryScreen(
             navController = navController,
-            itinerary = itineraryData,
-            onSwiped = {
-                // Handle swipe actions - placeholder for now
-            }
+            itinerary = screenItineraryData,
+            uiState = uiState,
+            onRefresh = {
+                viewModel.fetchItinerary(groupCode, forceRefresh = true)
+            },
+            onToggleCompletion = { itemId -> viewModel.toggleActivityCompletion(itemId) },
+            onSwiped = { viewModel.refreshData() }
         )
     }
 
@@ -50,87 +56,44 @@ fun NavGraphBuilder.itineraryGraph(
     }
 }
 
-// Helper function to generate itinerary from trip data
-private fun generateItineraryFromTrip(
-    startDate: LocalDate,
-    endDate: LocalDate,
-    trip: Trip
-): Map<LocalDate, List<ItineraryItem>> {
-    val itineraryMap = mutableMapOf<LocalDate, List<ItineraryItem>>()
-
-    // Generate dates from start to end
-    var currentDate = startDate
-    while (!currentDate.isAfter(endDate)) {
-        // Create activities based on day of week and trip data
-        val activities = when (currentDate.dayOfWeek.value) {
-            1 -> listOf( // Monday
-                ItineraryItem(
-                    title = "Arrival Day",
-                    time = "10:00 AM",
-                    location = trip.destination ?: "Destination",
-                    description = "Check-in and explore the area"
-                )
-            )
-
-            2 -> listOf( // Tuesday
-                ItineraryItem(
-                    title = "City Tour",
-                    time = "9:00 AM",
-                    location = "City Center",
-                    description = "Guided tour of main attractions"
-                ),
-                ItineraryItem(
-                    title = "Local Restaurant",
-                    time = "1:00 PM",
-                    location = "Downtown",
-                    description = "Try local cuisine"
-                )
-            )
-
-            3 -> listOf( // Wednesday
-                ItineraryItem(
-                    title = "Museum Visit",
-                    time = "10:00 AM",
-                    location = "Art Museum",
-                    description = "Explore local art and culture"
-                )
-            )
-
-            else -> emptyList()
+// Convert domain model to screen model
+private fun convertDomainToScreenModel(
+    domainItems: List<DomainItineraryItem>
+): Map<LocalDate, List<ScreenItineraryItem>> {
+    return domainItems.groupBy { item ->
+        try {
+            // Parse the dateTime string to extract date
+            LocalDate.parse(item.dateTime.split("T")[0], DateTimeFormatter.ISO_LOCAL_DATE)
+        } catch (e: Exception) {
+            LocalDate.now()
         }
-
-        itineraryMap[currentDate] = activities
-        currentDate = currentDate.plusDays(1)
+    }.mapValues { (_, items) ->
+        items.map { domainItem ->
+            ScreenItineraryItem(
+                title = domainItem.name,
+                time = extractTime(domainItem.dateTime),
+                location = domainItem.location,
+                description = domainItem.summary,
+                isCompleted = domainItem.isCompleted
+            )
+        }
     }
-
-    return itineraryMap
 }
 
-// Fallback mock data function
-private fun generateMockItinerary(): Map<LocalDate, List<ItineraryItem>> {
-    return mapOf(
-        LocalDate.now() to listOf(
-            ItineraryItem(
-                title = "Visit Museum",
-                time = "12:00 PM",
-                location = "Art Museum",
-                description = "Explore the modern art section"
-            ),
-            ItineraryItem(
-                title = "Lunch",
-                time = "2:00 PM",
-                location = "City Café",
-                description = "Try the local special"
-            )
-        ),
-        LocalDate.now().plusDays(1) to listOf(
-            ItineraryItem(
-                title = "Beach Day",
-                time = "10:00 AM",
-                location = "Palm Beach",
-                description = "Sunbathing and volleyball"
-            )
-        ),
-        LocalDate.now().plusDays(5) to emptyList()
-    )
+// Extract time from datetime string
+private fun extractTime(dateTime: String): String {
+    return try {
+        val timePart = dateTime.split("T").getOrNull(1)?.split(":")
+        if (timePart != null && timePart.size >= 2) {
+            val hour = timePart[0].toInt()
+            val minute = timePart[1]
+            val amPm = if (hour >= 12) "PM" else "AM"
+            val displayHour = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
+            "$displayHour:$minute $amPm"
+        } else {
+            "TBD"
+        }
+    } catch (e: Exception) {
+        "TBD"
+    }
 }

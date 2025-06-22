@@ -20,27 +20,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingToolbarDefaults
-import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
-import androidx.compose.material3.FloatingToolbarDefaults.floatingToolbarVerticalNestedScroll
-import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,20 +41,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -80,6 +71,9 @@ import java.time.LocalDate
 fun ItineraryScreen(
     navController: NavController,
     itinerary: Map<LocalDate, List<ItineraryItem>>,
+    uiState: ItineraryUiState,
+    onRefresh: () -> Unit,
+    onToggleCompletion: (String) -> Unit,
     onSwiped: () -> Unit
 ) {
     val startDate = itinerary.keys.minOrNull() ?: LocalDate.now()
@@ -90,50 +84,87 @@ fun ItineraryScreen(
     Scaffold(topBar = {
         MediumTopAppBar(
             title = {
-            Text(
-                "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
-            )
-        }, navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }, content = {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back"
+                Text(
+                    "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
-            })
-        }, actions = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.Rounded.MoreVert,
-                    contentDescription = "Localized description"
-                )
-            }
-        }, scrollBehavior = scrollBehavior
+            },
+            navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }, content = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Go back"
+                    )
+                })
+            },
+            actions = {
+                IconButton(onClick = { /* do something */ }) {
+                    Icon(
+                        imageVector = Icons.Rounded.MoreVert,
+                        contentDescription = "Localized description"
+                    )
+                }
+            },
+            scrollBehavior = scrollBehavior
         )
     }) { paddingValues ->
         val itineraryState = remember { mutableStateOf(itinerary) }
         val currentItinerary by itineraryState
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(paddingValues)
+        // Check if there are any items across all dates
+        val hasAnyItems = currentItinerary.values.any { it.isNotEmpty() }
+
+        PullToRefreshBox(
+            isRefreshing = uiState is ItineraryUiState.Loading,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize()
         ) {
-            items(generateDateRange(startDate, endDate)) { date ->
-                ItineraryDateSection(
-                    date = date,
-                    activities = currentItinerary[date].orEmpty(),
-                    onActivitySwiped = { swipedActivity, isCompleting ->
-                        // Toggle the specific activity's completion status
-                        val newItinerary = currentItinerary.toMutableMap()
-                        newItinerary[date] = newItinerary[date]?.map { activity ->
-                            if (activity == swipedActivity) {
-                                activity.copy(isCompleted = isCompleting)
-                            } else activity
-                        } ?: emptyList()
-                        itineraryState.value = newItinerary
-                        onSwiped()
-                    })
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .padding(paddingValues)
+            ) {
+                if (!hasAnyItems) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "No itinerary items found",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Add some activities to get started with your trip planning",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                } else {
+                    items(generateDateRange(startDate, endDate)) { date ->
+                        ItineraryDateSection(
+                            date = date,
+                            activities = currentItinerary[date].orEmpty(),
+                            onActivitySwiped = { swipedActivity, isCompleting ->
+                                // Toggle the specific activity's completion status locally
+                                val newItinerary = currentItinerary.toMutableMap()
+                                newItinerary[date] = newItinerary[date]?.map { activity ->
+                                    if (activity == swipedActivity) {
+                                        activity.copy(isCompleted = isCompleting)
+                                    } else activity
+                                } ?: emptyList()
+                                itineraryState.value = newItinerary
+
+                                // Callback to trigger server sync
+                                onSwiped()
+                            })
+                    }
+                }
             }
         }
     }
@@ -286,6 +317,12 @@ private fun ItineraryScreenPreview() {
 
     PreviewWrapper {
         ItineraryScreen(
-            navController = rememberNavController(), itinerary = mockItineraryData, onSwiped = {})
+            navController = rememberNavController(),
+            itinerary = mockItineraryData,
+            uiState = ItineraryUiState.Idle,
+            onRefresh = {},
+            onToggleCompletion = {},
+            onSwiped = {}
+        )
     }
 }

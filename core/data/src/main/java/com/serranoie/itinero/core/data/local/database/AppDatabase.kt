@@ -21,12 +21,7 @@ import com.serranoie.itinero.core.data.local.entity.ItineraryItemEntity
 import com.serranoie.itinero.core.data.local.entity.TripEntity
 
 @Database(
-    entities = [
-        TripEntity::class,
-        ItineraryItemEntity::class
-    ],
-    version = 2,
-    exportSchema = false
+    entities = [TripEntity::class, ItineraryItemEntity::class], version = 2, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
@@ -39,9 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "itinero_database"
+                    context.applicationContext, AppDatabase::class.java, "itinero_database"
                 ).build()
                 INSTANCE = instance
                 instance

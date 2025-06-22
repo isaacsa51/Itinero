@@ -84,6 +84,11 @@ dependencies {
     // Lifecycle viewmodel
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+
+    //Koin
+    implementation("io.insert-koin:koin-android:4.0.3")
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
 }
 
 kapt {
