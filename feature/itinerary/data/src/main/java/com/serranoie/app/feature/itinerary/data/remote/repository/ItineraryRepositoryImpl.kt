@@ -30,7 +30,13 @@ class ItineraryRepositoryImpl(
 ) : ItineraryRepository {
 
     /**
-     * Gets all itinerary items with cache-first strategy
+     * Retrieves all itinerary items for the specified group code using a cache-first strategy.
+     *
+     * Attempts to return cached items unless a forced refresh is requested. If the cache is empty or a refresh is forced, fetches items from the remote API and updates the cache. If the remote fetch fails and cached data exists, returns the cached items.
+     *
+     * @param groupCode The group code to filter itinerary items.
+     * @param forceRefresh If true, bypasses the cache and fetches from the remote API.
+     * @return A [Result] containing a list of itinerary items on success, or an error on failure.
      */
     override suspend fun getAllActivities(
         groupCode: String,
@@ -91,7 +97,13 @@ class ItineraryRepositoryImpl(
     }
 
     /**
-     * Gets itinerary item by ID with comprehensive caching strategy
+     * Retrieves a single itinerary item by its ID, using a cache-first strategy with optional forced refresh.
+     *
+     * If `forceRefresh` is false, attempts to return the cached item. If not found or if forced refresh is requested, fetches the item from the remote API and updates the cache on success. If the remote fetch fails and cached data exists, returns the cached item instead.
+     *
+     * @param itemId The unique identifier of the itinerary item to retrieve.
+     * @param forceRefresh If true, bypasses the cache and fetches the item from the remote API.
+     * @return A [Result] containing the itinerary item on success, or an error if both cache and remote fetch fail.
      */
     override suspend fun getActivityById(
         itemId: String,
@@ -146,7 +158,11 @@ class ItineraryRepositoryImpl(
     }
 
     /**
-     * Creates a new itinerary item
+     * Creates a new itinerary item for the specified group via the remote API and caches it locally on success.
+     *
+     * @param groupCode The code identifying the group to which the new itinerary item will belong.
+     * @param request The details of the itinerary item to create.
+     * @return A [Result] containing the created [ItineraryItem] on success, or an error on failure.
      */
     override suspend fun createActivity(
         groupCode: String,
@@ -166,7 +182,11 @@ class ItineraryRepositoryImpl(
     }
 
     /**
-     * Updates an existing itinerary item
+     * Updates an existing itinerary item remotely and refreshes the local cache with the updated data.
+     *
+     * @param itemId The unique identifier of the itinerary item to update.
+     * @param request The update details for the itinerary item.
+     * @return The result containing the updated itinerary item on success, or an error on failure.
      */
     override suspend fun updateActivityInfo(
         itemId: String,
@@ -188,7 +208,10 @@ class ItineraryRepositoryImpl(
     }
 
     /**
-     * Deletes an itinerary item
+     * Deletes an itinerary item by its ID from the remote source and removes it from the local cache on success.
+     *
+     * @param itemId The unique identifier of the itinerary item to delete.
+     * @return A [Result] indicating success or containing an error if the operation fails.
      */
     override suspend fun deleteActivityById(itemId: String): Result<Unit> {
         return when (val result = safeApiCall { api.deleteItineraryItem(itemId) }) {
@@ -202,7 +225,12 @@ class ItineraryRepositoryImpl(
     }
 
     /**
-     * Toggles the completion status of an itinerary item
+     * Toggles the completion status of the specified itinerary item via the remote API.
+     *
+     * After toggling, forces a refresh of the item's data to update the local cache.
+     *
+     * @param itemId The unique identifier of the itinerary item to toggle.
+     * @return A [Result] indicating success or failure of the toggle operation.
      */
     override suspend fun toggleActivityCompletion(itemId: String): Result<Unit> {
         return when (val result = safeApiCall { api.toggleItineraryItemCompletion(itemId) }) {
@@ -216,18 +244,26 @@ class ItineraryRepositoryImpl(
     }
 
     /**
-     * Gets cached itinerary items as a Flow for reactive UI updates
-     */
+         * Returns a reactive flow of cached itinerary items for UI updates.
+         *
+         * The flow emits updates whenever the cached itinerary data changes.
+         * @return A Flow emitting lists of cached itinerary items.
+         */
     fun getCachedItineraryFlow(): Flow<List<ItineraryItem>> =
         localRepository.getCachedItineraryFlow()
 
     /**
-     * Clears all cached itinerary items
-     */
+ * Removes all cached itinerary items from the local repository.
+ *
+ * @return A [Result] indicating success or failure of the cache clearing operation.
+ */
     suspend fun clearCache(): Result<Unit> = localRepository.clearAllItineraryItems()
 
     /**
-     * Checks if there's cached data available for a specific group
+     * Determines whether cached itinerary data exists for the specified group code.
+     *
+     * @param groupCode The group code to check for cached itinerary items.
+     * @return `true` if cached data exists for the group; `false` otherwise.
      */
     suspend fun hasCachedData(groupCode: String): Boolean {
         return when (val result = localRepository.getAllCachedItineraryItems()) {

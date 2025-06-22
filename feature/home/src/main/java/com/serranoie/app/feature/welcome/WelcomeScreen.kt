@@ -55,6 +55,14 @@ fun WelcomeScreen(
     }
 }
 
+/**
+ * Displays welcome options for creating a new trip or joining an existing trip.
+ *
+ * Presents a welcome message and two action buttons, allowing the user to either start a new trip or join one using a code.
+ *
+ * @param onCreateTrip Callback invoked when the "Create new trip" button is clicked.
+ * @param onJoinTrip Callback invoked when the "Join with code" button is clicked.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WelcomeOptions(onCreateTrip: () -> Unit, onJoinTrip: () -> Unit) {
@@ -96,6 +104,16 @@ fun WelcomeOptions(onCreateTrip: () -> Unit, onJoinTrip: () -> Unit) {
     }
 }
 
+/**
+ * Displays a stylized, clickable button with an image and a label for trip-related actions.
+ *
+ * The button shows an image above a text label and triggers the provided click handler when pressed.
+ *
+ * @param title The text label displayed below the image.
+ * @param imageRes The drawable resource ID for the image shown on the button.
+ * @param modifier Optional modifier for customizing the button's appearance and layout.
+ * @param onClick Lambda invoked when the button is clicked.
+ */
 @Composable
 fun ActionTripButton(
     title: String,

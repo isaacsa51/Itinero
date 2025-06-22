@@ -20,17 +20,56 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 interface LocalItineraryRepository {
-    suspend fun getAllCachedItineraryItems(): Result<List<ItineraryItem>>
-    suspend fun getCachedItineraryItemById(itineraryId: String): Result<ItineraryItem?>
-    suspend fun updateItineraryItem(itinerary: ItineraryItem): Result<Unit>
-    suspend fun deleteItineraryItemById(itineraryId: String): Result<Unit>
-    suspend fun clearAllItineraryItems(): Result<Unit>
-    fun getCachedItineraryFlow(): Flow<List<ItineraryItem>>
+    /**
+ * Retrieves all cached itinerary items from local storage.
+ *
+ * @return A [Result] containing a list of all cached [ItineraryItem]s on success, or an error on failure.
+ */
+suspend fun getAllCachedItineraryItems(): Result<List<ItineraryItem>>
+    /**
+ * Retrieves a cached itinerary item by its unique identifier.
+ *
+ * @param itineraryId The unique identifier of the itinerary item to retrieve.
+ * @return A [Result] containing the itinerary item if found, or null if not found.
+ */
+suspend fun getCachedItineraryItemById(itineraryId: String): Result<ItineraryItem?>
+    /**
+ * Updates or inserts the given itinerary item in the local cache.
+ *
+ * @param itinerary The itinerary item to be updated or inserted.
+ * @return A [Result] indicating success or containing an error if the operation fails.
+ */
+suspend fun updateItineraryItem(itinerary: ItineraryItem): Result<Unit>
+    /**
+ * Deletes the cached itinerary item with the specified ID.
+ *
+ * @param itineraryId The unique identifier of the itinerary item to delete.
+ * @return A [Result] indicating success or containing an error if the operation fails.
+ */
+suspend fun deleteItineraryItemById(itineraryId: String): Result<Unit>
+    /**
+ * Removes all cached itinerary items from local storage.
+ *
+ * @return A [Result] indicating success or containing an error if the operation fails.
+ */
+suspend fun clearAllItineraryItems(): Result<Unit>
+    /**
+ * Returns a reactive flow emitting the current list of cached itinerary items.
+ *
+ * The flow emits updates whenever the underlying itinerary data changes.
+ * @return A Flow emitting lists of itinerary items.
+ */
+fun getCachedItineraryFlow(): Flow<List<ItineraryItem>>
 }
 
 class LocalItineraryRepositoryImpl(
     private val itineraryDao: ItineraryDao
 ) : LocalItineraryRepository {
+    /**
+     * Retrieves all cached itinerary items from the local database.
+     *
+     * @return A [Result] containing a list of [ItineraryItem] on success, or an error if retrieval fails.
+     */
     override suspend fun getAllCachedItineraryItems(): Result<List<ItineraryItem>> {
         return try {
             val entities = itineraryDao.getAllItineraryItems()
@@ -41,6 +80,12 @@ class LocalItineraryRepositoryImpl(
         }
     }
 
+    /**
+     * Retrieves a cached itinerary item by its ID.
+     *
+     * @param itineraryId The unique identifier of the itinerary item.
+     * @return A [Result] containing the itinerary item if found, or null if not found; returns [Result.Error] if an exception occurs.
+     */
     override suspend fun getCachedItineraryItemById(itineraryId: String): Result<ItineraryItem?> {
         return try {
             val entity = itineraryDao.getItineraryItemById(itineraryId.toInt())
@@ -51,6 +96,12 @@ class LocalItineraryRepositoryImpl(
         }
     }
 
+    /**
+     * Inserts or updates an itinerary item in the local database.
+     *
+     * @param itinerary The itinerary item to be inserted or updated.
+     * @return A [Result] indicating success or containing an error if the operation fails.
+     */
     override suspend fun updateItineraryItem(itinerary: ItineraryItem): Result<Unit> {
         return try {
             itineraryDao.insertOrUpdateItineraryItem(itinerary.toEntity())
@@ -60,6 +111,12 @@ class LocalItineraryRepositoryImpl(
         }
     }
 
+    /**
+     * Deletes a cached itinerary item by its ID.
+     *
+     * @param itineraryId The unique identifier of the itinerary item to delete.
+     * @return A [Result] indicating success or containing an error if the operation fails.
+     */
     override suspend fun deleteItineraryItemById(itineraryId: String): Result<Unit> {
         return try {
             itineraryDao.deleteItineraryItem(itineraryId.toInt())
@@ -69,6 +126,11 @@ class LocalItineraryRepositoryImpl(
         }
     }
 
+    /**
+     * Removes all cached itinerary items from the local database.
+     *
+     * @return A [Result] indicating success or containing an error if the operation fails.
+     */
     override suspend fun clearAllItineraryItems(): Result<Unit> {
         return try {
             itineraryDao.clearAllItineraryItems()
@@ -78,6 +140,12 @@ class LocalItineraryRepositoryImpl(
         }
     }
 
+    /**
+     * Returns a reactive flow emitting the current list of cached itinerary items.
+     *
+     * The flow emits updates whenever the underlying itinerary data changes.
+     * @return A [Flow] of lists containing [ItineraryItem] objects.
+     */
     override fun getCachedItineraryFlow(): Flow<List<ItineraryItem>> {
         return itineraryDao.getAllItineraryItemsFlow().map { entities ->
             entities.map { it.toDomain() }

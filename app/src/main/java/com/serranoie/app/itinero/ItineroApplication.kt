@@ -11,6 +11,11 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
 class ItineroApplication : Application() {
+    /**
+     * Initializes the application and sets up dependency injection with Koin.
+     *
+     * This method configures Koin with Android logging, the application context, and all required dependency modules when the application starts.
+     */
     override fun onCreate() {
         super.onCreate()
 

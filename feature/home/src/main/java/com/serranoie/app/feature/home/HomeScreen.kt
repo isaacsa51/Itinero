@@ -69,6 +69,15 @@ enum class TripStatus {
     PENDING, ACTIVE, COMPLETED
 }
 
+/**
+ * Determines the trip status and related date information based on provided start and end date strings.
+ *
+ * Attempts to parse the input dates using multiple common formats. Returns a [TripDateInfo] indicating whether the trip is pending, active, or completed, along with a display text and subtitle summarizing the trip's timing. If parsing fails or an error occurs, returns a pending status with an appropriate error message.
+ *
+ * @param startDate The trip's start date as a string in one of several supported formats.
+ * @param endDate The trip's end date as a string in one of several supported formats.
+ * @return A [TripDateInfo] object containing the trip status, display text, and subtitle.
+ */
 fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
     return try {
         val formatters = listOf(
@@ -148,6 +157,18 @@ fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
     }
 }
 
+/**
+ * Displays the main home screen for the travel app, presenting trip details and handling user interactions.
+ *
+ * Shows a top app bar, supports pull-to-refresh, and displays trip details content. Handles UI state changes by showing error messages and fetching travel data as needed.
+ *
+ * @param tripId The unique identifier for the trip to display.
+ * @param uiState The current UI state for the home screen.
+ * @param onShowSnackbar Callback to display a snackbar with a message when an error occurs.
+ * @param onGetTravel Callback to fetch the latest travel data.
+ * @param onRefresh Callback triggered when the user performs a pull-to-refresh action.
+ * @param tripInfo Optional trip information to display in the details section.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -197,6 +218,15 @@ fun HomeScreen(
     }
 }
 
+/**
+ * Displays detailed information about a trip, including destination, dates, group members, summary, accommodation, and travel details.
+ *
+ * Presents various cards and sections for trip data, with expandable accommodation details and navigation support.
+ *
+ * @param navController Navigation controller for handling navigation actions.
+ * @param tripId The unique identifier of the trip to display.
+ * @param tripInfo The trip data to present; if null, only static UI elements are shown.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripDetailsScreen(
@@ -336,6 +366,17 @@ fun DestinationCard(
     }
 }
 
+/**
+ * Displays a card with a title, a marquee-style value, and a subtitle for presenting date-related information.
+ *
+ * Commonly used to show trip date status or countdowns in a visually distinct format.
+ *
+ * @param title The label displayed at the top of the card.
+ * @param value The main value, shown with marquee animation if needed.
+ * @param subtitle Additional context or description shown below the value.
+ * @param modifier Optional modifier for styling or layout.
+ * @param cardColors Optional color scheme for the card.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DateInfoCard(
@@ -373,10 +414,15 @@ fun DateInfoCard(
     }
 }
 
-/* TODO: Change subtitle depending of the pending invitations like following :
-    - Group ready
-    - Waiting for more
-    - All confirmed
+/**
+ * Displays a card summarizing the number of confirmed people in the trip group.
+ *
+ * Shows the total confirmed count and a subtitle indicating group status, such as "Waiting people to join" or "Group ready", based on the number of confirmed members relative to the total group size.
+ *
+ * @param confirmedCount The number of confirmed group members.
+ * @param modifier Modifier for styling and layout.
+ * @param tripInfo The trip data containing total group member information.
+ * @param cardColors The color scheme for the card.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -503,6 +549,12 @@ fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
     }
 }
 
+/**
+ * Displays a clickable summary section for a trip, including the trip summary and a placeholder for an AI-generated summary.
+ *
+ * @param onClick Callback invoked when the section is clicked.
+ * @param tripInfo The trip whose summary is displayed.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SummarySection(onClick: () -> Unit, tripInfo: Trip) {

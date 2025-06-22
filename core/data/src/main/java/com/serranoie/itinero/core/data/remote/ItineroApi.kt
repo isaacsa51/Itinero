@@ -25,6 +25,12 @@ interface ItineroApi {
     suspend fun createTrip(request: CreateTripDto): CreateTripDto
     suspend fun updateTripInfo(groupCode: String, request: UpdateTrip)
     suspend fun joinTrip(groupCode: String)
-    suspend fun deleteTrip()
-    suspend fun leaveTrip()
+    /**
+ * Deletes the current trip associated with the user.
+ */
+suspend fun deleteTrip()
+    /**
+ * Removes the current user from their active trip.
+ */
+suspend fun leaveTrip()
 }

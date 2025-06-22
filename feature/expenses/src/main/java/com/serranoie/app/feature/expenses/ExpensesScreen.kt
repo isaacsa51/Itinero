@@ -176,6 +176,12 @@ fun BalanceCircles(
     }
 }
 
+/**
+ * Displays a section for a specific date, showing either a message if there are no expenses or a list of expense cards for that date.
+ *
+ * @param date The date for which expenses are displayed.
+ * @param expenses The list of expenses associated with the given date.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpensesDateSection(date: LocalDate, expenses: List<ExpenseItem>) {

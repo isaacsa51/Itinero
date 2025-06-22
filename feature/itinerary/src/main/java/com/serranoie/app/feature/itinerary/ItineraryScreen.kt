@@ -67,6 +67,18 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeActionsCon
 import com.serranoie.app.feature.itinerary.util.generateDateRange
 import java.time.LocalDate
 
+/**
+ * Displays an itinerary grouped by date, allowing users to view, refresh, and manage activities.
+ *
+ * Shows a top app bar with navigation and options, supports pull-to-refresh, and lists activities for each date in the itinerary. Users can swipe activities to toggle their completion status. If no activities are present, a placeholder message is shown.
+ *
+ * @param navController Navigation controller for handling navigation actions.
+ * @param itinerary Map of dates to lists of itinerary activities.
+ * @param uiState Current UI state, used to control loading and refreshing indicators.
+ * @param onRefresh Callback invoked when the user triggers a refresh.
+ * @param onToggleCompletion Callback invoked with the activity ID when toggling completion status.
+ * @param onSwiped Callback invoked when an activity without an ID is swiped.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItineraryScreen(
@@ -170,6 +182,15 @@ fun ItineraryScreen(
     }
 }
 
+/**
+ * Displays a section of the itinerary for a specific date, including a date header and a list of activities.
+ *
+ * Shows a placeholder message if there are no activities for the date. Each activity is presented in a swipeable card, allowing users to toggle its completion status via swipe gestures.
+ *
+ * @param date The date for which the activities are displayed.
+ * @param activities The list of itinerary activities scheduled for the given date.
+ * @param onActivitySwiped Callback invoked when an activity is swiped, with the activity and its new completion state.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ItineraryDateSection(
@@ -283,6 +304,9 @@ data class SwipeActionsConfig(
     val onDismiss: () -> Unit,
 )
 
+/**
+ * Displays a preview of the ItineraryScreen composable with mock itinerary data for design and testing purposes.
+ */
 @ThemePreviews
 @Composable
 private fun ItineraryScreenPreview() {

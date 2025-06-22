@@ -15,10 +15,21 @@ object UnauthorizedHandler {
 
     private var authTokenClearer: (() -> Unit)? = null
 
+    /**
+     * Sets the function to be called for clearing the authentication token during logout.
+     *
+     * @param clearer A function that clears the stored authentication token.
+     */
     fun setAuthTokenClearer(clearer: () -> Unit) {
         authTokenClearer = clearer
     }
 
+    /**
+     * Handles an HTTP 401 Unauthorized response by logging out the user and notifying observers.
+     *
+     * Invokes the configured authentication token clearer, if set, and emits a logout event to notify the UI for navigation changes.
+     * Any exceptions during this process are caught and logged.
+     */
     fun handleUnauthorized() {
         try {
             Log.w("UnauthorizedHandler", "401 Unauthorized detected - logging out user")

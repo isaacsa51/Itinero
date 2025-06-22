@@ -52,6 +52,13 @@ class MainActivity : ComponentActivity() {
     private val authPreferences: AuthPreferences by inject()
     private val authRepository: AuthRepository by inject()
 
+    /**
+     * Initializes the main activity, sets up splash screen, edge-to-edge display, authentication handling, and Compose UI content.
+     *
+     * Configures the UnauthorizedHandler to clear authentication tokens and perform logout on unauthorized events. Determines the navigation start destination asynchronously by checking onboarding completion and validating the authentication token with the server before rendering the navigation graph. Listens for logout events to redirect users to the authentication screen and clear the navigation stack.
+     *
+     * @param savedInstanceState The previously saved instance state, if any.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
@@ -123,6 +130,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Determines the initial navigation route based on onboarding completion and authentication token validity.
+     *
+     * Checks if onboarding is completed, retrieves and validates the stored authentication token with the server,
+     * and returns the appropriate navigation route for onboarding, authentication, or the main welcome screen.
+     *
+     * @return The route string to use as the navigation start destination.
+     */
     private suspend fun determineStartDestination(): String {
         return withContext(Dispatchers.IO) {
             // Step 1: Check onboarding completion first
@@ -168,6 +183,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Attempts to validate the current authentication token by making an authenticated request to the server.
+     *
+     * If the request succeeds, the token is considered valid. If a 401 Unauthorized error occurs, an
+     * UnauthorizedException is thrown to indicate the token is invalid. Other exceptions (such as network errors)
+     * are logged but do not affect token validity.
+     *
+     * @throws com.serranoie.itinero.core.data.remote.UnauthorizedException if the token is invalid or expired.
+     */
     private suspend fun validateTokenWithServer() {
         // We can use any simple authenticated endpoint to validate the token
         // The 401 handling will be automatic via our UnauthorizedHandler

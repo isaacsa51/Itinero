@@ -24,13 +24,31 @@ import com.serranoie.itinero.core.data.local.entity.TripEntity
     entities = [TripEntity::class, ItineraryItemEntity::class], version = 2, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun tripDao(): TripDao
-    abstract fun itineraryDao(): ItineraryDao
+    /**
+ * Provides access to trip-related database operations.
+ *
+ * @return The DAO for managing trip entities.
+ */
+abstract fun tripDao(): TripDao
+    /**
+ * Provides access to itinerary item data operations through the ItineraryDao.
+ *
+ * @return An instance of ItineraryDao for performing database operations on itinerary items.
+ */
+abstract fun itineraryDao(): ItineraryDao
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        /**
+         * Returns the singleton instance of the AppDatabase, creating it if it does not already exist.
+         *
+         * Ensures thread-safe initialization of the Room database using the application context.
+         *
+         * @param context The context used to access the application environment.
+         * @return The singleton AppDatabase instance.
+         */
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(

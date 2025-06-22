@@ -36,6 +36,16 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpInputField
 import com.serranoie.app.feature.TravelUiState
 
+/**
+ * Displays a screen for joining a trip by entering a 5-character code or scanning a QR code.
+ *
+ * Shows input fields and buttons for joining a trip, handling loading and error states, and navigation actions.
+ *
+ * @param uiState The current UI state for the join trip process.
+ * @param onTripJoined Callback invoked with the trip code (prefixed with "ITN-") when the user attempts to join.
+ * @param onNavigateBack Callback invoked when the user navigates back.
+ * @param onNavigateToCameraScanner Callback invoked when the user chooses to scan a QR code.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun JoinTripScreen(

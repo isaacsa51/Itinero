@@ -46,6 +46,13 @@ import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/**
+ * Displays the main navigation and UI structure for a trip, including navigation between Home, Itinerary, Expenses, Chat, and trip settings screens.
+ *
+ * Sets up navigation, collects trip and UI state, and conditionally displays a horizontal floating toolbar for quick access to key destinations and actions within the trip context.
+ *
+ * @param tripId The unique identifier for the trip whose details and screens are to be managed.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeRootScreen(

@@ -46,6 +46,12 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
 
     private var currentGroupCode: String = ""
 
+    /**
+     * Loads all itinerary items for the specified group and updates the UI state accordingly.
+     *
+     * @param groupCode The code identifying the group whose itinerary should be fetched.
+     * @param forceRefresh If true, forces a refresh from the data source instead of using cached data.
+     */
     fun fetchItinerary(groupCode: String, forceRefresh: Boolean = false) {
         currentGroupCode = groupCode
         viewModelScope.launch(Dispatchers.IO) {
@@ -67,6 +73,15 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
+    /**
+     * Fetches a specific itinerary activity by its ID and updates the UI state and selected item.
+     *
+     * If the operation succeeds, the selected item and UI state are updated with the retrieved activity.
+     * If it fails, the UI state is set to an error with the corresponding message.
+     *
+     * @param itemId The unique identifier of the itinerary activity to fetch.
+     * @param forceRefresh Whether to bypass any cached data and force a fresh fetch.
+     */
     fun getActivityById(itemId: String, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
@@ -90,6 +105,15 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
+    /**
+     * Creates a new itinerary activity for the specified group and updates the UI state.
+     *
+     * On success, updates the UI state and refreshes the itinerary list to include the new activity.
+     * On failure, sets the UI state to error with the relevant message.
+     *
+     * @param groupCode The code identifying the group for which the activity is created.
+     * @param request The details of the activity to be created.
+     */
     fun createActivity(groupCode: String, request: CreateItineraryItem) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
@@ -114,6 +138,15 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
+    /**
+     * Updates an existing itinerary activity with new information.
+     *
+     * Updates the selected item and UI state upon success, and refreshes the itinerary list if a group code is set.
+     * Sets the UI state to error if the update fails.
+     *
+     * @param itemId The ID of the itinerary activity to update.
+     * @param request The updated activity information.
+     */
     fun updateActivity(itemId: String, request: UpdateItineraryItem) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
@@ -141,6 +174,13 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
+    /**
+     * Deletes an itinerary activity by its ID and updates the UI state and local data accordingly.
+     *
+     * Removes the deleted item from the local itinerary list and clears the selected item if it matches the deleted ID. If a group code is set, refreshes the itinerary data after deletion.
+     *
+     * @param itemId The unique identifier of the itinerary activity to delete.
+     */
     fun deleteActivity(itemId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
@@ -172,6 +212,14 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
+    /**
+     * Toggles the completion status of an itinerary activity by its ID.
+     *
+     * Updates the local itinerary data and selected item to reflect the new completion status.
+     * If a group code is set, refreshes the itinerary data after toggling.
+     *
+     * @param itemId The ID of the itinerary activity to toggle.
+     */
     fun toggleActivityCompletion(itemId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             when (val result = itineraryUseCase.toggleActivityCompletionUseCase(itemId)) {
@@ -209,14 +257,25 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
+    /**
+     * Clears the currently selected itinerary item.
+     */
     fun clearSelectedItem() {
         _selectedItem.value = null
     }
 
+    /**
+     * Resets the UI state to Idle, indicating no operation is in progress.
+     */
     fun resetState() {
         _uiState.value = ItineraryUiState.Idle
     }
 
+    /**
+     * Forces a refresh of the itinerary data for the current group code, if set.
+     *
+     * If a current group code exists, triggers a reload of all itinerary items from the source.
+     */
     fun refreshData() {
         Log.d(
             "ITINERO - Itinerary ViewModel",

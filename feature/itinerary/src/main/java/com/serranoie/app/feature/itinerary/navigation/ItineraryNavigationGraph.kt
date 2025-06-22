@@ -19,6 +19,15 @@ import java.time.format.DateTimeFormatter
 import com.serranoie.app.feature.itinerary.ItineraryItem as ScreenItineraryItem
 import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem as DomainItineraryItem
 
+/**
+ * Adds itinerary-related navigation destinations to the navigation graph.
+ *
+ * Defines composable routes for viewing and creating itinerary items, wiring them to the appropriate ViewModel and UI screens. The itinerary screen displays grouped itinerary data and supports refreshing, toggling completion, and swipe actions. The add itinerary screen enables creation and updating of itinerary activities, navigating back upon save completion.
+ *
+ * @param navController The navigation controller used for navigation actions.
+ * @param tripId The identifier for the trip, used as a fallback if group code is not available.
+ * @param tripData Optional trip data containing the group code for itinerary operations.
+ */
 fun NavGraphBuilder.itineraryGraph(
     navController: NavController, tripId: String, tripData: Trip? = null
 ) {
@@ -97,7 +106,15 @@ fun NavGraphBuilder.itineraryGraph(
     }
 }
 
-// Convert domain model to screen model
+/**
+ * Converts a list of domain itinerary items into a map of screen itinerary items grouped by date.
+ *
+ * Each domain item is parsed for its date, and items are grouped by this date. If date parsing fails, the current date is used as a fallback.
+ * The resulting map's keys are the parsed dates, and the values are lists of screen model items with formatted time and relevant details.
+ *
+ * @param domainItems The list of domain itinerary items to convert.
+ * @return A map where each key is a date and the value is a list of corresponding screen itinerary items for that date.
+ */
 private fun convertDomainToScreenModel(
     domainItems: List<DomainItineraryItem>
 ): Map<LocalDate, List<ScreenItineraryItem>> {
@@ -126,6 +143,14 @@ private fun convertDomainToScreenModel(
     return result
 }
 
+/**
+ * Extracts and formats the time portion from an ISO-like datetime string.
+ *
+ * Returns the time in 12-hour format with AM/PM (e.g., "3:45 PM"). If extraction fails or the time is missing, returns "TBD".
+ *
+ * @param dateTime The datetime string to extract the time from.
+ * @return The formatted time string or "TBD" if extraction fails.
+ */
 private fun extractTime(dateTime: String): String {
     return try {
         val timePart = dateTime.split("T").getOrNull(1)?.split(":")

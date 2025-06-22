@@ -139,6 +139,9 @@ class TravelListViewModel(
         }
     }
 
+    /**
+     * Resets the travel list UI state to idle and clears the list of travels.
+     */
     fun resetState() {
         _uiState.value = TravelUiState.Idle
         _travels.value = emptyList()

@@ -59,6 +59,16 @@ import kotlin.math.max
 import kotlin.math.sin
 import java.util.Locale
 
+/**
+ * Displays a screen for creating or editing an itinerary event.
+ *
+ * Shows a form for entering event details such as name, time, location, and summary. If an existing item is provided, the form is pre-filled for editing; otherwise, it supports creating a new event. In creation mode, a sample suggestion and animated card are shown to assist the user. On saving, invokes the appropriate callback for creation or update, followed by a completion callback.
+ *
+ * @param existingItem The itinerary item to edit, or null to create a new event.
+ * @param onCreateActivity Callback invoked with event details when creating a new event.
+ * @param onUpdateActivity Callback invoked with the event ID and updated details when editing an existing event.
+ * @param onSaveComplete Callback invoked after the save operation completes.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateEventScreen(
@@ -230,6 +240,17 @@ data class TaskInfo(
     val name: String, val time: String, val location: String, val summary: String
 )
 
+/**
+ * Displays a card with a continuously rotating animated gradient border and event details.
+ *
+ * The card shows a title and three rows for time, location, and description, each with an icon. The border animates with a multi-color gradient effect.
+ *
+ * @param title The main title displayed at the top of the card.
+ * @param time The event time shown with a clock icon.
+ * @param location The event location shown with a location icon.
+ * @param description The event description shown with a help icon.
+ * @param modifier Optional modifier for styling or layout.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AnimatedBorderCard(
@@ -365,6 +386,12 @@ fun AnimatedBorderCard(
     }
 }
 
+/**
+ * Displays a horizontal row with an icon and accompanying text, aligned vertically center.
+ *
+ * @param icon The icon to display at the start of the row.
+ * @param text The text to display next to the icon.
+ */
 @Composable
 fun InfoRow(
     icon: ImageVector, text: String,
@@ -382,6 +409,9 @@ fun InfoRow(
     }
 }
 
+/**
+ * Displays a preview of the CreateEventScreen composable for UI testing and design inspection.
+ */
 @ThemePreviews
 @Composable
 private fun CreateEventScreenPreview() {

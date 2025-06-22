@@ -37,6 +37,11 @@ import com.serranoie.app.feature.welcome.camera.CameraScannerScreen
 import org.koin.androidx.compose.koinViewModel
 
 class WelcomeNavigationGraph : NavigationGraph {
+    /**
+     * Builds the navigation graph for the welcome feature, orchestrating navigation between loading, welcome, travel creation, trip joining, camera scanning, and travel list screens.
+     *
+     * Sets up an initial loading check to determine if the user has existing trips and navigates accordingly. Handles navigation and UI state transitions for creating and joining trips, as well as displaying the travel list and camera scanner screens.
+     */
     @SuppressLint("UnrememberedGetBackStackEntry")
     override fun NavGraphBuilder.build(navController: NavHostController) {
         navigation(
@@ -229,6 +234,9 @@ class WelcomeNavigationGraph : NavigationGraph {
     }
 }
 
+/**
+ * Displays a full-screen loading indicator with a message while trips are being loaded.
+ */
 @Composable
 private fun LoadingScreen() {
     Box(

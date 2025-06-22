@@ -16,6 +16,13 @@ abstract class BaseApiClient(
     protected val baseUrl: String = "http://192.168.100.3:8080"
 ) {
 
+    /**
+     * Sends an HTTP GET request to the specified endpoint with optional query parameters and returns the response deserialized to the specified type.
+     *
+     * @param endpoint The API endpoint to send the GET request to, relative to the base URL.
+     * @param queryParams Optional query parameters to include in the request.
+     * @return The response body deserialized as the specified type [T].
+     */
     protected suspend inline fun <reified T> get(
         endpoint: String,
         queryParams: Map<String, Any> = emptyMap()
@@ -28,6 +35,14 @@ abstract class BaseApiClient(
         return handleResponse(response)
     }
 
+    /**
+     * Sends an HTTP POST request to the specified endpoint with an optional JSON body and query parameters, and returns the deserialized response.
+     *
+     * @param endpoint The API endpoint to send the POST request to.
+     * @param body The optional request body to be serialized as JSON.
+     * @param queryParams Optional query parameters to include in the request URL.
+     * @return The response body deserialized to type [T].
+     */
     protected suspend inline fun <reified T, reified R> post(
         endpoint: String,
         body: R? = null,
@@ -45,6 +60,13 @@ abstract class BaseApiClient(
         return handleResponse(response)
     }
 
+    /**
+     * Sends an HTTP PUT request to the specified endpoint with an optional JSON body and returns the deserialized response.
+     *
+     * @param endpoint The API endpoint to send the PUT request to, relative to the base URL.
+     * @param body The optional request body to be serialized as JSON.
+     * @return The response body deserialized to type [T].
+     */
     protected suspend inline fun <reified T, reified R> put(
         endpoint: String,
         body: R? = null
@@ -58,6 +80,12 @@ abstract class BaseApiClient(
         return handleResponse(response)
     }
 
+    /**
+     * Sends an HTTP DELETE request to the specified endpoint and returns the response deserialized as type [T].
+     *
+     * @param endpoint The API endpoint to send the DELETE request to, relative to the base URL.
+     * @return The response body deserialized as type [T].
+     */
     protected suspend inline fun <reified T> delete(
         endpoint: String
     ): T {
@@ -65,6 +93,13 @@ abstract class BaseApiClient(
         return handleResponse(response)
     }
 
+    /**
+     * Sends an HTTP PATCH request with an optional JSON body to the specified endpoint and returns the deserialized response.
+     *
+     * @param endpoint The API endpoint to send the PATCH request to.
+     * @param body The optional request body to be serialized as JSON.
+     * @return The response body deserialized to the specified type [T].
+     */
     protected suspend inline fun <reified T> patch(
         endpoint: String,
         body: Any? = null
@@ -78,6 +113,15 @@ abstract class BaseApiClient(
         return handleResponse(response)
     }
 
+    /**
+     * Processes an HTTP response, throwing exceptions for error statuses and returning the deserialized body for successful responses.
+     *
+     * If the response status is 401 Unauthorized, triggers automatic logout and throws an [UnauthorizedException].
+     * For other error statuses, throws a generic [Exception] with the status code and error message.
+     *
+     * @param response The HTTP response to process.
+     * @return The response body deserialized to the expected type [T].
+     */
     protected suspend inline fun <reified T> handleResponse(response: HttpResponse): T {
         if (!response.status.isSuccess()) {
             val errorBody = try {
