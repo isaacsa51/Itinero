@@ -11,6 +11,7 @@
 
 package com.serranoie.app.feature.itinerary
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.app.feature.itinerary.domain.model.CreateItineraryItem
@@ -49,6 +50,7 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         currentGroupCode = groupCode
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
+
             when (val result = itineraryUseCase.getAllActivitiesUseCase(groupCode, forceRefresh)) {
                 is Result.Success -> {
                     _itineraryData.value = result.data
@@ -56,8 +58,10 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 }
 
                 is Result.Error -> {
-                    _uiState.value =
-                        ItineraryUiState.Error(result.exception.message ?: "Unknown error")
+                    Log.e("ITINERO - Itinerary ViewModel", "Error: ${result.exception.message}")
+                    _uiState.value = ItineraryUiState.Error(
+                        result.exception.message ?: "Unknown error"
+                    )
                 }
             }
         }
@@ -73,6 +77,11 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 }
 
                 is Result.Error -> {
+                    Log.e(
+                        "ITINERO - Itinerary ViewModel",
+                        "Failed to fetch activity with id: $itemId",
+                        result.exception
+                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Unknown error"
                     )
@@ -92,6 +101,11 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 }
 
                 is Result.Error -> {
+                    Log.e(
+                        "ITINERO - Itinerary ViewModel",
+                        "Failed to create activity",
+                        result.exception
+                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Failed to create activity"
                     )
@@ -114,6 +128,11 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 }
 
                 is Result.Error -> {
+                    Log.e(
+                        "ITINERO - Itinerary ViewModel",
+                        "Failed to update activity with id: $itemId",
+                        result.exception
+                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Failed to update activity"
                     )
@@ -131,17 +150,20 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                     // Remove the item from local state
                     _itineraryData.value =
                         _itineraryData.value.filter { it.id.toString() != itemId }
-                    // Clear selected item if it was deleted
                     if (_selectedItem.value?.id.toString() == itemId) {
                         _selectedItem.value = null
                     }
-                    // Refresh the list to ensure consistency
                     if (currentGroupCode.isNotEmpty()) {
                         fetchItinerary(currentGroupCode, forceRefresh = true)
                     }
                 }
 
                 is Result.Error -> {
+                    Log.e(
+                        "ITINERO - Itinerary ViewModel",
+                        "Failed to delete activity with id: $itemId",
+                        result.exception
+                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Failed to delete activity"
                     )
@@ -154,7 +176,6 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         viewModelScope.launch(Dispatchers.IO) {
             when (val result = itineraryUseCase.toggleActivityCompletionUseCase(itemId)) {
                 is Result.Success -> {
-                    // Update local state optimistically
                     _itineraryData.value = _itineraryData.value.map { item ->
                         if (item.id.toString() == itemId) {
                             item.copy(isCompleted = !item.isCompleted)
@@ -162,19 +183,24 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                             item
                         }
                     }
-                    // Update selected item if it matches
+
                     _selectedItem.value?.let { selected ->
                         if (selected.id.toString() == itemId) {
                             _selectedItem.value = selected.copy(isCompleted = !selected.isCompleted)
                         }
                     }
-                    // Refresh data from server to ensure consistency
+
                     if (currentGroupCode.isNotEmpty()) {
                         fetchItinerary(currentGroupCode, forceRefresh = true)
                     }
                 }
 
                 is Result.Error -> {
+                    Log.e(
+                        "ITINERO - Itinerary ViewModel",
+                        "Failed to toggle completion for activity with id: $itemId",
+                        result.exception
+                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Failed to toggle completion"
                     )
@@ -192,6 +218,10 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
     }
 
     fun refreshData() {
+        Log.d(
+            "ITINERO - Itinerary ViewModel",
+            "refreshData called with currentGroupCode: $currentGroupCode"
+        )
         if (currentGroupCode.isNotEmpty()) {
             fetchItinerary(currentGroupCode, forceRefresh = true)
         }

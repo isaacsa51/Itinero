@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.itinerary
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.Bottom
 import androidx.compose.foundation.layout.Box
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,6 +44,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -107,11 +108,7 @@ fun ItineraryScreen(
             scrollBehavior = scrollBehavior
         )
     }) { paddingValues ->
-        val itineraryState = remember { mutableStateOf(itinerary) }
-        val currentItinerary by itineraryState
-
-        // Check if there are any items across all dates
-        val hasAnyItems = currentItinerary.values.any { it.isNotEmpty() }
+        val hasAnyItems = itinerary.values.any { it.isNotEmpty() }
 
         PullToRefreshBox(
             isRefreshing = uiState is ItineraryUiState.Loading,
@@ -149,19 +146,22 @@ fun ItineraryScreen(
                     items(generateDateRange(startDate, endDate)) { date ->
                         ItineraryDateSection(
                             date = date,
-                            activities = currentItinerary[date].orEmpty(),
+                            activities = itinerary[date].orEmpty(), // Use itinerary directly
                             onActivitySwiped = { swipedActivity, isCompleting ->
-                                // Toggle the specific activity's completion status locally
-                                val newItinerary = currentItinerary.toMutableMap()
-                                newItinerary[date] = newItinerary[date]?.map { activity ->
-                                    if (activity == swipedActivity) {
-                                        activity.copy(isCompleted = isCompleting)
-                                    } else activity
-                                } ?: emptyList()
-                                itineraryState.value = newItinerary
+                                Log.d(
+                                    "ITINERO - ItineraryScreen",
+                                    "Swiped activity: ${swipedActivity.title}, isCompleting: $isCompleting"
+                                )
 
-                                // Callback to trigger server sync
-                                onSwiped()
+                                if (!swipedActivity.id.isNullOrEmpty()) {
+                                    onToggleCompletion(swipedActivity.id)
+                                } else {
+                                    Log.w(
+                                        "ITINERO - ItineraryScreen",
+                                        "Activity has no ID, cannot toggle completion"
+                                    )
+                                    onSwiped()
+                                }
                             })
                     }
                 }
@@ -206,7 +206,6 @@ fun ItineraryDateSection(
                         swipeable = true,
                         isCompleted = activity.isCompleted,
                         onSwipe = {
-                            // Toggle completion status based on current state
                             onActivitySwiped(activity, !activity.isCompleted)
                         },
                         headerTitle = activity.title,
@@ -249,7 +248,6 @@ fun ItineraryDateSection(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                // Make the divider match the card width instead of full width
                 Box(modifier = Modifier.fillMaxWidth()) {
                     HorizontalDivider(
                         modifier = Modifier
@@ -267,6 +265,7 @@ fun ItineraryDateSection(
 
 // Data model for itinerary item
 data class ItineraryItem(
+    val id: String? = null,
     val title: String,
     val time: String,
     val location: String,
@@ -292,12 +291,14 @@ private fun ItineraryScreenPreview() {
     val mockItineraryData = mapOf(
         startDate to listOf(
             ItineraryItem(
+                id = "1", // Add ID for preview
                 title = "Visit Eiffel Tower",
                 time = "10:00 AM",
                 location = "Champ de Mars, Paris",
                 description = "Enjoy the view from the top",
                 isCompleted = false
             ), ItineraryItem(
+                id = "2", // Add ID for preview
                 title = "Lunch at Le Jules Verne",
                 time = "1:00 PM",
                 location = "Eiffel Tower, 2nd floor",
@@ -306,6 +307,7 @@ private fun ItineraryScreenPreview() {
             )
         ), startDate.plusDays(1) to listOf(
             ItineraryItem(
+                id = "3", // Add ID for preview
                 title = "Louvre Museum",
                 time = "9:30 AM",
                 location = "Rue de Rivoli, Paris",
