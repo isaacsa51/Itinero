@@ -11,7 +11,6 @@
 
 package com.serranoie.app.itinero.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,15 +33,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.itinero.navigation.NavGraph
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import com.serranoie.itinero.core.data.remote.UnauthorizedException
 import com.serranoie.itinero.core.data.remote.UnauthorizedHandler
 import com.serranoie.itinero.core.domain.repository.AuthRepository
+import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
@@ -51,6 +54,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private val authPreferences: AuthPreferences by inject()
     private val authRepository: AuthRepository by inject()
+    private val travelUseCase: TravelUseCase by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -58,10 +62,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Set up the auth token clearer for UnauthorizedHandler
+        // Set up the auth token clearer for UnauthorizedHandler using lifecycleScope
         UnauthorizedHandler.setAuthTokenClearer {
-            // Run logout on IO dispatcher since it might involve database operations
-            kotlinx.coroutines.runBlocking {
+            // Use lifecycleScope to avoid blocking the main thread
+            lifecycleScope.launch {
                 withContext(Dispatchers.IO) {
                     authRepository.logout()
                 }
@@ -173,8 +177,6 @@ class MainActivity : ComponentActivity() {
         // The 401 handling will be automatic via our UnauthorizedHandler
         try {
             // Try to get user's travels - this requires authentication
-            val travelUseCase = org.koin.core.context.GlobalContext.get()
-                .get<com.serranoie.itinero.core.domain.usecase.TravelUseCase>()
             val result = travelUseCase.getAllTravels()
 
             // If we get here without exception, the token is valid
@@ -183,7 +185,7 @@ class MainActivity : ComponentActivity() {
                 "Token validation successful via travel endpoint"
             )
 
-        } catch (e: com.serranoie.itinero.core.data.remote.UnauthorizedException) {
+        } catch (e: UnauthorizedException) {
             // Token is invalid, this will be handled by UnauthorizedHandler
             android.util.Log.w("ITINERO - MainActivity", "Token is unauthorized (401)")
             throw e

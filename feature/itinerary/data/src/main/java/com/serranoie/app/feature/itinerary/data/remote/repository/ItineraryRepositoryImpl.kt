@@ -30,6 +30,21 @@ class ItineraryRepositoryImpl(
 ) : ItineraryRepository {
 
     /**
+     * Toggles the completion status of an itinerary item
+     */
+    override suspend fun toggleActivityCompletion(itemId: String): Result<Unit> {
+        return when (val result = safeApiCall { api.toggleItineraryItemCompletion(itemId) }) {
+            is Result.Success -> {
+                // Refresh the item data to get updated completion status
+                getActivityById(itemId, forceRefresh = true)
+                result
+            }
+
+            is Result.Error -> result
+        }
+    }
+
+    /**
      * Gets all itinerary items with cache-first strategy
      */
     override suspend fun getAllActivities(
@@ -202,34 +217,21 @@ class ItineraryRepositoryImpl(
     }
 
     /**
-     * Toggles the completion status of an itinerary item
-     */
-    override suspend fun toggleActivityCompletion(itemId: String): Result<Unit> {
-        return when (val result = safeApiCall { api.toggleItineraryItemCompletion(itemId) }) {
-            is Result.Success -> {
-                // Refresh the item data to get updated completion status
-                getActivityById(itemId, forceRefresh = true)
-                result
-            }
-            is Result.Error -> result
-        }
-    }
-
-    /**
      * Gets cached itinerary items as a Flow for reactive UI updates
+     * This is an internal method for implementation-specific functionality
      */
-    fun getCachedItineraryFlow(): Flow<List<ItineraryItem>> =
+    internal fun getCachedItineraryFlow(): Flow<List<ItineraryItem>> =
         localRepository.getCachedItineraryFlow()
 
     /**
      * Clears all cached itinerary items
      */
-    suspend fun clearCache(): Result<Unit> = localRepository.clearAllItineraryItems()
+    override suspend fun clearCache(): Result<Unit> = localRepository.clearAllItineraryItems()
 
     /**
      * Checks if there's cached data available for a specific group
      */
-    suspend fun hasCachedData(groupCode: String): Boolean {
+    override suspend fun hasCachedData(groupCode: String): Boolean {
         return when (val result = localRepository.getAllCachedItineraryItems()) {
             is Result.Success -> result.data.any { it.groupCode == groupCode }
             is Result.Error -> false

@@ -33,10 +33,16 @@ interface ItineraryRepository {
     ): Result<ItineraryItem>
 
     suspend fun deleteActivityById(itemId: String): Result<Unit>
+
     suspend fun updateActivityInfo(
         itemId: String,
         request: UpdateItineraryItem
     ): Result<ItineraryItem>
 
     suspend fun toggleActivityCompletion(itemId: String): Result<Unit>
+
+    // Cache management methods (non-reactive)
+    suspend fun clearCache(): Result<Unit>
+
+    suspend fun hasCachedData(groupCode: String): Boolean
 }
