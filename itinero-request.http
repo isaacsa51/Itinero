@@ -1,7 +1,7 @@
 ### Environment Variables
 @base_url = http://127.0.0.1:8080
 @auth_token = {{auth_token}}
-@group_code = ITN-37571
+@group_code = ITN-70432
 
 ### ========================================
 ### AUTHENTICATION ENDPOINTS
@@ -12,11 +12,11 @@ POST {{base_url}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "Isaac",
+  "name": "Ani",
   "surname": "Serrano",
   "phone": "1234567890",
-  "email": "isaac@mail.com",
-  "password": "isaac"
+  "email": "ani",
+  "password": "ani"
 }
 
 ### Login user - Save token for subsequent requests
@@ -24,8 +24,8 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "isaac@mail.com",
-  "password": "isaac"
+  "email": "ani",
+  "password": "ani"
 }
 
 > {%
@@ -46,8 +46,8 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "destination": "Tokyo, Japan",
-  "groupName": "Itinero New Trip!",
+  "destination": "Alemania",
+  "groupName": "Invite accepted test",
   "startDate": "2025-12-12",
   "endDate": "2026-06-09",
   "summary": "test summary",
@@ -113,10 +113,9 @@ Authorization: Bearer {{auth_token}}
 groupCode: {{group_code}}
 
 ### Accept member to trip (for trip owners)
-POST {{base_url}}/trips/{{group_code}}/members/{memberId}/accept
+POST {{base_url}}/trips/{{group_code}}/members/2/accept
 Authorization: Bearer {{auth_token}}
 groupCode: {{group_code}}
-memberId: 2
 
 ### ========================================
 ### ITINERARY MANAGEMENT ENDPOINTS

@@ -175,8 +175,6 @@ class WelcomeNavigationGraph : NavigationGraph {
                         }
 
                         is TravelUiState.Error -> {
-                            // Error is now handled in the UI, but we still reset the state after showing
-                            // We can add a delay if needed for user to read the error
                             Log.e("ISAAC", "Error travel join, $currentState")
                         }
 
