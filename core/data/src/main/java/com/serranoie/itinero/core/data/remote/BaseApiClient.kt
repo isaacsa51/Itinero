@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.request
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 
@@ -90,9 +91,21 @@ abstract class BaseApiClient(
             Log.e("ITINERO - API ERROR", "Response status `${response.status}`")
             Log.e("ITINERO - API ERROR", "Response header `ContentType: ${response.contentType()}`")
 
+            // Handle 401 Unauthorized specifically
+            if (response.status == HttpStatusCode.Unauthorized) {
+                Log.e("ITINERO - API ERROR", "401 Unauthorized - triggering automatic logout")
+                UnauthorizedHandler.handleUnauthorized()
+                throw UnauthorizedException("Session expired. Please log in again.")
+            }
+
             throw Exception("API Error: ${response.status.value} - $errorBody")
         }
 
         return response.body()
     }
 }
+
+/**
+ * Exception thrown when a 401 Unauthorized response is received
+ */
+class UnauthorizedException(message: String) : Exception(message)

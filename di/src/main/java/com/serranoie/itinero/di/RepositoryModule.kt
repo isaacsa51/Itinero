@@ -14,8 +14,8 @@ import org.koin.dsl.module
 
 val repositoryModule = module {
     // Remote APIs
-    single<ItineroApi> { ItineroApiImpl(get()) }
-    single<ItineraryApi> { ItineraryApiImpl(get()) }
+    single<ItineroApi> { ItineroApiImpl(get()) } // HttpClient only
+    single<ItineraryApi> { ItineraryApiImpl(get()) } // HttpClient only
 
     // Repository Implementations
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
