@@ -3,11 +3,12 @@ package com.serranoie.itinero.core.data.remote.repository
 import android.util.Log
 import com.serranoie.itinero.core.data.local.repository.LocalTravelRepository
 import com.serranoie.itinero.core.data.mappers.toDomain
-import com.serranoie.itinero.core.data.remote.ItineroApi
+import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.Trip
+import com.serranoie.itinero.core.domain.model.TripMember
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.result.Result
@@ -56,7 +57,6 @@ class TravelRepositoryImpl(
             }
 
             is Result.Error -> {
-                // If remote fails and we have cached data, return cached data
                 if (!forceRefresh) {
                     getCachedTripIfMatches(groupCode)?.let { cachedTrip ->
                         return Result.Success(cachedTrip)
@@ -111,12 +111,17 @@ class TravelRepositoryImpl(
     override suspend fun leaveTravel(): Result<Unit> {
         return when (val result = safeApiCall { api.leaveTrip() }) {
             is Result.Success -> {
-                // Clear cache when leaving travel
                 localRepository.clearAllTrips()
                 result
             }
 
-            is Result.Error -> result
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to leave trip: ${result.exception.message}"
+                )
+                result
+            }
         }
     }
 
@@ -147,12 +152,12 @@ class TravelRepositoryImpl(
         }
     }
 
-    override suspend fun updateTripInfo(tripId: String, request: UpdateTrip): Result<Trip> {
+    override suspend fun updateTripInfo(groupCode: String, request: UpdateTrip): Result<Trip> {
         return safeApiCall {
-            api.updateTripInfo(tripId, request)
+            api.updateTripInfo(groupCode, request)
             // After updating, fetch the updated trip data
             try {
-                val updatedTrip = api.getTripById(tripId).toDomain()
+                val updatedTrip = api.getTripById(groupCode).toDomain()
                 // Update cache with fresh data
                 localRepository.cacheTrip(updatedTrip)
                 updatedTrip
@@ -160,6 +165,136 @@ class TravelRepositoryImpl(
                 // Clear cache to avoid stale data
                 localRepository.clearAllTrips()
                 throw e
+            }
+        }
+    }
+
+    override suspend fun acceptMember(groupCode: String, idMember: Int): Result<Unit> {
+        return when (val result = safeApiCall { api.acceptMember(groupCode, idMember) }) {
+            is Result.Success -> {
+                try {
+                    val updatedTrip = api.getTripById(groupCode).toDomain()
+                    localRepository.cacheTrip(updatedTrip)
+                } catch (e: Exception) {
+                    Log.e(
+                        "ITINERO - TravelRepository",
+                        "Failed to refresh trip after accepting member: ${e.message}"
+                    )
+                    localRepository.clearAllTrips()
+                    throw e
+                }
+                result
+            }
+
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to accept member with group code $groupCode and member ID $idMember: ${result.exception.message}"
+                )
+                result
+            }
+        }
+    }
+
+    override suspend fun getAllMembers(groupCode: String): Result<List<TripMember>> {
+        return safeApiCall { api.getAllMembers(groupCode).map { it.toDomain() } }
+    }
+
+    override suspend fun rejectMember(groupCode: String, idMember: Int): Result<Unit> {
+        return when (val result = safeApiCall { api.rejectMember(groupCode, idMember) }) {
+            is Result.Success -> {
+                try {
+                    val updatedTrip = api.getTripById(groupCode).toDomain()
+                    localRepository.cacheTrip(updatedTrip)
+                } catch (e: Exception) {
+                    Log.e(
+                        "ITINERO - TravelRepository",
+                        "Failed to refresh trip after rejecting member: ${e.message}"
+                    )
+                    localRepository.clearAllTrips()
+                }
+                result
+            }
+
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to reject member with group code $groupCode and member ID $idMember: ${result.exception.message}"
+                )
+                result
+            }
+        }
+    }
+
+    override suspend fun removeMember(groupCode: String, idMember: Int): Result<Unit> {
+        return when (val result = safeApiCall { api.removeMember(groupCode, idMember) }) {
+            is Result.Success -> {
+                try {
+                    val updatedTrip = api.getTripById(groupCode).toDomain()
+                    localRepository.cacheTrip(updatedTrip)
+                } catch (e: Exception) {
+                    Log.e(
+                        "ITINERO - TravelRepository",
+                        "Failed to refresh trip after removing member: ${e.message}"
+                    )
+                    localRepository.clearAllTrips()
+                }
+                result
+            }
+
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to remove member with group code $groupCode and member ID $idMember: ${result.exception.message}"
+                )
+                result
+            }
+        }
+    }
+
+    override suspend fun makeOwner(groupCode: String, idMember: Int): Result<Unit> {
+        return when (val result = safeApiCall { api.makeOwner(groupCode, idMember) }) {
+            is Result.Success -> {
+                try {
+                    val updatedTrip = api.getTripById(groupCode).toDomain()
+                    localRepository.cacheTrip(updatedTrip)
+                } catch (e: Exception) {
+                    Log.e(
+                        "ITINERO - TravelRepository",
+                        "Failed to refresh trip after making member owner: ${e.message}"
+                    )
+                    localRepository.clearAllTrips()
+                }
+                result
+            }
+
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to make member owner with group code $groupCode and member ID $idMember: ${result.exception.message}"
+                )
+                result
+            }
+        }
+    }
+
+    override suspend fun getCurrentUserMembershipStatus(groupCode: String): Result<TripMember> {
+        return safeApiCall { api.getCurrentUserMembershipStatus(groupCode).toDomain() }
+    }
+
+    override suspend fun leaveTrip(groupCode: String): Result<Unit> {
+        return when (val result = safeApiCall { api.leaveSpecificTrip(groupCode) }) {
+            is Result.Success -> {
+                localRepository.clearAllTrips()
+                result
+            }
+
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to leave trip with group code $groupCode: ${result.exception.message}"
+                )
+                result
             }
         }
     }
