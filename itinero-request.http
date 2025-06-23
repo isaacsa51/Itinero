@@ -1,7 +1,7 @@
 ### Environment Variables
 @base_url = http://127.0.0.1:8080
 @auth_token = {{auth_token}}
-@group_code = ITN-70432
+@group_code = ITN-37571
 
 ### ========================================
 ### AUTHENTICATION ENDPOINTS
@@ -117,6 +117,60 @@ POST {{base_url}}/trips/{{group_code}}/members/2/accept
 Authorization: Bearer {{auth_token}}
 groupCode: {{group_code}}
 
+### Get all members of a trip
+GET {{base_url}}/trips/{{group_code}}/members
+Authorization: Bearer {{auth_token}}
+
+### Accept pending member (for trip owners)
+@member_id = 789
+POST {{base_url}}/trips/{{group_code}}/members/{{member_id}}/accept
+Authorization: Bearer {{auth_token}}
+
+### Reject pending member (for trip owners)
+POST {{base_url}}/trips/{{group_code}}/members/{{member_id}}/reject
+Authorization: Bearer {{auth_token}}
+
+### Remove accepted member from trip (for trip owners)
+@member_id_to_remove = 456
+DELETE {{base_url}}/trips/{{group_code}}/members/{{member_id_to_remove}}
+Authorization: Bearer {{auth_token}}
+
+### Make member a trip owner (for current owners)
+POST {{base_url}}/trips/{{group_code}}/members/{{member_id_to_remove}}/make-owner
+Authorization: Bearer {{auth_token}}
+
+### Get current user's membership status in trip
+GET {{base_url}}/trips/{{group_code}}/members/me
+Authorization: Bearer {{auth_token}}
+
+### Leave trip (for members who want to leave)
+DELETE {{base_url}}/trips/{{group_code}}/members/me
+Authorization: Bearer {{auth_token}}
+
+### ========================================
+### EXAMPLE MEMBER MANAGEMENT WORKFLOW
+### ========================================
+
+### 1. Get all members to see their statuses
+GET {{base_url}}/trips/{{group_code}}/members
+Authorization: Bearer {{auth_token}}
+
+### 2. Accept a pending member (if you're owner)
+# POST {{base_url}}/trips/{{group_code}}/members/789/accept
+# Authorization: Bearer {{auth_token}}
+
+### 3. Reject a pending member (if you're owner) 
+# POST {{base_url}}/trips/{{group_code}}/members/789/reject
+# Authorization: Bearer {{auth_token}}
+
+### 4. Remove an accepted member (if you're owner)
+# DELETE {{base_url}}/trips/{{group_code}}/members/456
+# Authorization: Bearer {{auth_token}}
+
+### 5. Make member an owner (if you're owner)
+# POST {{base_url}}/trips/{{group_code}}/members/456/make-owner
+# Authorization: Bearer {{auth_token}}
+
 ### ========================================
 ### ITINERARY MANAGEMENT ENDPOINTS
 ### ========================================
@@ -167,19 +221,3 @@ Authorization: Bearer {{auth_token}}
 ### Toggle completion status of itinerary item
 PATCH {{base_url}}/itinerary/{{item_id}}/complete
 Authorization: Bearer {{auth_token}}
-
-### ========================================
-### TESTING WITH DIFFERENT PARAMETERS
-### ========================================
-
-### Test with different group code
-@test_group_code = ITN-12345
-
-### Get trip with test group code
-GET {{base_url}}/trips/{{test_group_code}}
-Authorization: Bearer {{auth_token}}
-
-### Join trip with test group code
-POST {{base_url}}/trips/{{test_group_code}}/join
-Authorization: Bearer {{auth_token}}
-groupCode: {{test_group_code}}

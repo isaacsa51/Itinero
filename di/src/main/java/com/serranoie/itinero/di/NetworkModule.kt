@@ -1,6 +1,5 @@
 package com.serranoie.itinero.di
 
-import android.util.Log
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android

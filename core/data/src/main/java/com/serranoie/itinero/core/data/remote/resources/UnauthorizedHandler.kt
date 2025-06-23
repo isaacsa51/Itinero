@@ -1,4 +1,15 @@
-package com.serranoie.itinero.core.data.remote
+/*
+ - Copyright (c) 2025 Isaac Serrano.
+ -
+ - File: UnauthorizedHandler.kt
+ - Project: Itinero
+ - Module: Itinero.core.data.main
+ -
+ - This file belongs to the project: Itinero.
+ - Last edited: 22 junio 2025
+ */
+
+package com.serranoie.itinero.core.data.remote.resources
 
 import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow

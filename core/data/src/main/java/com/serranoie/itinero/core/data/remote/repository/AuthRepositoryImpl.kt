@@ -2,7 +2,7 @@ package com.serranoie.itinero.core.data.remote.repository
 
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import com.serranoie.itinero.core.data.mappers.toDomain
-import com.serranoie.itinero.core.data.remote.ItineroApi
+import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.domain.result.AuthResult
 import com.serranoie.itinero.core.domain.model.RegisterRequest
 import com.serranoie.itinero.core.domain.repository.AuthRepository

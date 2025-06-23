@@ -4,8 +4,8 @@ import com.serranoie.app.feature.itinerary.data.remote.ItineraryApi
 import com.serranoie.app.feature.itinerary.data.remote.ItineraryApiImpl
 import com.serranoie.app.feature.itinerary.data.remote.repository.ItineraryRepositoryImpl
 import com.serranoie.app.feature.itinerary.domain.repository.ItineraryRepository
-import com.serranoie.itinero.core.data.remote.ItineroApi
-import com.serranoie.itinero.core.data.remote.ItineroApiImpl
+import com.serranoie.itinero.core.data.remote.resources.ItineroApi
+import com.serranoie.itinero.core.data.remote.resources.ItineroApiImpl
 import com.serranoie.itinero.core.data.remote.repository.AuthRepositoryImpl
 import com.serranoie.itinero.core.data.remote.repository.TravelRepositoryImpl
 import com.serranoie.itinero.core.domain.repository.AuthRepository

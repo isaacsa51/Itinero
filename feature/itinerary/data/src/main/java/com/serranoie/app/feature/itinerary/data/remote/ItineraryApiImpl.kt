@@ -14,7 +14,7 @@ package com.serranoie.app.feature.itinerary.data.remote
 import com.serranoie.app.feature.itinerary.data.remote.dto.CreateItineraryItemDto
 import com.serranoie.app.feature.itinerary.data.remote.dto.ItineraryItemDto
 import com.serranoie.app.feature.itinerary.data.remote.dto.UpdateItineraryItemDto
-import com.serranoie.itinero.core.data.remote.BaseApiClient
+import com.serranoie.itinero.core.data.remote.resources.BaseApiClient
 import io.ktor.client.HttpClient
 
 class ItineraryApiImpl(

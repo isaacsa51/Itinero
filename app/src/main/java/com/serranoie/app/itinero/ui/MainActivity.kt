@@ -40,8 +40,8 @@ import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.itinero.navigation.NavGraph
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
-import com.serranoie.itinero.core.data.remote.UnauthorizedException
-import com.serranoie.itinero.core.data.remote.UnauthorizedHandler
+import com.serranoie.itinero.core.data.remote.resources.UnauthorizedException
+import com.serranoie.itinero.core.data.remote.resources.UnauthorizedHandler
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.Dispatchers
