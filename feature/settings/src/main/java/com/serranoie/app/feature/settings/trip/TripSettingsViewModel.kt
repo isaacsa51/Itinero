@@ -1,8 +1,7 @@
-package com.serranoie.app.itinero.feature.settings.trip
+package com.serranoie.app.feature.settings.trip
 
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.util.Log
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import androidx.lifecycle.ViewModel
@@ -64,20 +63,12 @@ class TripSettingsViewModel(
 
         viewModelScope.launch {
             _membersUiState.value = TripMembersUiState.Loading
-            Log.d(TAG, "Fetching members for group: $groupCode")
-
             when (val result = travelUseCase.getAllMembers(groupCode)) {
                 is Result.Success -> {
-                    Log.d(TAG, "Successfully fetched ${result.data.size} members")
                     _membersUiState.value = TripMembersUiState.Success(result.data)
                 }
 
                 is Result.Error -> {
-                    Log.e(
-                        TAG,
-                        "Failed to fetch members: ${result.exception.message}",
-                        result.exception
-                    )
                     _membersUiState.value = TripMembersUiState.Error(
                         result.exception.message ?: "Failed to fetch members"
                     )
@@ -90,16 +81,10 @@ class TripSettingsViewModel(
         viewModelScope.launch {
             when (val result = travelUseCase.getCurrentUserMembershipStatus(groupCode, userId)) {
                 is Result.Success -> {
-                    Log.d(TAG, "Current user status: ${result.data.status}")
                     _currentUserMember.value = result.data
                 }
 
                 is Result.Error -> {
-                    Log.e(
-                        TAG,
-                        "Failed to fetch current user status: ${result.exception.message}",
-                        result.exception
-                    )
                     _currentUserMember.value = null
                 }
             }
@@ -113,19 +98,14 @@ class TripSettingsViewModel(
         onError: (String) -> Unit = {}
     ) {
         viewModelScope.launch {
-            Log.d(TAG, "Accepting member $memberId for group: $groupCode")
-
             when (val result = travelUseCase.acceptMemberToTrip(groupCode, memberId)) {
                 is Result.Success -> {
-                    Log.d(TAG, "Successfully accepted member $memberId")
                     onSuccess()
-                    // Refresh members list
                     fetchMembers(groupCode)
                 }
 
                 is Result.Error -> {
                     val errorMessage = result.exception.message ?: "Failed to accept member"
-                    Log.e(TAG, "Failed to accept member $memberId: $errorMessage", result.exception)
                     onError(errorMessage)
                 }
             }
@@ -139,19 +119,14 @@ class TripSettingsViewModel(
         onError: (String) -> Unit = {}
     ) {
         viewModelScope.launch {
-            Log.d(TAG, "Rejecting member $memberId for group: $groupCode")
-
             when (val result = travelUseCase.rejectMember(groupCode, memberId)) {
                 is Result.Success -> {
-                    Log.d(TAG, "Successfully rejected member $memberId")
                     onSuccess()
-                    // Refresh members list
                     fetchMembers(groupCode)
                 }
 
                 is Result.Error -> {
                     val errorMessage = result.exception.message ?: "Failed to reject member"
-                    Log.e(TAG, "Failed to reject member $memberId: $errorMessage", result.exception)
                     onError(errorMessage)
                 }
             }
@@ -165,19 +140,14 @@ class TripSettingsViewModel(
         onError: (String) -> Unit = {}
     ) {
         viewModelScope.launch {
-            Log.d(TAG, "Removing member $memberId from group: $groupCode")
-
             when (val result = travelUseCase.removeMember(groupCode, memberId)) {
                 is Result.Success -> {
-                    Log.d(TAG, "Successfully removed member $memberId")
                     onSuccess()
-                    // Refresh members list
                     fetchMembers(groupCode)
                 }
 
                 is Result.Error -> {
                     val errorMessage = result.exception.message ?: "Failed to remove member"
-                    Log.e(TAG, "Failed to remove member $memberId: $errorMessage", result.exception)
                     onError(errorMessage)
                 }
             }
@@ -191,24 +161,15 @@ class TripSettingsViewModel(
         onError: (String) -> Unit = {}
     ) {
         viewModelScope.launch {
-            Log.d(TAG, "Making member $memberId owner of group: $groupCode")
-
             when (val result = travelUseCase.makeOwner(groupCode, memberId)) {
                 is Result.Success -> {
-                    Log.d(TAG, "Successfully made member $memberId owner")
                     onSuccess()
-                    // Refresh members list and current user status
                     fetchMembers(groupCode)
                     fetchCurrentUserMembershipStatus(groupCode, memberId)
                 }
 
                 is Result.Error -> {
                     val errorMessage = result.exception.message ?: "Failed to transfer ownership"
-                    Log.e(
-                        TAG,
-                        "Failed to make member $memberId owner: $errorMessage",
-                        result.exception
-                    )
                     onError(errorMessage)
                 }
             }
@@ -218,7 +179,7 @@ class TripSettingsViewModel(
     private fun generateQRCodeBitmap(content: String): Bitmap {
         val hints = hashMapOf<EncodeHintType, Any>().apply {
             put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H)
-            put(EncodeHintType.MARGIN, 1) // Margin around the code
+            put(EncodeHintType.MARGIN, 1)
             put(EncodeHintType.CHARACTER_SET, "UTF-8")
         }
 
