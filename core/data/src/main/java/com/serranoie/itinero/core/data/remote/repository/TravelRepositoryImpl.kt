@@ -108,23 +108,6 @@ class TravelRepositoryImpl(
         }
     }
 
-    override suspend fun leaveTravel(): Result<Unit> {
-        return when (val result = safeApiCall { api.leaveTrip() }) {
-            is Result.Success -> {
-                localRepository.clearAllTrips()
-                result
-            }
-
-            is Result.Error -> {
-                Log.e(
-                    "ITINERO - TravelRepository",
-                    "Failed to leave trip: ${result.exception.message}"
-                )
-                result
-            }
-        }
-    }
-
     override suspend fun createTravel(request: CreateTrip): Result<CreateTrip> {
         return safeApiCall {
             val accommodationDto = AccommodationDto(

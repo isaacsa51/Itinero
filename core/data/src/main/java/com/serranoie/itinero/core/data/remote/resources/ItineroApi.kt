@@ -34,8 +34,8 @@ interface ItineroApi {
     suspend fun createTrip(request: CreateTripDto): CreateTripDto
     suspend fun updateTripInfo(groupCode: String, request: UpdateTrip)
     suspend fun joinTrip(groupCode: String)
-    suspend fun deleteTrip()
-    suspend fun leaveTrip()
+    suspend fun deleteTrip(groupCode: String)
+    suspend fun leaveTrip(groupCode: String)
 
     // Member management endpoints
     suspend fun getAllMembers(groupCode: String): List<TripMemberDto>

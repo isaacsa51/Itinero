@@ -37,7 +37,7 @@ class JoinTravelUseCase(private val repository: TravelRepository) {
 }
 
 class LeaveTravelUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(): Result<Unit> = repository.leaveTravel()
+    suspend operator fun invoke(groupCode: String): Result<Unit> = repository.leaveTrip(groupCode)
 }
 
 class CreateTravelUseCase(private val repository: TravelRepository) {

@@ -12,6 +12,7 @@
 package com.serranoie.itinero.core.data.remote.resources
 
 import android.util.Log
+import com.serranoie.itinero.core.data.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.*
@@ -24,7 +25,7 @@ import io.ktor.http.isSuccess
 
 abstract class BaseApiClient(
     protected val client: HttpClient,
-    protected val baseUrl: String = "http://192.168.100.3:8080" // ! TODO: Delete IP and insert it via build config!
+    protected val baseUrl: String = BuildConfig.API_BASE_URL
 ) {
 
     protected suspend inline fun <reified T> get(

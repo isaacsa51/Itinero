@@ -12,10 +12,7 @@
 /captures
 .externalNativeBuild
 .cxx
-local.properties
-
-# Created by https://www.toptal.com/developers/gitignore/api/android,androidstudio,gradle,kotlin
-# Edit at https://www.toptal.com/developers/gitignore?templates=android,androidstudio,gradle,kotlin
+gradle.properties
 
 ### Android ###
 # Gradle files
@@ -36,7 +33,6 @@ captures/
 output.json
 
 # IntelliJ
-*.iml
 .idea/
 misc.xml
 deploymentTargetDropDown.xml
@@ -84,7 +80,6 @@ hs_err_pid*
 replay_pid*
 
 ### Gradle ###
-.gradle
 **/build/
 !src/**/build/
 
@@ -155,9 +150,6 @@ proguard/
 # google-services.json
 
 # Android Patch
-
-# External native build folder generated in Android Studio 2.2 and later
-.externalNativeBuild
 
 # NDK
 obj/

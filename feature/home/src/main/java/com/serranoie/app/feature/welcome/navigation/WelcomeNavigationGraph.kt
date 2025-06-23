@@ -223,7 +223,9 @@ class WelcomeNavigationGraph : NavigationGraph {
                     },
                     onShowSnackbar = { message ->
                         snackbarHostState.showSnackbar(message)
-                    })
+                    },
+                    onJoinTravelClick = { }
+                )
             }
         }
     }

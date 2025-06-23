@@ -11,7 +11,6 @@ interface TravelRepository {
     suspend fun getAllTravels(): Result<List<Trip>>
     suspend fun getTravelById(groupCode: String, forceRefresh: Boolean = false): Result<Trip>
     suspend fun joinTravel(groupCode: String): Result<Unit>
-    suspend fun leaveTravel(): Result<Unit>
     suspend fun createTravel(request: CreateTrip): Result<CreateTrip>
     suspend fun updateTripInfo(groupCode: String, request: UpdateTrip): Result<Trip>
     

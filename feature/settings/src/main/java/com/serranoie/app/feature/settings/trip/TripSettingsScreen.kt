@@ -117,15 +117,15 @@ fun TripSettingsScreen(
     Scaffold(topBar = {
         MediumTopAppBar(
             title = {
-                Text("Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }, navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
-                    )
-                }
-            }, scrollBehavior = scrollBehavior
+            Text("Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }, navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            }
+        }, scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         LazyColumn(
@@ -353,8 +353,8 @@ private fun GroupManagementSection(
     snackbarHostState: SnackbarHostState,
     coroutineScope: CoroutineScope
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+    var expanded by remember { mutableStateOf(true) }
+    val rotationAngle by animateFloatAsState(targetValue = if (expanded) 360f else 0f)
 
     // Fetch members when expanded
     LaunchedEffect(expanded) {
@@ -543,6 +543,7 @@ private fun MembersListContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MemberItemCard(
     member: TripMember, onAccept: () -> Unit, onReject: () -> Unit, onRemove: () -> Unit
@@ -552,6 +553,8 @@ private fun MemberItemCard(
             .fillMaxWidth()
             .padding(bottom = 12.dp)
     ) {
+
+
         Text(
             text = member.name,
             style = MaterialTheme.typography.bodyLarge,
@@ -599,14 +602,7 @@ private fun MemberItemCard(
                 )
             }
 
-            MemberStatus.OWNER -> {
-                Text(
-                    text = "Owner",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
+            MemberStatus.OWNER -> {}
         }
     }
 }
@@ -640,8 +636,7 @@ private fun DangerZoneSection(userStatus: String?) {
             IButton(
                 text = {
                     Text(
-                        text = "Delete Trip",
-                        style = MaterialTheme.typography.labelLargeEmphasized
+                        text = "Delete Trip", style = MaterialTheme.typography.labelLargeEmphasized
                     )
                 },
                 onClick = { /* Show delete trip confirmation */ },
@@ -691,7 +686,6 @@ private fun TripSettingsScreenPreview() {
             onFetchMembers = {},
             onAcceptMember = { _, _, _, _ -> },
             onRejectMember = { _, _, _, _ -> },
-            onRemoveMember = { _, _, _, _ -> }
-        )
+            onRemoveMember = { _, _, _, _ -> })
     }
 }
