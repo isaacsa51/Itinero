@@ -5,6 +5,7 @@ import com.serranoie.app.feature.auth.di.authViewModelModule
 import com.serranoie.app.feature.di.homeViewModelModule
 import com.serranoie.app.feature.di.welcomeViewModelModule
 import com.serranoie.app.feature.itinerary.di.itineraryViewModelModule
+import com.serranoie.app.feature.settings.di.tripSettingsViewModelModule
 import com.serranoie.itinero.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -17,7 +18,14 @@ class ItineroApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@ItineroApplication)
-            modules(appModule, authViewModelModule, welcomeViewModelModule, homeViewModelModule, itineraryViewModelModule)
+            modules(
+                appModule,
+                authViewModelModule,
+                welcomeViewModelModule,
+                homeViewModelModule,
+                itineraryViewModelModule,
+                tripSettingsViewModelModule
+            )
         }
     }
 }

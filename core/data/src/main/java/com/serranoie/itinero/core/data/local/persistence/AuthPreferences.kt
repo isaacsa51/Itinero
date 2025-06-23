@@ -12,6 +12,18 @@ class AuthPreferences(context: Context) {
 
     fun getToken(): String? = prefs.getString("token", null)
 
+    fun saveUserId(userId: Int) {
+        prefs.edit { putInt("user_id", userId) }
+    }
+
+    fun getUserId(): Int? {
+        return if (prefs.contains("user_id")) {
+            prefs.getInt("user_id", -1).takeIf { it != -1 }
+        } else {
+            null
+        }
+    }
+
     fun setOnboardingCompleted() {
         prefs.edit { putBoolean("onboarding_completed", true) }
     }

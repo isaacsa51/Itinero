@@ -43,6 +43,6 @@ interface ItineroApi {
     suspend fun rejectMember(groupCode: String, idMember: Int)
     suspend fun removeMember(groupCode: String, idMember: Int)
     suspend fun makeOwner(groupCode: String, idMember: Int)
-    suspend fun getCurrentUserMembershipStatus(groupCode: String): TripMemberDto
+    suspend fun getCurrentUserMembershipStatus(groupCode: String): List<TripMemberDto>
     suspend fun leaveSpecificTrip(groupCode: String)
 }

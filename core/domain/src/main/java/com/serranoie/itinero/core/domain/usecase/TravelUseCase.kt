@@ -77,8 +77,8 @@ class MakeOwnerUseCase(private val repository: TravelRepository) {
 }
 
 class GetCurrentUserMembershipStatusUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(groupCode: String): Result<TripMember> =
-        repository.getCurrentUserMembershipStatus(groupCode)
+    suspend operator fun invoke(groupCode: String, userId: Int): Result<TripMember> =
+        repository.getCurrentUserMembershipStatus(groupCode, userId)
 }
 
 class LeaveTripUseCase(private val repository: TravelRepository) {

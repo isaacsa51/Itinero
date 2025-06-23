@@ -1,7 +1,7 @@
 ### Environment Variables
 @base_url = http://127.0.0.1:8080
 @auth_token = {{auth_token}}
-@group_code = ITN-37571
+@group_code = ITN-81015
 
 ### ========================================
 ### AUTHENTICATION ENDPOINTS
@@ -12,11 +12,11 @@ POST {{base_url}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "Ani",
-  "surname": "Serrano",
+  "name": "User invited",
+  "surname": "Test",
   "phone": "1234567890",
-  "email": "ani",
-  "password": "ani"
+  "email": "user",
+  "password": "root"
 }
 
 ### Login user - Save token for subsequent requests
@@ -24,8 +24,8 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "ani",
-  "password": "ani"
+  "email": "admin",
+  "password": "root"
 }
 
 > {%

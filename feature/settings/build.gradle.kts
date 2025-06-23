@@ -62,6 +62,11 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.accompanist.permissions)
 
+    //Koin
+    implementation("io.insert-koin:koin-android:4.0.3")
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
+
     // ML Kit and QR generator
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
     implementation("com.google.zxing:core:3.5.1")
