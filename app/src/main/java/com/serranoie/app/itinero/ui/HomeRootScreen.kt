@@ -1,5 +1,7 @@
 package com.serranoie.app.itinero.ui
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -39,11 +41,13 @@ import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.HomeViewModel
 import com.serranoie.app.feature.home.HomeUiState
-import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
+import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
+import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -106,11 +110,65 @@ fun HomeRootScreen(
                 ) { backStackEntry ->
                     val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
                     val scrollTo = backStackEntry.arguments?.getString("scrollTo")
+
+                    val tripSettingsViewModel = koinViewModel<TripSettingsViewModel>(
+                        parameters = { parametersOf(routeTripId) }
+                    )
+                    val qrBitmap by tripSettingsViewModel.qrBitmap.collectAsState()
+                    val membersUiState by tripSettingsViewModel.membersUiState.collectAsState()
+                    val currentUserMember by tripSettingsViewModel.currentUserMember.collectAsState()
+                    val authPreferences = koinInject<AuthPreferences>()
+
+                    LaunchedEffect(routeTripId) {
+                        val userId = authPreferences.getUserId()
+                        userId?.let {
+                            tripSettingsViewModel.fetchCurrentUserMembershipStatus(
+                                groupCode = routeTripId,
+                                userId = it
+                            )
+                        }
+                        Log.d("ITINERO - $TAG", "Fetching current user status, id: $userId")
+                    }
+
                     TripSettingsScreen(
                         navController = navController,
                         tripId = routeTripId,
                         scrollTo = scrollTo,
-                        trip = tripInfo
+                        trip = tripInfo,
+                        qrBitmap = qrBitmap,
+                        membersUiState = membersUiState,
+                        currentUserMember = currentUserMember,
+                        onGenerateQrCode = { tripId ->
+                            tripSettingsViewModel.setQrText(tripId)
+                            tripSettingsViewModel.generateQrCode()
+                        },
+                        onFetchMembers = { groupCode ->
+                            tripSettingsViewModel.fetchMembers(groupCode)
+                        },
+                        onAcceptMember = { groupCode, memberId, onSuccess, onError ->
+                            tripSettingsViewModel.acceptMember(
+                                groupCode,
+                                memberId,
+                                onSuccess,
+                                onError
+                            )
+                        },
+                        onRejectMember = { groupCode, memberId, onSuccess, onError ->
+                            tripSettingsViewModel.rejectMember(
+                                groupCode,
+                                memberId,
+                                onSuccess,
+                                onError
+                            )
+                        },
+                        onRemoveMember = { groupCode, memberId, onSuccess, onError ->
+                            tripSettingsViewModel.removeMember(
+                                groupCode,
+                                memberId,
+                                onSuccess,
+                                onError
+                            )
+                        }
                     )
                 }
 
@@ -146,7 +204,6 @@ fun HomeRootScreen(
                 }
             }
 
-            // HorizontalFloatingToolbar replacing BottomBarNav
             if (currentRoute in listOf(
                     Route.Home.route,
                     Route.Itinerary.route,
@@ -210,7 +267,6 @@ fun HomeRootScreen(
                             }
                         }
                     },
-                    //colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
                     content = {
                         // Home
                         IconButton(

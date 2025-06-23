@@ -92,11 +92,11 @@ class ItineroApiImpl(
         post<Unit, Unit>("/trips/$groupCode/members/$idMember/make-owner")
     }
 
-    override suspend fun getCurrentUserMembershipStatus(groupCode: String): TripMemberDto {
-        return get("/trips/$groupCode/members/me")
+    override suspend fun getCurrentUserMembershipStatus(groupCode: String): List<TripMemberDto> {
+        return get("/trips/$groupCode/members")
     }
 
     override suspend fun leaveSpecificTrip(groupCode: String) {
-        delete<Unit>("/trips/$groupCode/members/me")
+        delete<Unit>("/trips/$groupCode/members")
     }
 }

@@ -24,7 +24,7 @@ import io.ktor.http.isSuccess
 
 abstract class BaseApiClient(
     protected val client: HttpClient,
-    protected val baseUrl: String = "http://192.168.100.3:8080"
+    protected val baseUrl: String = "http://192.168.100.3:8080" // ! TODO: Delete IP and insert it via build config!
 ) {
 
     protected suspend inline fun <reified T> get(

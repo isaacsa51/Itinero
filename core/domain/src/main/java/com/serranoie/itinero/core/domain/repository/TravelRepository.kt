@@ -21,6 +21,6 @@ interface TravelRepository {
     suspend fun rejectMember(groupCode: String, idMember: Int): Result<Unit>
     suspend fun removeMember(groupCode: String, idMember: Int): Result<Unit>
     suspend fun makeOwner(groupCode: String, idMember: Int): Result<Unit>
-    suspend fun getCurrentUserMembershipStatus(groupCode: String): Result<TripMember>
+    suspend fun getCurrentUserMembershipStatus(groupCode: String, userId: Int): Result<TripMember>
     suspend fun leaveTrip(groupCode: String): Result<Unit>
 }
