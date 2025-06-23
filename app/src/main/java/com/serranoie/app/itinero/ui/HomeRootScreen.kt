@@ -44,7 +44,7 @@ import com.serranoie.app.feature.home.HomeUiState
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
-import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
+import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject

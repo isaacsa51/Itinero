@@ -11,7 +11,7 @@
 
 package com.serranoie.app.feature.settings.di
 
-import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
+import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 

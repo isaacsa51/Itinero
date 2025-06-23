@@ -1,7 +1,6 @@
 package com.serranoie.app.feature.settings.trip
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -70,7 +69,6 @@ import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
-import com.serranoie.app.itinero.feature.settings.trip.TripMembersUiState
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.MemberStatus
 import com.serranoie.itinero.core.domain.model.Trip
@@ -78,7 +76,7 @@ import com.serranoie.itinero.core.domain.model.TripMember
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripSettingsScreen(
     navController: NavController,
@@ -169,7 +167,7 @@ fun TripSettingsScreen(
 
             // Danger Zone
             item {
-                DangerZoneSection()
+                DangerZoneSection(userStatus)
             }
 
             item {
@@ -615,7 +613,7 @@ private fun MemberItemCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun DangerZoneSection() {
+private fun DangerZoneSection(userStatus: String?) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "DANGER ZONE", style = MaterialTheme.typography.labelLargeEmphasized.copy(
@@ -638,16 +636,19 @@ private fun DangerZoneSection() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        IButton(
-            text = {
-                Text(
-                    text = "Delete Trip", style = MaterialTheme.typography.labelLargeEmphasized
-                )
-            },
-            onClick = { /* Show delete trip confirmation */ },
-            modifier = Modifier.fillMaxWidth(),
-            importance = ButtonImportance.Error,
-        )
+        if (userStatus == "OWNER") {
+            IButton(
+                text = {
+                    Text(
+                        text = "Delete Trip",
+                        style = MaterialTheme.typography.labelLargeEmphasized
+                    )
+                },
+                onClick = { /* Show delete trip confirmation */ },
+                modifier = Modifier.fillMaxWidth(),
+                importance = ButtonImportance.Error,
+            )
+        }
     }
 }
 
