@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -112,7 +114,7 @@ fun OnboardItem(
                                 }
                             }
                         },
-                        leadingIcon = Icons.Filled.ArrowForward,
+                        leadingIcon = Icons.AutoMirrored.Rounded.ArrowForward,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -125,7 +127,7 @@ fun OnboardItem(
                         onClick = {
                             onFinished()
                         },
-                        leadingIcon = Icons.Filled.ArrowForward,
+                        leadingIcon = Icons.AutoMirrored.Rounded.ArrowForward,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary

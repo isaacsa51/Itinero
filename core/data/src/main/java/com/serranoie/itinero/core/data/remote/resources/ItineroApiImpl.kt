@@ -63,12 +63,12 @@ class ItineroApiImpl(
         post<Unit, Unit>("/trips/$groupCode/join")
     }
 
-    override suspend fun deleteTrip() {
-        // TODO: Implement when the API endpoint is ready
+    override suspend fun deleteTrip(groupCode: String) {
+        delete<Unit>("/trips/$groupCode")
     }
 
-    override suspend fun leaveTrip() {
-        // TODO: Implement when the API endpoint is ready
+    override suspend fun leaveTrip(groupCode: String) {
+        delete<Unit>("/trips/$groupCode/leave")
     }
 
     // Member management endpoints implementation
