@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -63,11 +64,27 @@ fun HomeRootScreen(
     val tripInfo by homeViewModel.trip.collectAsState()
     val uiState by homeViewModel.uiState.collectAsState()
 
+    // Create scroll behavior for the floating toolbar
+    val floatingToolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
+        exitDirection = FloatingToolbarExitDirection.Bottom
+    )
+
     LaunchedEffect(tripId) {
         homeViewModel.getCurrentTravel()
     }
 
-    Scaffold { padding ->
+    Scaffold(
+        modifier = if (currentRoute in listOf(
+                Route.Home.route,
+                Route.Itinerary.route,
+                Route.Expenses.route,
+            )
+        ) {
+            Modifier.nestedScroll(floatingToolbarScrollBehavior)
+        } else {
+            Modifier
+        }
+    ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             NavHost(
                 navController = navController, startDestination = Route.Home.route
@@ -215,13 +232,11 @@ fun HomeRootScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .offset(y = (-16).dp),
-                    scrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
-                        exitDirection = FloatingToolbarExitDirection.Bottom
-                    ),
+                    scrollBehavior = floatingToolbarScrollBehavior,
                     floatingActionButton = {
                         when (currentRoute) {
                             Route.Home.route -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(
                                             Route.TripSettings.createRoute(
@@ -230,13 +245,13 @@ fun HomeRootScreen(
                                         )
                                     }) {
                                     Icon(
-                                        Icons.Filled.Edit, contentDescription = "Add itinerary item"
+                                        Icons.Filled.Edit, contentDescription = "Edit trip settings"
                                     )
                                 }
                             }
 
                             Route.Itinerary.route -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(Screen.ADD_ITINERARY.name)
                                     }) {
@@ -247,7 +262,7 @@ fun HomeRootScreen(
                             }
 
                             Route.Expenses.route -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(Screen.ADD_EXPENSE.name)
                                     }) {
@@ -258,7 +273,7 @@ fun HomeRootScreen(
                             }
 
                             else -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = { /* Default action */ }) {
                                     Icon(
                                         Icons.Filled.Add, contentDescription = "Add"
