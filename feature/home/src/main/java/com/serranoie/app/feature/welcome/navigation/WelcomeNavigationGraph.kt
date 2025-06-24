@@ -41,66 +41,8 @@ class WelcomeNavigationGraph : NavigationGraph {
     override fun NavGraphBuilder.build(navController: NavHostController) {
         navigation(
             route = Route.WelcomeNavigation.route,
-            startDestination = "loading_check"
+            startDestination = Route.TravelList.route
         ) {
-            // Loading screen that checks for existing trips before showing any UI
-            composable(route = "loading_check") {
-                val travelListViewModel = koinViewModel<TravelListViewModel>()
-                val travels by travelListViewModel.travels.collectAsState()
-                val uiState by travelListViewModel.uiState.collectAsState()
-
-                // Single LaunchedEffect that handles everything
-                LaunchedEffect(Unit) {
-                    Log.d("ITINERO", "Starting trip check...")
-
-                    // Reset and fetch
-                    travelListViewModel.resetState()
-                    travelListViewModel.getAllTravels()
-                }
-
-                // React to state changes immediately
-                LaunchedEffect(uiState) {
-                    Log.d("ITINERO", "State changed: $uiState, trips: ${travels.size}")
-
-                    when (val currentState = uiState) {
-                        is TravelUiState.Success<*> -> {
-                            if (travels.isNotEmpty()) {
-                                Log.d(
-                                    "ITINERO",
-                                    "Navigating to TravelList with ${travels.size} trips"
-                                )
-                                navController.navigate(Route.TravelList.route) {
-                                    popUpTo("loading_check") { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                Log.d("ITINERO", "No trips found, navigating to Welcome")
-                                navController.navigate(Route.Welcome.route) {
-                                    popUpTo("loading_check") { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-                        is TravelUiState.Error -> {
-                            Log.e("ITINERO", "Error loading trips: ${currentState.message}")
-                            navController.navigate(Route.Welcome.route) {
-                                popUpTo("loading_check") { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                        is TravelUiState.Loading -> {
-                            Log.d("ITINERO", "Loading trips...")
-                        }
-                        is TravelUiState.Idle -> {
-                            Log.d("ITINERO", "State idle")
-                        }
-                    }
-                }
-
-                // Show loading screen while checking for trips
-                LoadingScreen()
-            }
-
             composable(route = Route.Welcome.route) {
                 WelcomeScreen(onNavigateToCreateTravel = {
                     navController.navigate(Route.CreateTravel.route)
@@ -208,6 +150,33 @@ class WelcomeNavigationGraph : NavigationGraph {
                 val travels by travelListViewModel.travels.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
+                // Handle navigation based on state and trips
+                LaunchedEffect(uiState, travels) {
+                    when (val currentState = uiState) {
+                        is TravelUiState.Success<*> -> {
+                            if (travels.isEmpty()) {
+                                Log.d("ITINERO", "No trips found, navigating to Welcome")
+                                navController.navigate(Route.Welcome.route) {
+                                    popUpTo(Route.TravelList.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+
+                        is TravelUiState.Error -> {
+                            Log.e("ITINERO", "Error loading trips: ${currentState.message}")
+                            navController.navigate(Route.Welcome.route) {
+                                popUpTo(Route.TravelList.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+
+                        else -> {
+                            // Still loading or idle, stay on this screen
+                        }
+                    }
+                }
+
                 TravelListScreen(
                     uiState = uiState,
                     trips = travels,
@@ -224,32 +193,11 @@ class WelcomeNavigationGraph : NavigationGraph {
                     onShowSnackbar = { message ->
                         snackbarHostState.showSnackbar(message)
                     },
-                    onJoinTravelClick = { }
+                    onJoinTravelClick = {
+                        navController.navigate(Route.JoinTrip.route)
+                    }
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun LoadingScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Loading your trips...",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
         }
     }
 }

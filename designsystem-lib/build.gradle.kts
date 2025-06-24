@@ -58,4 +58,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
 
     implementation(libs.materialKolor)
+
+    // Shimmer effect
+    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.1")
 }

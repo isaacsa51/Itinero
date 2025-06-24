@@ -1,6 +1,31 @@
 package com.serranoie.app.feature.welcome
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.material.icons.rounded.People
+import androidx.compose.material3.Card
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.animateFloatingActionButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,40 +41,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.GroupAdd
-import androidx.compose.material.icons.rounded.People
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonMenu
-import androidx.compose.material3.FloatingActionButtonMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleFloatingActionButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
-import androidx.compose.material3.animateFloatingActionButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -65,6 +64,8 @@ import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.app.feature.TravelUiState
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
@@ -138,7 +139,7 @@ fun TravelListScreen(
                     ) {
                         val imageVector by remember {
                             derivedStateOf {
-                                if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add
+                                if (fabMenuExpanded) Icons.Filled.Close else Icons.Filled.Add
                             }
                         }
                         Icon(
@@ -188,7 +189,40 @@ fun TravelListScreen(
         ) {
             when {
                 uiState is TravelUiState.Loading -> {
-                    LoadingIndicator()
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = padding
+                    ) {
+                        items(5) {
+                            ShimmerProvider {
+                                TravelItem(
+                                    trip = Trip(
+                                        id = "loading",
+                                        groupCode = "loading",
+                                        groupName = "loading",
+                                        totalMembers = 0,
+                                        destination = "loading",
+                                        startDate = "2025-12-01",
+                                        endDate = "2025-12-31",
+                                        summary = "loading",
+                                        accommodation = Accommodation(
+                                            name = "loading",
+                                            phone = "loading",
+                                            checkIn = "loading",
+                                            checkOut = "loading",
+                                            location = "loading",
+                                            mapUri = "loading"
+                                        ),
+                                        reservationCode = "loading",
+                                        extraInfo = "loading",
+                                        additionalInfo = "loading",
+                                        ownerId = "loading"
+                                    ),
+                                    onClick = {}
+                                )
+                            }
+                        }
+                    }
                 }
 
                 trips.isEmpty() -> {
@@ -232,15 +266,10 @@ fun TravelListScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TravelItem(
-    trip: Trip, onClick: () -> Unit
+    trip: Trip,
+    onClick: () -> Unit
 ) {
     val tripStatus = determineTripStatus(trip.startDate, trip.endDate)
-    val statusTextColor = when (tripStatus) {
-        "Pending" -> MaterialTheme.colorScheme.onSecondaryContainer
-        "In Progress" -> MaterialTheme.colorScheme.onPrimaryContainer
-        "Completed" -> MaterialTheme.colorScheme.onTertiaryContainer
-        else -> MaterialTheme.colorScheme.onSurface
-    }
 
     Box(
         modifier = Modifier
@@ -265,12 +294,15 @@ fun TravelItem(
                     Text(
                         text = trip.destination,
                         style = MaterialTheme.typography.titleLargeEmphasized,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.shimmerable()
                     )
                 }
 
                 Text(
-                    text = trip.groupName, style = MaterialTheme.typography.titleSmallEmphasized
+                    text = trip.groupName,
+                    style = MaterialTheme.typography.titleSmallEmphasized,
+                    modifier = Modifier.shimmerable()
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -280,11 +312,12 @@ fun TravelItem(
                         text = tripStatus,
                         style = MaterialTheme.typography.bodyMediumEmphasized,
                         fontWeight = FontWeight.SemiBold,
-                        color = statusTextColor
+                        modifier = Modifier.shimmerable()
                     )
                     Text(
                         text = "${trip.startDate} - ${trip.endDate}",
-                        style = MaterialTheme.typography.bodySmallEmphasized
+                        style = MaterialTheme.typography.bodySmallEmphasized,
+                        modifier = Modifier.shimmerable()
                     )
                 }
 
@@ -295,13 +328,15 @@ fun TravelItem(
                         text = "Accommodation:",
                         style = MaterialTheme.typography.bodySmallEmphasized,
                         color = MaterialTheme.colorScheme.outline,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.shimmerable()
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = trip.accommodation.name,
                         color = MaterialTheme.colorScheme.outline,
-                        style = MaterialTheme.typography.bodySmallEmphasized
+                        style = MaterialTheme.typography.bodySmallEmphasized,
+                        modifier = Modifier.shimmerable()
                     )
                 }
             }
@@ -313,11 +348,13 @@ fun TravelItem(
                     .matchParentSize()
                     .background(
                         color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(12.dp)
-                    ), contentAlignment = Alignment.Center
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Completed", style = MaterialTheme.typography.titleLargeEmphasized.copy(
+                    text = "Completed",
+                    style = MaterialTheme.typography.titleLargeEmphasized.copy(
                         fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface
                     )
                 )
@@ -383,8 +420,8 @@ private fun ScreenWithItemsPreview() {
             ownerId = 1.toString(),
         ), Trip(
             id = "1",
-            groupName = "My Group",
             groupCode = "PAR24",
+            groupName = "My Group",
             destination = "Tokyo, Japan",
             startDate = "2025-12-01",
             endDate = "2025-12-31",
@@ -517,16 +554,24 @@ private fun TravelItemPreview() {
     PreviewWrapper {
         Column {
             TravelItem(
-                trip = mockTrip, onClick = {})
+                trip = mockTrip,
+                onClick = {}
+            )
 
             TravelItem(
-                trip = mockOwnerTripProgress, onClick = {})
+                trip = mockOwnerTripProgress,
+                onClick = {}
+            )
 
             TravelItem(
-                trip = mockOwnerTripPending, onClick = {})
+                trip = mockOwnerTripPending,
+                onClick = {}
+            )
 
             TravelItem(
-                trip = mockTripCompleted, onClick = {})
+                trip = mockTripCompleted,
+                onClick = {}
+            )
         }
     }
 }
