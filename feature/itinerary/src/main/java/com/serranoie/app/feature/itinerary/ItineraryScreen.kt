@@ -62,8 +62,10 @@ import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
+import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeActionsConfig
+import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.app.feature.itinerary.util.generateDateRange
 import java.time.LocalDate
 
@@ -115,54 +117,82 @@ fun ItineraryScreen(
             onRefresh = onRefresh,
             modifier = Modifier.fillMaxSize()
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                    .padding(paddingValues)
-            ) {
-                if (!hasAnyItems) {
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "No itinerary items found",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Add some activities to get started with your trip planning",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            if (uiState is ItineraryUiState.Loading && itinerary.isEmpty()) {
+                // Show shimmer loading for empty state
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .padding(paddingValues)
+                ) {
+                    items(3) { index ->
+                        ShimmerProvider {
+                            ItineraryDateSection(
+                                date = LocalDate.now().plusDays(index.toLong()),
+                                activities = listOf(
+                                    ItineraryItem(
+                                        id = "loading_$index",
+                                        title = "Loading activity",
+                                        time = "Loading time",
+                                        location = "Loading location",
+                                        description = "Loading description"
+                                    )
+                                ),
+                                onActivitySwiped = { _, _ -> }
                             )
                         }
                     }
-                } else {
-                    items(generateDateRange(startDate, endDate)) { date ->
-                        ItineraryDateSection(
-                            date = date,
-                            activities = itinerary[date].orEmpty(), // Use itinerary directly
-                            onActivitySwiped = { swipedActivity, isCompleting ->
-                                Log.d(
-                                    "ITINERO - ItineraryScreen",
-                                    "Swiped activity: ${swipedActivity.title}, isCompleting: $isCompleting"
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .padding(paddingValues)
+                ) {
+                    if (!hasAnyItems) {
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "No itinerary items found",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
-
-                                if (!swipedActivity.id.isNullOrEmpty()) {
-                                    onToggleCompletion(swipedActivity.id)
-                                } else {
-                                    Log.w(
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Add some activities to get started with your trip planning",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    } else {
+                        items(generateDateRange(startDate, endDate)) { date ->
+                            ItineraryDateSection(
+                                date = date,
+                                activities = itinerary[date].orEmpty(), // Use itinerary directly
+                                onActivitySwiped = { swipedActivity, isCompleting ->
+                                    Log.d(
                                         "ITINERO - ItineraryScreen",
-                                        "Activity has no ID, cannot toggle completion"
+                                        "Swiped activity: ${swipedActivity.title}, isCompleting: $isCompleting"
                                     )
-                                    onSwiped()
-                                }
-                            })
+
+                                    if (!swipedActivity.id.isNullOrEmpty()) {
+                                        onToggleCompletion(swipedActivity.id)
+                                    } else {
+                                        Log.w(
+                                            "ITINERO - ItineraryScreen",
+                                            "Activity has no ID, cannot toggle completion"
+                                        )
+                                        onSwiped()
+                                    }
+                                })
+                        }
                     }
                 }
             }
@@ -232,15 +262,18 @@ fun ItineraryDateSection(
                         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                             Text(
                                 text = "🕒 ${activity.time}",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.shimmerable()
                             )
                             Text(
                                 text = "📍 ${activity.location}",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.shimmerable()
                             )
                             Text(
                                 text = "❓ ${activity.description}",
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.shimmerable()
                             )
                         }
                     }

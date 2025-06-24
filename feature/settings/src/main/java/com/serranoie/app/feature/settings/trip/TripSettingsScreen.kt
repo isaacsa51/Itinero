@@ -27,7 +27,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -68,7 +67,9 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
+import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.MemberStatus
 import com.serranoie.itinero.core.domain.model.Trip
@@ -99,7 +100,7 @@ fun TripSettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    val userStatus = currentUserMember?.status?.value
+    var expanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(tripId) {
         if (tripId.isNotEmpty()) {
@@ -146,7 +147,7 @@ fun TripSettingsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            if (userStatus?.equals("OWNER") == true) {
+            if (currentUserMember?.status?.value == "OWNER") {
                 item {
                     GroupManagementSection(
                         tripId = tripId,
@@ -167,7 +168,7 @@ fun TripSettingsScreen(
 
             // Danger Zone
             item {
-                DangerZoneSection(userStatus)
+                DangerZoneSection(currentUserStatus = currentUserMember?.status?.value)
             }
 
             item {
@@ -201,7 +202,8 @@ private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(8.dp)
+                        .shimmerable(),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -353,7 +355,7 @@ private fun GroupManagementSection(
     snackbarHostState: SnackbarHostState,
     coroutineScope: CoroutineScope
 ) {
-    var expanded by remember { mutableStateOf(true) }
+    var expanded by remember { mutableStateOf(false) }
     val rotationAngle by animateFloatAsState(targetValue = if (expanded) 360f else 0f)
 
     // Fetch members when expanded
@@ -491,13 +493,22 @@ private fun MembersListContent(
     ) {
         when (membersUiState) {
             is TripMembersUiState.Loading -> {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(16.dp)
                 ) {
-                    CircularProgressIndicator()
+                    repeat(3) { index ->
+                        ShimmerProvider {
+                            MemberItemCard(
+                                member = TripMember(
+                                id = index,
+                                name = "Loading Member",
+                                email = "loading@example.com",
+                                status = MemberStatus.PENDING
+                            ), onAccept = {}, onReject = {}, onRemove = {})
+                        }
+                    }
                 }
             }
 
@@ -553,19 +564,21 @@ private fun MemberItemCard(
             .fillMaxWidth()
             .padding(bottom = 12.dp)
     ) {
-
-
         Text(
             text = member.name,
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(bottom = 4.dp)
+            modifier = Modifier
+                .padding(bottom = 4.dp)
+                .shimmerable()
         )
 
         Text(
             text = member.email,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier
+                .padding(bottom = 8.dp)
+                .shimmerable()
         )
 
         when (member.status) {
@@ -609,7 +622,7 @@ private fun MemberItemCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun DangerZoneSection(userStatus: String?) {
+private fun DangerZoneSection(currentUserStatus: String?) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "DANGER ZONE", style = MaterialTheme.typography.labelLargeEmphasized.copy(
@@ -632,7 +645,7 @@ private fun DangerZoneSection(userStatus: String?) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (userStatus == "OWNER") {
+        if (currentUserStatus == "OWNER") {
             IButton(
                 text = {
                     Text(

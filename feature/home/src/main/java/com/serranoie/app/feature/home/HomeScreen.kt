@@ -22,7 +22,6 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,7 +52,9 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
+import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 import java.time.DateTimeException
@@ -148,7 +149,7 @@ fun calculateTripDateInfo(startDate: String, endDate: String): TripDateInfo {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController = rememberNavController(),
@@ -180,18 +181,257 @@ fun HomeScreen(
         )
     }) { paddingValues ->
 
-        PullToRefreshBox(
-            isRefreshing = isRefreshing, onRefresh = {
-                onRefresh()
-                Log.d("ITINERO", "Refreshing data...")
-            }) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState(), true)
-                    .padding(paddingValues)
-            ) {
-                TripDetailsScreen(navController, tripId, tripInfo)
+        ShimmerProvider {
+            PullToRefreshBox(
+                isRefreshing = isRefreshing, onRefresh = {
+                    onRefresh()
+                    Log.d("ITINERO", "Refreshing data...")
+                }) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState(), true)
+                        .padding(paddingValues)
+                ) {
+                    if (tripInfo != null) {
+                        TripDetailsScreen(navController, tripId, tripInfo)
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                        ) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .shimmerable(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                ),
+                                elevation = CardDefaults.cardElevation(4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Destination",
+                                            style = MaterialTheme.typography.labelSmallEmphasized,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+
+                                    Text(
+                                        text = "Loading...",
+                                        style = MaterialTheme.typography.displayMediumEmphasized
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Loading...",
+                                        style = MaterialTheme.typography.labelLargeEmphasized
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Date Info Card Shimmer
+                                OutlinedCard(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(100.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Text(
+                                            text = "Travel date",
+                                            style = MaterialTheme.typography.labelSmallEmphasized,
+                                            color = MaterialTheme.colorScheme.outline
+                                        )
+                                        MarqueeText(
+                                            text = "Loading...",
+                                            style = MaterialTheme.typography.headlineSmallEmphasized,
+                                            gradientEdgeColor = MaterialTheme.colorScheme.tertiaryContainer
+                                        )
+                                        Text(
+                                            text = "Loading...",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                // People Info Card Shimmer
+                                OutlinedCard(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(100.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Text(
+                                            text = "People",
+                                            style = MaterialTheme.typography.labelSmallEmphasized,
+                                            color = MaterialTheme.colorScheme.outline
+                                        )
+                                        Text(
+                                            text = "0 total",
+                                            style = MaterialTheme.typography.headlineSmallEmphasized
+                                        )
+                                        Text(
+                                            text = "Loading...",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = "Accommodation",
+                                style = MaterialTheme.typography.headlineSmallEmphasized
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            ExpandableCard(
+                                title = "Details",
+                                isExpanded = false,
+                                onExpandedChange = { },
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                                showDivider = true,
+                                modifier = Modifier.shimmerable()
+                            ) {
+                                Text(
+                                    text = "map sdk location holder",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = "ADDRESS",
+                                    style = MaterialTheme.typography.labelSmallEmphasized,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+
+                                Text(
+                                    text = "Loading...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Travel Info Card Shimmer
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Travel Information",
+                                        style = MaterialTheme.typography.headlineSmallEmphasized,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    IconButton(onClick = {}) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Edit,
+                                            contentDescription = "More travel information options"
+                                        )
+                                    }
+                                }
+
+                                SelectField(
+                                    value = "Loading...",
+                                    onSelect = { },
+                                    label = "Accommodation",
+                                    leadingIcon = Icons.Rounded.SupervisedUserCircle,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                        .shimmerable()
+                                )
+
+                                SelectField(
+                                    value = "Loading...",
+                                    onSelect = { },
+                                    label = "Phone Number",
+                                    leadingIcon = Icons.Rounded.SupervisedUserCircle,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                        .shimmerable()
+                                )
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    SelectField(
+                                        value = "Loading...",
+                                        onSelect = { },
+                                        label = "Check-In Date & Time",
+                                        leadingIcon = Icons.Default.CalendarToday,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .shimmerable()
+                                    )
+
+                                    SelectField(
+                                        value = "Loading...",
+                                        onSelect = { },
+                                        label = "Check-Out Date & Time",
+                                        leadingIcon = Icons.Default.CalendarToday,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .shimmerable()
+                                    )
+                                }
+
+                                SelectField(
+                                    value = "Loading...",
+                                    onSelect = { },
+                                    label = "Reservation Code",
+                                    leadingIcon = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .shimmerable()
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -200,7 +440,7 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripDetailsScreen(
-    navController: NavHostController, tripId: String, tripInfo: Trip?
+    navController: NavHostController, tripId: String, tripInfo: Trip
 ) {
     var isExpanded by remember { mutableStateOf(true) }
 
@@ -210,7 +450,7 @@ fun TripDetailsScreen(
             .padding(16.dp)
     ) {
         DestinationCard(
-            country = tripInfo?.destination.toString(),
+            country = tripInfo.destination,
             navController = navController,
             tripId = tripId,
             tripInfo = tripInfo
@@ -221,19 +461,23 @@ fun TripDetailsScreen(
         Row(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            tripInfo?.let {
+            tripInfo.let {
                 val dateInfo = calculateTripDateInfo(it.startDate, it.endDate)
-                DateInfoCard(
+                InfoCard(
                     title = "Travel date",
                     value = dateInfo.displayText,
                     subtitle = dateInfo.subtitle,
-                    modifier = Modifier.weight(1f).height(100.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp),
                 )
             }
-            tripInfo?.let {
+            tripInfo.let {
                 PeopleInfoCard(
                     confirmedCount = tripInfo.totalMembers,
-                    modifier = Modifier.weight(1f).height(100.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp),
                     tripInfo = it,
                 )
             }
@@ -241,11 +485,9 @@ fun TripDetailsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (tripInfo != null) {
-            SummarySection(
-                onClick = { }, tripInfo = tripInfo
-            )
-        }
+        SummarySection(
+            onClick = { }, tripInfo = tripInfo
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -278,7 +520,7 @@ fun TripDetailsScreen(
             )
 
             Text(
-                text = tripInfo?.accommodation?.location.toString(),
+                text = tripInfo.accommodation.location,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -286,16 +528,14 @@ fun TripDetailsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (tripInfo != null) {
-            TravelInfoCard(navController, tripInfo)
-        }
+        TravelInfoCard(navController, tripInfo)
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DestinationCard(
-    country: String, navController: NavHostController, tripId: String, tripInfo: Trip?
+    country: String, navController: NavHostController, tripId: String, tripInfo: Trip
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -322,13 +562,13 @@ fun DestinationCard(
                 text = country, style = MaterialTheme.typography.displayMediumEmphasized
             )
             Spacer(modifier = Modifier.height(4.dp))
-            if (tripInfo?.groupName != null) {
+            if (tripInfo.groupName != null) {
                 Text(
                     text = tripInfo.groupName, style = MaterialTheme.typography.labelLargeEmphasized
                 )
             } else {
                 Text(
-                    text = tripInfo?.groupCode.toString(),
+                    text = tripInfo.groupCode.toString(),
                     style = MaterialTheme.typography.labelLargeEmphasized
                 )
             }
@@ -338,7 +578,7 @@ fun DestinationCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun DateInfoCard(
+fun InfoCard(
     title: String,
     value: String,
     subtitle: String,
@@ -349,7 +589,9 @@ fun DateInfoCard(
     )
 ) {
     OutlinedCard(
-        modifier = modifier, shape = RoundedCornerShape(16.dp), colors = cardColors
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = cardColors
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
