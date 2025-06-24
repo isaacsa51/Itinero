@@ -17,7 +17,7 @@ val persistenceModule = module {
             androidContext(),
             AppDatabase::class.java,
             "itinero_database"
-        ).fallbackToDestructiveMigration(false)
+        ).fallbackToDestructiveMigration()
             .build()
     }
 

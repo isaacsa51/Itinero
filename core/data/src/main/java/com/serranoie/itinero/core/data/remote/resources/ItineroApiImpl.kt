@@ -95,8 +95,4 @@ class ItineroApiImpl(
     override suspend fun getCurrentUserMembershipStatus(groupCode: String): List<TripMemberDto> {
         return get("/trips/$groupCode/members")
     }
-
-    override suspend fun leaveSpecificTrip(groupCode: String) {
-        delete<Unit>("/trips/$groupCode/members")
-    }
 }

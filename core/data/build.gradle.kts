@@ -13,7 +13,7 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val apiBaseUrl: String = localProperties.getProperty("API_BASE_URL")
+val apiBaseUrl: String = localProperties.getProperty("API_BASE_URL") ?: throw GradleException("API_BASE_URL must be defined in local.properties")
 
 android {
     namespace = "com.serranoie.itinero.core.data"

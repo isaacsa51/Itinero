@@ -136,18 +136,28 @@ class TravelRepositoryImpl(
     }
 
     override suspend fun updateTripInfo(groupCode: String, request: UpdateTrip): Result<Trip> {
-        return safeApiCall {
+        val apiCallResult = safeApiCall {
             api.updateTripInfo(groupCode, request)
-            // After updating, fetch the updated trip data
-            try {
-                val updatedTrip = api.getTripById(groupCode).toDomain()
-                // Update cache with fresh data
-                localRepository.cacheTrip(updatedTrip)
-                updatedTrip
-            } catch (e: Exception) {
-                // Clear cache to avoid stale data
-                localRepository.clearAllTrips()
-                throw e
+            val updatedTrip = api.getTripById(groupCode).toDomain()
+            localRepository.cacheTrip(updatedTrip)
+            updatedTrip
+        }
+
+        return when (apiCallResult) {
+            is Result.Success -> {
+                apiCallResult
+            }
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to update trip info: ${apiCallResult.exception.message}"
+                )
+                try {
+                    localRepository.clearAllTrips()
+                } catch (e: Exception) {
+                    Log.e("ITINERO - TravelRepository", "Failed to clear cache: ${e.message}")
+                }
+                apiCallResult
             }
         }
     }
@@ -284,7 +294,7 @@ class TravelRepositoryImpl(
     }
 
     override suspend fun leaveTrip(groupCode: String): Result<Unit> {
-        return when (val result = safeApiCall { api.leaveSpecificTrip(groupCode) }) {
+        return when (val result = safeApiCall { api.leaveTrip(groupCode) }) {
             is Result.Success -> {
                 localRepository.clearAllTrips()
                 result
