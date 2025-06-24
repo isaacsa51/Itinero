@@ -80,11 +80,6 @@ fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<E
                 })
             }, scrollBehavior = scrollBehavior
         )
-    }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = { navController.navigate(Screen.ADD_EXPENSE.name) },
-            content = { Icon(Icons.Rounded.Add, contentDescription = "Add") },
-        )
     }) { paddingValues ->
         val expenseState = remember { mutableStateOf(expenses) }
         val currentExpense by expenseState

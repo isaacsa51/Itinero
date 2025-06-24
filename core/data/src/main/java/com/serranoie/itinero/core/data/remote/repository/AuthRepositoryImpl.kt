@@ -2,7 +2,7 @@ package com.serranoie.itinero.core.data.remote.repository
 
 import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import com.serranoie.itinero.core.data.mappers.toDomain
-import com.serranoie.itinero.core.data.remote.ItineroApi
+import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.domain.result.AuthResult
 import com.serranoie.itinero.core.domain.model.RegisterRequest
 import com.serranoie.itinero.core.domain.repository.AuthRepository
@@ -14,8 +14,10 @@ class AuthRepositoryImpl(
 
     override suspend fun login(email: String, password: String): AuthResult {
         val response = api.loginUser(email, password)
-        prefs.saveToken(response.token)
-        return response.toDomain()
+        val authResult = response.toDomain()
+        prefs.saveToken(authResult.token)
+        prefs.saveUserId(authResult.userId)
+        return authResult
     }
 
     override suspend fun register(request: RegisterRequest): AuthResult {
@@ -26,8 +28,10 @@ class AuthRepositoryImpl(
             surname = request.surname,
             phone = request.phone
         )
-        prefs.saveToken(response.token)
-        return response.toDomain()
+        val authResult = response.toDomain()
+        prefs.saveToken(authResult.token)
+        prefs.saveUserId(authResult.userId)
+        return authResult
     }
 
     override suspend fun saveAuthToken(token: String) = prefs.saveToken(token)
@@ -35,6 +39,6 @@ class AuthRepositoryImpl(
     override suspend fun getAuthToken(): String? = prefs.getToken()
 
     override suspend fun logout() {
-        prefs.saveToken("")
+        prefs.clearToken()
     }
 }

@@ -1,5 +1,7 @@
 package com.serranoie.app.itinero.ui
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -39,11 +42,13 @@ import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.HomeViewModel
 import com.serranoie.app.feature.home.HomeUiState
-import com.serranoie.app.feature.home.navigation.bottombar.BottomBarNav
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
+import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
+import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -59,11 +64,27 @@ fun HomeRootScreen(
     val tripInfo by homeViewModel.trip.collectAsState()
     val uiState by homeViewModel.uiState.collectAsState()
 
+    // Create scroll behavior for the floating toolbar
+    val floatingToolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
+        exitDirection = FloatingToolbarExitDirection.Bottom
+    )
+
     LaunchedEffect(tripId) {
         homeViewModel.getCurrentTravel()
     }
 
-    Scaffold { padding ->
+    Scaffold(
+        modifier = if (currentRoute in listOf(
+                Route.Home.route,
+                Route.Itinerary.route,
+                Route.Expenses.route,
+            )
+        ) {
+            Modifier.nestedScroll(floatingToolbarScrollBehavior)
+        } else {
+            Modifier
+        }
+    ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             NavHost(
                 navController = navController, startDestination = Route.Home.route
@@ -106,11 +127,65 @@ fun HomeRootScreen(
                 ) { backStackEntry ->
                     val routeTripId = backStackEntry.arguments?.getString("tripId") ?: ""
                     val scrollTo = backStackEntry.arguments?.getString("scrollTo")
+
+                    val tripSettingsViewModel = koinViewModel<TripSettingsViewModel>(
+                        parameters = { parametersOf(routeTripId) }
+                    )
+                    val qrBitmap by tripSettingsViewModel.qrBitmap.collectAsState()
+                    val membersUiState by tripSettingsViewModel.membersUiState.collectAsState()
+                    val currentUserMember by tripSettingsViewModel.currentUserMember.collectAsState()
+                    val authPreferences = koinInject<AuthPreferences>()
+
+                    LaunchedEffect(routeTripId) {
+                        val userId = authPreferences.getUserId()
+                        userId?.let {
+                            tripSettingsViewModel.fetchCurrentUserMembershipStatus(
+                                groupCode = routeTripId,
+                                userId = it
+                            )
+                        }
+                        Log.d("ITINERO - $TAG", "Fetching current user status, id: $userId")
+                    }
+
                     TripSettingsScreen(
                         navController = navController,
                         tripId = routeTripId,
                         scrollTo = scrollTo,
-                        trip = tripInfo
+                        trip = tripInfo,
+                        qrBitmap = qrBitmap,
+                        membersUiState = membersUiState,
+                        currentUserMember = currentUserMember,
+                        onGenerateQrCode = { tripId ->
+                            tripSettingsViewModel.setQrText(tripId)
+                            tripSettingsViewModel.generateQrCode()
+                        },
+                        onFetchMembers = { groupCode ->
+                            tripSettingsViewModel.fetchMembers(groupCode)
+                        },
+                        onAcceptMember = { groupCode, memberId, onSuccess, onError ->
+                            tripSettingsViewModel.acceptMember(
+                                groupCode,
+                                memberId,
+                                onSuccess,
+                                onError
+                            )
+                        },
+                        onRejectMember = { groupCode, memberId, onSuccess, onError ->
+                            tripSettingsViewModel.rejectMember(
+                                groupCode,
+                                memberId,
+                                onSuccess,
+                                onError
+                            )
+                        },
+                        onRemoveMember = { groupCode, memberId, onSuccess, onError ->
+                            tripSettingsViewModel.removeMember(
+                                groupCode,
+                                memberId,
+                                onSuccess,
+                                onError
+                            )
+                        }
                     )
                 }
 
@@ -146,7 +221,6 @@ fun HomeRootScreen(
                 }
             }
 
-            // HorizontalFloatingToolbar replacing BottomBarNav
             if (currentRoute in listOf(
                     Route.Home.route,
                     Route.Itinerary.route,
@@ -158,13 +232,11 @@ fun HomeRootScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .offset(y = (-16).dp),
-                    scrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
-                        exitDirection = FloatingToolbarExitDirection.Bottom
-                    ),
+                    scrollBehavior = floatingToolbarScrollBehavior,
                     floatingActionButton = {
                         when (currentRoute) {
                             Route.Home.route -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(
                                             Route.TripSettings.createRoute(
@@ -173,13 +245,13 @@ fun HomeRootScreen(
                                         )
                                     }) {
                                     Icon(
-                                        Icons.Filled.Edit, contentDescription = "Add itinerary item"
+                                        Icons.Filled.Edit, contentDescription = "Edit trip settings"
                                     )
                                 }
                             }
 
                             Route.Itinerary.route -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(Screen.ADD_ITINERARY.name)
                                     }) {
@@ -190,7 +262,7 @@ fun HomeRootScreen(
                             }
 
                             Route.Expenses.route -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(Screen.ADD_EXPENSE.name)
                                     }) {
@@ -201,7 +273,7 @@ fun HomeRootScreen(
                             }
 
                             else -> {
-                                FloatingToolbarDefaults.VibrantFloatingActionButton(
+                                FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = { /* Default action */ }) {
                                     Icon(
                                         Icons.Filled.Add, contentDescription = "Add"
@@ -210,7 +282,6 @@ fun HomeRootScreen(
                             }
                         }
                     },
-                    //colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
                     content = {
                         // Home
                         IconButton(

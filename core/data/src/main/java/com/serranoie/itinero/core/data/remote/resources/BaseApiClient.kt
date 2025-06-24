@@ -1,6 +1,18 @@
-package com.serranoie.itinero.core.data.remote
+/*
+ - Copyright (c) 2025 Isaac Serrano.
+ -
+ - File: BaseApiClient.kt
+ - Project: Itinero
+ - Module: Itinero.core.data.main
+ -
+ - This file belongs to the project: Itinero.
+ - Last edited: 22 junio 2025
+ */
+
+package com.serranoie.itinero.core.data.remote.resources
 
 import android.util.Log
+import com.serranoie.itinero.core.data.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.*
@@ -13,7 +25,7 @@ import io.ktor.http.isSuccess
 
 abstract class BaseApiClient(
     protected val client: HttpClient,
-    protected val baseUrl: String = "http://192.168.100.3:8080"
+    protected val baseUrl: String = BuildConfig.API_BASE_URL
 ) {
 
     protected suspend inline fun <reified T> get(

@@ -29,6 +29,11 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp as dp
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ProvideTextStyle
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
@@ -168,7 +173,7 @@ fun IOutlineButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     text: @Composable () -> Unit,
-    leadingIcon: @Composable (() -> Unit)? = null,
+    leadingIcon: @Composable() (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
     importance: ButtonImportance = ButtonImportance.Primary // Default importance
 ) {
@@ -253,6 +258,7 @@ fun ITextButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun IButtonContent(
     text: @Composable () -> Unit,
@@ -273,7 +279,9 @@ private fun IButtonContent(
             },
         ),
     ) {
-        text()
+        ProvideTextStyle(value = MaterialTheme.typography.labelLargeEmphasized) {
+            text()
+        }
     }
 }
 
@@ -368,11 +376,9 @@ fun TravelerLeadingIconPreview() {
 }
 
 object IButtonDefaults {
-    // TODO: File bug
     // OutlinedButton border color doesn't respect disabled state by default
     const val DISABLED_OUTLINED_BUTTON_BORDER_ALPHA = 0.12f
 
-    // TODO: File bug
     // OutlinedButton default border width isn't exposed via ButtonDefaults
     val OutlinedButtonBorderWidth = 1.dp
 }

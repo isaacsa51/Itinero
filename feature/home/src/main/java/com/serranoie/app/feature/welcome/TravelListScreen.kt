@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.welcome
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,13 +15,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.GroupAdd
+import androidx.compose.material.icons.rounded.People
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LoadingIndicator
@@ -29,14 +36,29 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,12 +79,24 @@ fun TravelListScreen(
     onGetAllTravels: () -> Unit,
     onResetState: () -> Unit,
     onAddTravelClick: () -> Unit,
+    onJoinTravelClick: () -> Unit,
     onTravelClick: (String) -> Unit,
     onShowSnackbar: suspend (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val listState = rememberLazyListState()
+    val fabVisible by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+
+    val items = listOf(
+        Icons.Rounded.People to "Join a trip",
+        Icons.Rounded.GroupAdd to "Create trip"
+    )
+
+    var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
+
+    BackHandler(fabMenuExpanded) { fabMenuExpanded = false }
 
     LaunchedEffect(key1 = true) {
         onGetAllTravels()
@@ -75,17 +109,78 @@ fun TravelListScreen(
         }
     }
 
-    // TODO: On FAB click open FAB Menu with join, create options.
-
-    Scaffold(topBar = {
-        LargeTopAppBar(
-            title = { Text("My Trips") }, scrollBehavior = scrollBehavior
-        )
-    }, floatingActionButton = {
-        FloatingActionButton(onClick = onAddTravelClick) {
-            Icon(Icons.Default.Add, contentDescription = "Add Trip")
-        }
-    }, snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+    Scaffold(
+        topBar = {
+            LargeTopAppBar(
+                title = { Text("My Trips") },
+                scrollBehavior = scrollBehavior
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButtonMenu(
+                expanded = fabMenuExpanded,
+                button = {
+                    ToggleFloatingActionButton(
+                        modifier =
+                            Modifier
+                                .semantics {
+                                    traversalIndex = -1f
+                                    stateDescription =
+                                        if (fabMenuExpanded) "Expanded" else "Collapsed"
+                                    contentDescription = "Toggle menu"
+                                }
+                                .animateFloatingActionButton(
+                                    visible = fabVisible || fabMenuExpanded,
+                                    alignment = Alignment.BottomEnd
+                                ),
+                        checked = fabMenuExpanded,
+                        onCheckedChange = { fabMenuExpanded = !fabMenuExpanded }
+                    ) {
+                        val imageVector by remember {
+                            derivedStateOf {
+                                if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add
+                            }
+                        }
+                        Icon(
+                            painter = rememberVectorPainter(imageVector),
+                            contentDescription = null
+                        )
+                    }
+                }
+            ) {
+                items.forEachIndexed { i, item ->
+                    FloatingActionButtonMenuItem(
+                        modifier =
+                            Modifier.semantics {
+                                isTraversalGroup = true
+                                if (i == items.size - 1) {
+                                    customActions =
+                                        listOf(
+                                            CustomAccessibilityAction(
+                                                label = "Close menu",
+                                                action = {
+                                                    fabMenuExpanded = false
+                                                    true
+                                                }
+                                            )
+                                        )
+                                }
+                            },
+                        onClick = {
+                            fabMenuExpanded = false
+                            when (i) {
+                                0 -> onJoinTravelClick()
+                                1 -> onAddTravelClick()
+                            }
+                        },
+                        icon = { Icon(item.first, contentDescription = null) },
+                        text = { Text(text = item.second) },
+                    )
+                }
+            }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -105,11 +200,12 @@ fun TravelListScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "No trips found", style = MaterialTheme.typography.bodyLarge
+                            text = "No trips found",
+                            style = MaterialTheme.typography.bodyLarge
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tap the + button to create your first trip",
+                            text = "Tap the + button to create or join a trip",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -117,11 +213,14 @@ fun TravelListScreen(
 
                 else -> {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize(), contentPadding = padding
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = padding
                     ) {
                         items(trips) { travel ->
                             TravelItem(
-                                trip = travel, onClick = { onTravelClick(travel.groupCode) })
+                                trip = travel,
+                                onClick = { onTravelClick(travel.groupCode) }
+                            )
                         }
                     }
                 }
@@ -168,33 +267,6 @@ fun TravelItem(
                         style = MaterialTheme.typography.titleLargeEmphasized,
                         fontWeight = FontWeight.Bold
                     )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // TODO: Check for current user id, if it matchs it's the owner
-//                    if (trip.isOwner) {
-//                        Box(
-//                            modifier = Modifier
-//                                .background(
-//                                    color = MaterialTheme.colorScheme.tertiaryContainer,
-//                                    shape = RoundedCornerShape(4.dp)
-//                                )
-//                                .border(
-//                                    width = 1.dp,
-//                                    color = MaterialTheme.colorScheme.tertiary,
-//                                    shape = RoundedCornerShape(4.dp)
-//                                )
-//                                .padding(horizontal = 8.dp, vertical = 4.dp)
-//                        ) {
-//                            Text(
-//                                text = "Owner",
-//                                style = MaterialTheme.typography.bodyMedium.copy(
-//                                    fontWeight = FontWeight.Bold,
-//                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-//                                )
-//                            )
-//                        }
-//                    }
                 }
 
                 Text(
@@ -277,8 +349,10 @@ private fun TravelListPreview() {
             onGetAllTravels = {},
             onResetState = {},
             onAddTravelClick = {},
+            onJoinTravelClick = {},
             onTravelClick = {},
-            onShowSnackbar = {})
+            onShowSnackbar = {}
+        )
     }
 }
 
@@ -338,6 +412,7 @@ private fun ScreenWithItemsPreview() {
             onGetAllTravels = {},
             onResetState = {},
             onAddTravelClick = {},
+            onJoinTravelClick = {},
             onTravelClick = {},
             onShowSnackbar = {},
         )
@@ -364,7 +439,7 @@ private fun TravelItemPreview() {
             location = "Paris, France",
             mapUri = "https://www.google.com/maps/place/Paris,+France/@48.85661",
         ),
-        reservationCode = "LMH-2024-098",
+        reservationCode = "LMH-2024-099",
         extraInfo = "Winter season with holiday decorations",
         additionalInfo = "Museum passes and restaurant reservations confirmed",
         ownerId = 1.toString(),

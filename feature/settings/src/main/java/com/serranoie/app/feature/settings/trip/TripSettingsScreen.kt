@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.settings.trip
 
+import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -26,7 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -34,7 +35,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -43,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,8 +56,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
@@ -65,60 +66,68 @@ import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedExpandab
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
-import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
-import com.serranoie.app.itinero.feature.settings.trip.TripSettingsViewModel
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.itinero.core.domain.model.Accommodation
+import com.serranoie.itinero.core.domain.model.MemberStatus
 import com.serranoie.itinero.core.domain.model.Trip
+import com.serranoie.itinero.core.domain.model.TripMember
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripSettingsScreen(
     navController: NavController,
     tripId: String = "",
     scrollTo: String?,
     trip: Trip?,
-    viewModel: TripSettingsViewModel = viewModel()
+    qrBitmap: Bitmap?,
+    membersUiState: TripMembersUiState,
+    currentUserMember: TripMember?,
+    onGenerateQrCode: (String) -> Unit,
+    onFetchMembers: (String) -> Unit,
+    onAcceptMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
+    onRejectMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
+    onRemoveMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit
 ) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    val qrBitmap = viewModel.qrBitmap.collectAsStateWithLifecycle().value
     val formattedCode = tripId.replace("ITN-", "")
     val lazyListState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val userStatus = currentUserMember?.status?.value
 
     LaunchedEffect(tripId) {
         if (tripId.isNotEmpty()) {
-            viewModel.setQrText(tripId)
-            viewModel.generateQrCode()
+            onGenerateQrCode(tripId)
         }
     }
 
     LaunchedEffect(scrollTo) {
         if (scrollTo == "tripInfo") {
-            // Find the index of the tripInfo item
-            val tripInfoItemIndex =
-                1 // Based on the current structure: 0=group code, 1=trip information, 2=management
+            val tripInfoItemIndex = 1
             lazyListState.animateScrollToItem(tripInfoItemIndex)
         }
     }
 
-    Scaffold(
-        topBar = {
-            MediumTopAppBar(
-                title = {
-                Text(
-                    "Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis
+    Scaffold(topBar = {
+        MediumTopAppBar(
+            title = {
+            Text("Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }, navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
                 )
-            }, navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }, content = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
-                    )
-                })
-            }, scrollBehavior = scrollBehavior
-            )
-        }) { paddingValues ->
+            }
+        }, scrollBehavior = scrollBehavior
+        )
+    }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,383 +135,39 @@ fun TripSettingsScreen(
                 .padding(paddingValues), state = lazyListState
         ) {
             item {
-                ICard(
-                    swipeable = false, isCompleted = false, modifier = Modifier.padding(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "ITINERO GROUP CODE",
-                            style = MaterialTheme.typography.labelLargeEmphasized
-                        )
-
-                        OtpDisplayField(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp),
-                            otpText = formattedCode
-                        )
-
-                        qrBitmap?.let { bitmap ->
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    bitmap = bitmap.asImageBitmap(),
-                                    contentDescription = "Group QR Code",
-                                    modifier = Modifier
-                                        .size(200.dp)
-                                        .background(
-                                            color = Color.White, shape = RoundedCornerShape(8.dp)
-                                        )
-                                        .padding(8.dp)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "What's this code/QR for?",
-                            style = MaterialTheme.typography.bodyLargeEmphasized,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        Text(
-                            text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Text(
-                            text = "They can only use this code within the app to join your group.\n",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Text(
-                            text = "Only the trip creator can manage group members.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
+                GroupCodeCard(formattedCode = formattedCode, qrBitmap = qrBitmap)
             }
 
-            // Trip Information Settings
             item(key = "tripInfo") {
-                PaddedListGroup(
-                    title = "Trip Information".uppercase(),
-                ) {
-                    CustomPaddedListItem(
-                        onClick = {
-                            navController.navigate(
-                                Route.TripInfo.createRoute(
-                                    tripId = tripId
-                                )
-                            )
-                        }, position = PaddedListItemPosition.First
-                    ) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Trip Name", style = MaterialTheme.typography.bodyLarge
-                            )
-                            trip?.groupName?.let {
-                                Text(
-                                    text = it,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null
-                        )
-                    }
-
-                    CustomPaddedListItem(
-                        onClick = {
-                            navController.navigate(
-                                Route.TripInfo.createRoute(
-                                    tripId = tripId
-                                )
-                            )
-                        }, position = PaddedListItemPosition.Middle
-                    ) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Trip Dates", style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = if (trip != null) "${trip.startDate} - ${trip.endDate}" else "Not set",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null
-                        )
-                    }
-
-                    CustomPaddedListItem(
-                        onClick = {
-                            navController.navigate(
-                                Route.TripInfo.createRoute(
-                                    tripId = tripId
-                                )
-                            )
-                        }, position = PaddedListItemPosition.Middle
-                    ) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Accomodation Name",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = trip?.accommodation?.name ?: "Not set",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null
-                        )
-                    }
-
-                    CustomPaddedListItem(
-                        onClick = {
-                            navController.navigate(
-                                Route.TripInfo.createRoute(
-                                    tripId = tripId
-                                )
-                            )
-                        }, position = PaddedListItemPosition.Middle
-                    ) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Accomodation location",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = trip?.accommodation?.location ?: "Not set",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null
-                        )
-                    }
-                    CustomPaddedListItem(
-                        onClick = {
-                            navController.navigate(
-                                Route.TripInfo.createRoute(
-                                    tripId = tripId
-                                )
-                            )
-                        }, position = PaddedListItemPosition.Last
-                    ) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Accommodation number", style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = trip?.accommodation?.phone ?: "Not set",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null
-                        )
-                    }
-                }
+                TripInfoSection(navController = navController, tripId = tripId, trip = trip)
             }
 
             item {
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            /* TODO: Show only this list if the current user is the owner
-            *       - Change the way that the members shows on the members list to display depending if its pending or already accepted
-            *       - Do the same with members on Ownership change
-            */
-            // Group Management Settings
-            item {
-                PaddedListGroup(
-                    title = "GROUP MANAGEMENT"
-                ) {
-                    CustomPaddedListItem(
-                        onClick = { /* Handle invite action */ },
-                        position = PaddedListItemPosition.First
-                    ) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Invite New Member",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = "Share invitation code with others",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowRight,
-                            contentDescription = "Navigate",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Manage Members with Expandable Content
-                    var expanded by remember { mutableStateOf(false) }
-                    val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
-
-                    CustomPaddedExpandableItem(
-                        isExpanded = expanded,
-                        onToggleExpanded = { expanded = !expanded },
-                        position = PaddedListItemPosition.Middle,
-                        defaultContent = {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Manage Members",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Text(
-                                        text = "Review pending invitations",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Icon(
-                                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                    contentDescription = if (expanded) "Collapse" else "Expand",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
-                                )
-                            }
-                        },
-                        expandedContent = {
-                            AnimatedVisibility(
-                                visible = expanded, enter = expandVertically(
-                                    expandFrom = Alignment.Top
-                                ) + fadeIn(), exit = shrinkVertically() + fadeOut()
-                            ) {
-
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(top = 12.dp, start = 12.dp)
-                                ) {
-                                    Text(
-                                        text = "Pending Member Name",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(bottom = 12.dp)
-                                    )
-                                    Column {
-                                        Surface(
-                                            modifier = Modifier.fillMaxWidth(),
-                                        ) {
-                                            IButton(
-                                                text = {
-                                                    Text(
-                                                        text = "Delete member",
-                                                        style = MaterialTheme.typography.labelLargeEmphasized
-                                                    )
-                                                },
-                                                onClick = { /*TODO*/ },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(36.dp),
-                                                importance = ButtonImportance.Error,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        })
-
-                    CustomPaddedListItem(
-                        onClick = { /* Navigate to transfer ownership */ },
-                        position = PaddedListItemPosition.Last
-                    ) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Transfer Ownership",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = "Change the trip administrator",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowRight,
-                            contentDescription = "Navigate",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            if (userStatus?.equals("OWNER") == true) {
+                item {
+                    GroupManagementSection(
+                        tripId = tripId,
+                        membersUiState = membersUiState,
+                        onFetchMembers = onFetchMembers,
+                        onAcceptMember = onAcceptMember,
+                        onRejectMember = onRejectMember,
+                        onRemoveMember = onRemoveMember,
+                        snackbarHostState = snackbarHostState,
+                        coroutineScope = coroutineScope
+                    )
                 }
-            }
 
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
             }
 
             // Danger Zone
             item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(
-                        text = "DANGER ZONE",
-                        style = MaterialTheme.typography.labelLargeEmphasized.copy(
-                            fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    IButton(
-                        text = {
-                            Text(
-                                text = "Leave Trip Group",
-                                style = MaterialTheme.typography.labelLargeEmphasized
-                            )
-                        },
-                        onClick = { /* Show leave group confirmation */ },
-                        modifier = Modifier.fillMaxWidth(),
-                        importance = ButtonImportance.Secondary,
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    IButton(
-                        text = {
-                            Text(
-                                text = "Delete Trip",
-                                style = MaterialTheme.typography.labelLargeEmphasized
-                            )
-                        },
-                        onClick = { /* Show delete trip confirmation */ },
-                        modifier = Modifier.fillMaxWidth(),
-                        importance = ButtonImportance.Error,
-                    )
-                }
+                DangerZoneSection(userStatus)
             }
 
             item {
@@ -512,14 +177,483 @@ fun TripSettingsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
+    ICard(
+        swipeable = false, isCompleted = false, modifier = Modifier.padding(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLargeEmphasized
+            )
+
+            OtpDisplayField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                otpText = formattedCode
+            )
+
+            qrBitmap?.let { bitmap ->
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Group QR Code",
+                        modifier = Modifier
+                            .size(200.dp)
+                            .background(
+                                color = Color.White, shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(8.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "What's this code/QR for?",
+                style = MaterialTheme.typography.bodyLargeEmphasized,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "They can only use this code within the app to join your group.\n",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "Only the trip creator can manage group members.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+@Composable
+private fun TripInfoSection(navController: NavController, tripId: String, trip: Trip?) {
+    PaddedListGroup(title = "Trip Information".uppercase()) {
+        CustomPaddedListItem(
+            onClick = {
+                navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
+            }, position = PaddedListItemPosition.First
+        ) {
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Trip Name", style = MaterialTheme.typography.bodyLarge)
+                trip?.groupName?.let {
+                    Text(text = it, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+
+        CustomPaddedListItem(
+            onClick = {
+                navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
+            }, position = PaddedListItemPosition.Middle
+        ) {
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Trip Dates", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = if (trip != null) "${trip.startDate} - ${trip.endDate}" else "Not set",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+
+        CustomPaddedListItem(
+            onClick = {
+                navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
+            }, position = PaddedListItemPosition.Middle
+        ) {
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Accommodation Name", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = trip?.accommodation?.name ?: "Not set",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+
+        CustomPaddedListItem(
+            onClick = {
+                navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
+            }, position = PaddedListItemPosition.Middle
+        ) {
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Accommodation Location", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = trip?.accommodation?.location ?: "Not set",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+
+        CustomPaddedListItem(
+            onClick = {
+                navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
+            }, position = PaddedListItemPosition.Last
+        ) {
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Accommodation Number", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = trip?.accommodation?.phone ?: "Not set",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+    }
+}
+
+@Composable
+private fun GroupManagementSection(
+    tripId: String,
+    membersUiState: TripMembersUiState,
+    onFetchMembers: (String) -> Unit,
+    onAcceptMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
+    onRejectMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
+    onRemoveMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    coroutineScope: CoroutineScope
+) {
+    var expanded by remember { mutableStateOf(true) }
+    val rotationAngle by animateFloatAsState(targetValue = if (expanded) 360f else 0f)
+
+    // Fetch members when expanded
+    LaunchedEffect(expanded) {
+        if (expanded && membersUiState is TripMembersUiState.Idle) {
+            onFetchMembers(tripId)
+        }
+    }
+
+    PaddedListGroup(title = "GROUP MANAGEMENT") {
+        CustomPaddedListItem(
+            onClick = { /* Handle invite action */ }, position = PaddedListItemPosition.First
+        ) {
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Invite New Member", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Share invitation code with others",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = "Navigate",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Manage Members with Expandable Content
+        CustomPaddedExpandableItem(
+            isExpanded = expanded,
+            onToggleExpanded = { expanded = !expanded },
+            position = PaddedListItemPosition.Middle,
+            defaultContent = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = "Manage Members", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = "Review pending invitations and members",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
+                    )
+                }
+            },
+            expandedContent = {
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    MembersListContent(
+                        membersUiState = membersUiState,
+                        onAcceptMember = { memberId, index ->
+                            onAcceptMember(tripId, memberId.id, {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Member accepted")
+                                }
+                            }, { error ->
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Error: $error")
+                                }
+                            })
+                        },
+                        onRejectMember = { memberId, index ->
+                            onRejectMember(tripId, memberId.id, {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Member rejected")
+                                }
+                            }, { error ->
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Error: $error")
+                                }
+                            })
+                        },
+                        onRemoveMember = { memberId, index ->
+                            onRemoveMember(tripId, memberId.id, {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Member removed")
+                                }
+                            }, { error ->
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Error: $error")
+                                }
+                            })
+                        })
+                }
+            })
+
+        CustomPaddedListItem(
+            onClick = { /* Navigate to transfer ownership */ },
+            position = PaddedListItemPosition.Last
+        ) {
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Transfer Ownership", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Change the trip administrator",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = "Navigate",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun MembersListContent(
+    membersUiState: TripMembersUiState,
+    onAcceptMember: (TripMember, () -> Unit) -> Unit,
+    onRejectMember: (TripMember, () -> Unit) -> Unit,
+    onRemoveMember: (TripMember, () -> Unit) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, start = 12.dp, end = 12.dp)
+    ) {
+        when (membersUiState) {
+            is TripMembersUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is TripMembersUiState.Success -> {
+                if (membersUiState.members.isEmpty()) {
+                    Text(
+                        text = "No members found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
+                    membersUiState.members.forEach { member ->
+                        MemberItemCard(
+                            member = member,
+                            onAccept = { onAcceptMember(member) {} },
+                            onReject = { onRejectMember(member) {} },
+                            onRemove = { onRemoveMember(member) {} },
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+
+            is TripMembersUiState.Error -> {
+                Text(
+                    text = "Error: ${membersUiState.message}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
+            is TripMembersUiState.Idle -> {
+                Text(
+                    text = "Loading members...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun MemberItemCard(
+    member: TripMember, onAccept: () -> Unit, onReject: () -> Unit, onRemove: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp)
+    ) {
+
+
+        Text(
+            text = member.name,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+
+        Text(
+            text = member.email,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        when (member.status) {
+            MemberStatus.PENDING -> {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    IButton(
+                        text = { Text("Accept", style = MaterialTheme.typography.labelLarge) },
+                        onClick = onAccept,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(36.dp),
+                        importance = ButtonImportance.Primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IButton(
+                        text = { Text("Reject", style = MaterialTheme.typography.labelLarge) },
+                        onClick = onReject,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(36.dp),
+                        importance = ButtonImportance.Error
+                    )
+                }
+            }
+
+            MemberStatus.ACCEPTED -> {
+                IButton(
+                    text = { Text("Remove Member", style = MaterialTheme.typography.labelLarge) },
+                    onClick = onRemove,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(36.dp),
+                    importance = ButtonImportance.Error
+                )
+            }
+
+            MemberStatus.OWNER -> {}
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun DangerZoneSection(userStatus: String?) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Text(
+            text = "DANGER ZONE", style = MaterialTheme.typography.labelLargeEmphasized.copy(
+                fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        IButton(
+            text = {
+                Text(
+                    text = "Leave Trip Group", style = MaterialTheme.typography.labelLargeEmphasized
+                )
+            },
+            onClick = { /* Show leave group confirmation */ },
+            modifier = Modifier.fillMaxWidth(),
+            importance = ButtonImportance.Secondary,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (userStatus == "OWNER") {
+            IButton(
+                text = {
+                    Text(
+                        text = "Delete Trip", style = MaterialTheme.typography.labelLargeEmphasized
+                    )
+                },
+                onClick = { /* Show delete trip confirmation */ },
+                modifier = Modifier.fillMaxWidth(),
+                importance = ButtonImportance.Error,
+            )
+        }
+    }
+}
+
 @ThemePreviews
 @Composable
 private fun TripSettingsScreenPreview() {
     PreviewWrapper {
-        val viewModel: TripSettingsViewModel = viewModel()
         TripSettingsScreen(
             navController = rememberNavController(),
-            tripId = "12345",
+            tripId = "ITN-12345",
             scrollTo = null,
             trip = Trip(
                 id = "12345",
@@ -529,7 +663,7 @@ private fun TripSettingsScreenPreview() {
                 endDate = "2025-06-10",
                 summary = "Preview trip",
                 totalMembers = 3,
-                accommodation = com.serranoie.itinero.core.domain.model.Accommodation(
+                accommodation = Accommodation(
                     name = "My Hotel",
                     location = "123 Main St",
                     phone = "+1 1234567890",
@@ -543,7 +677,15 @@ private fun TripSettingsScreenPreview() {
                 groupCode = "ITN-12345",
                 ownerId = "user123"
             ),
-            viewModel = viewModel
-        )
+            qrBitmap = null,
+            membersUiState = TripMembersUiState.Idle,
+            currentUserMember = TripMember(
+                id = 2, name = "Test User", email = "test@example.com", status = MemberStatus.OWNER
+            ),
+            onGenerateQrCode = {},
+            onFetchMembers = {},
+            onAcceptMember = { _, _, _, _ -> },
+            onRejectMember = { _, _, _, _ -> },
+            onRemoveMember = { _, _, _, _ -> })
     }
 }
