@@ -157,6 +157,7 @@ class TripSettingsViewModel(
     fun makeOwner(
         groupCode: String,
         memberId: Int,
+        currentUserId: Int,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -165,7 +166,7 @@ class TripSettingsViewModel(
                 is Result.Success -> {
                     onSuccess()
                     fetchMembers(groupCode)
-                    fetchCurrentUserMembershipStatus(groupCode, memberId)
+                    fetchCurrentUserMembershipStatus(groupCode, currentUserId)
                 }
 
                 is Result.Error -> {
