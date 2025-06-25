@@ -90,10 +90,7 @@ fun HomeRootScreen(
                 navController = navController, startDestination = Route.Home.route
             ) {
                 composable(Route.Home.route) {
-                    val viewmodel =
-                        koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
-                    val uiState by viewmodel.uiState.collectAsState()
-                    val tripInfo by viewmodel.trip.collectAsState()
+                    val viewmodel = koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
                     val snackbarHostState = remember { SnackbarHostState() }
 
                     HomeScreen(

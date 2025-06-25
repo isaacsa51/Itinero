@@ -127,13 +127,12 @@ fun Modifier.AIShimmer(
     )
 
     val shimmerColors = listOf(
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
         Color(0x994A8DD8),
         Color(0xAD784CF0),
         Color(0xAD4A8DD8),
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
+        Color(0xADD84A93),
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
         )
 
     return this
@@ -224,8 +223,8 @@ private fun InteractiveShimmerPreview() {
                         modifier = Modifier
                             .padding(16.dp)
                             .shimmerable(
-                                startColor = MaterialTheme.colorScheme.primaryContainer,
-                                endColor = MaterialTheme.colorScheme.secondaryContainer
+                                startColor = MaterialTheme.colorScheme.onPrimary,
+                                endColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                     )
                 }
