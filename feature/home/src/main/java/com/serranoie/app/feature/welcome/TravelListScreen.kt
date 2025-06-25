@@ -1,36 +1,19 @@
 package com.serranoie.app.feature.welcome
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.material.icons.rounded.People
-import androidx.compose.material3.Card
-import androidx.compose.ui.Modifier
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.runtime.getValue
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonMenu
-import androidx.compose.material3.FloatingActionButtonMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleFloatingActionButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
-import androidx.compose.material3.animateFloatingActionButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,25 +22,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.rounded.People
+import androidx.compose.material.icons.rounded.GroupAdd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.rounded.GroupAdd
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.semantics.CustomAccessibilityAction
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.customActions
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -72,7 +52,9 @@ import com.serranoie.itinero.core.domain.model.Trip
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalAnimationApi::class
+)
 @Composable
 fun TravelListScreen(
     uiState: TravelUiState,
@@ -100,7 +82,16 @@ fun TravelListScreen(
     BackHandler(fabMenuExpanded) { fabMenuExpanded = false }
 
     LaunchedEffect(key1 = true) {
-        onGetAllTravels()
+        if (uiState is TravelUiState.Idle && trips.isEmpty()) {
+            onGetAllTravels()
+        }
+    }
+
+    val targetState = when (uiState) {
+        is TravelUiState.Loading -> "loading"
+        is TravelUiState.Success<*> -> if (trips.isNotEmpty()) "success" else "empty"
+        is TravelUiState.Error -> "error"
+        is TravelUiState.Idle -> if (trips.isNotEmpty()) "success" else "loading"
     }
 
     LaunchedEffect(uiState) {
@@ -111,6 +102,9 @@ fun TravelListScreen(
     }
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
                 title = { Text("My Trips") },
@@ -181,84 +175,160 @@ fun TravelListScreen(
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-        ) {
-            when {
-                uiState is TravelUiState.Loading -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = padding
-                    ) {
-                        items(5) {
-                            ShimmerProvider {
-                                TravelItem(
-                                    trip = Trip(
-                                        id = "loading",
-                                        groupCode = "loading",
-                                        groupName = "loading",
-                                        totalMembers = 0,
-                                        destination = "loading",
-                                        startDate = "2025-12-01",
-                                        endDate = "2025-12-31",
-                                        summary = "loading",
-                                        accommodation = Accommodation(
-                                            name = "loading",
-                                            phone = "loading",
-                                            checkIn = "loading",
-                                            checkOut = "loading",
-                                            location = "loading",
-                                            mapUri = "loading"
-                                        ),
-                                        reservationCode = "loading",
-                                        extraInfo = "loading",
-                                        additionalInfo = "loading",
-                                        ownerId = "loading"
-                                    ),
-                                    onClick = {}
-                                )
-                            }
-                        }
-                    }
+    ) { paddingValues ->
+        AnimatedContent(
+            targetState = targetState,
+            transitionSpec = {
+                if (targetState == "success" && initialState == "loading" ||
+                    targetState == "empty" && initialState == "loading") {
+                    fadeIn(animationSpec = tween(durationMillis = 300)) togetherWith
+                            fadeOut(animationSpec = tween(durationMillis = 300))
+                } else {
+                    fadeIn() togetherWith fadeOut()
                 }
-
-                trips.isEmpty() -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "No trips found",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Tap the + button to create or join a trip",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+                    .using(
+                        SizeTransform(clip = false)
+                    )
+            }
+        ) { stateKey ->
+            when (stateKey) {
+                "loading" -> {
+                    ShimmerLoadingTravelList(paddingValues = paddingValues)
                 }
-
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = padding
-                    ) {
-                        items(trips) { travel ->
-                            TravelItem(
-                                trip = travel,
-                                onClick = { onTravelClick(travel.groupCode) }
-                            )
-                        }
-                    }
+                "success" -> {
+                    TripListInfo(
+                        trips = trips,
+                        paddingValues = paddingValues,
+                        listState = listState,
+                        onTravelClick = onTravelClick
+                    )
+                }
+                "empty" -> {
+                    EmptyTravelList(
+                        paddingValues = paddingValues,
+                    )
+                }
+                "error" -> {
+                    ErrorTravelList(
+                        paddingValues = paddingValues,
+                        onRetry = onGetAllTravels
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ShimmerLoadingTravelList(
+    paddingValues: PaddingValues
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = paddingValues
+    ) {
+        items(4) {
+            ShimmerProvider {
+                TravelItem(
+                    trip = Trip(
+                        id = "loading",
+                        groupCode = "loading",
+                        groupName = "loading",
+                        totalMembers = 0,
+                        destination = "loading",
+                        startDate = "2025-12-01",
+                        endDate = "2025-12-31",
+                        summary = "loading",
+                        accommodation = Accommodation(
+                            name = "loading",
+                            phone = "loading",
+                            checkIn = "loading",
+                            checkOut = "loading",
+                            location = "loading",
+                            mapUri = "loading"
+                        ),
+                        reservationCode = "loading",
+                        extraInfo = "loading",
+                        additionalInfo = "loading",
+                        ownerId = "loading"
+                    ),
+                    onClick = {}
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TripListInfo(
+    trips: List<Trip>,
+    paddingValues: PaddingValues,
+    listState: LazyListState,
+    onTravelClick: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = paddingValues,
+        state = listState
+    ) {
+        items(trips) { trip ->
+            TravelItem(
+                trip = trip,
+                onClick = { onTravelClick(trip.groupCode) }
+            )
+        }
+    }
+}
+
+@Composable
+fun EmptyTravelList(
+    paddingValues: PaddingValues,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "No trips found",
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Tap the + button to create or join a trip",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+fun ErrorTravelList(
+    paddingValues: PaddingValues,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Error loading trips",
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Please try again",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
         }
     }
 }
