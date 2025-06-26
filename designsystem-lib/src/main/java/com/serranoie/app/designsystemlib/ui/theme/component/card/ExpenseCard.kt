@@ -49,7 +49,6 @@ import java.util.Locale
  * @param borderColor The color of the border.
  * @param isCompleted Whether the card is in a completed state.
  */
-
 @Composable
 fun ExpenseCard(
     expenseName: String,
@@ -59,15 +58,15 @@ fun ExpenseCard(
     isYours: Boolean = false,
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.ConfirmationNumber,
-    iconBackgroundColor: Color = MaterialTheme.colorScheme.surface,
+    iconBackgroundColor: Color = MaterialTheme.colorScheme.background,
     cardBackgroundColor: Color = if (isCompleted) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.75f) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
     borderColor: Color = MaterialTheme.colorScheme.onSecondaryContainer.copy(0.25f),
 ) {
     ICard(
         modifier = modifier,
         borderColor = borderColor,
-        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
-        elevation = 0.dp
+        color = CardDefaults.cardColors(containerColor = cardBackgroundColor).containerColor,
+        tonalElevation = 2.dp
     ) {
         Row(
             modifier = Modifier

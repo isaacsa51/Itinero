@@ -31,12 +31,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -73,8 +71,8 @@ data class SwipeActionsConfig(
  * @param isCompleted Whether the card is marked as completed
  * @param onSwipe Callback when the card is swiped (only used in swipeable variant)
  * @param shape The shape of the card
- * @param colors The colors of the card
- * @param elevation The elevation of the card
+ * @param tonalElevation The tonal elevation of the card
+ * @param color The background color of the card (used with Surface for proper tonal elevation)
  * @param borderWidth The width of the border around the card
  * @param borderColor The color of the border around the card
  * @param swipeable Whether the card should be swipeable
@@ -94,11 +92,8 @@ fun ICard(
     isCompleted: Boolean = false,
     onSwipe: (() -> Unit)? = null,
     shape: Shape = RoundedCornerShape(8.dp),
-    colors: CardColors = CardDefaults.elevatedCardColors(
-        containerColor = if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer
-        else MaterialTheme.colorScheme.surface
-    ),
-    elevation: Dp = 2.dp,
+    tonalElevation: Dp = 4.dp,
+    color: Color = if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceContainer,
     borderWidth: Dp = 1.dp,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     swipeable: Boolean = false,
@@ -113,7 +108,6 @@ fun ICard(
 ) {
     val cardContent: @Composable () -> Unit = {
         Column {
-            // Add colorful header if title is provided
             headerTitle?.let {
                 Box(
                     modifier = Modifier
@@ -160,8 +154,8 @@ fun ICard(
             isCompleted = isCompleted,
             onSwipe = onSwipe,
             shape = shape,
-            colors = colors,
-            elevation = elevation,
+            color = color,
+            tonalElevation = tonalElevation,
             borderWidth = borderWidth,
             borderColor = borderColor,
             dragThreshold = dragThreshold,
@@ -169,12 +163,15 @@ fun ICard(
             content = cardContent
         )
     } else {
-        Card(
+        Surface(
             modifier = modifier
                 .fillMaxWidth()
                 .border(
                     width = borderWidth, color = borderColor, shape = shape
-                ), shape = shape, elevation = CardDefaults.cardElevation(elevation), colors = colors
+                ),
+            shape = shape,
+            tonalElevation = tonalElevation,
+            color = color
         ) {
             cardContent()
         }
@@ -188,19 +185,19 @@ private fun ISwipeableCard(
     isCompleted: Boolean = false,
     onSwipe: () -> Unit,
     shape: Shape = RoundedCornerShape(16.dp),
-    colors: CardColors = CardDefaults.elevatedCardColors(),
-    elevation: Dp = 2.dp,
+    color: Color = MaterialTheme.colorScheme.surface,
+    tonalElevation: Dp = 4.dp,
     borderWidth: Dp = 1.dp,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     dragThreshold: Float = 150f,
     swipeActionsConfig: SwipeActionsConfig? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val offsetXState = remember { mutableStateOf(0f) }
     val localIsCompletedState = remember { mutableStateOf(isCompleted) }
 
     // Use swipeActionsConfig if provided, otherwise use default behavior
-    val effectiveThreshold = swipeActionsConfig?.let { it.threshold * 300f } ?: dragThreshold
+    val effectiveThreshold = swipeActionsConfig?.threshold ?: dragThreshold
     val backgroundIcon = swipeActionsConfig?.icon ?: Icons.Default.Done
     val backgroundIconTint =
         swipeActionsConfig?.iconTint ?: MaterialTheme.colorScheme.onTertiaryContainer
@@ -245,8 +242,7 @@ private fun ISwipeableCard(
             )
         }
 
-        // The actual card
-        Card(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetXState.value.roundToInt(), 0) }
@@ -267,10 +263,14 @@ private fun ISwipeableCard(
                         }
                         // Reset position with animation
                         offsetXState.value = 0f
-                    })
+                    }
+                )
                 .border(
                     width = borderWidth, color = borderColor, shape = shape
-                ), shape = shape, elevation = CardDefaults.cardElevation(elevation), colors = colors
+                ),
+            shape = shape,
+            tonalElevation = tonalElevation,
+            color = color
         ) {
             content()
         }
@@ -389,7 +389,8 @@ private fun OutlinedCardPreview() {
                     iconTint = MaterialTheme.colorScheme.primary,
                     background = MaterialTheme.colorScheme.primaryContainer,
                     stayDismissed = false,
-                    onDismiss = { /* Custom dismiss action */ })) {
+                    onDismiss = { /* Custom dismiss action */ })
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Swipe me with custom config",
@@ -456,7 +457,7 @@ private fun OutlinedCardPreview() {
                 amountOwed = 12.80,
                 isYours = true,
                 isCompleted = false,
-                icon = Icons.Filled.Restaurant
+                icon = Icons.Default.Restaurant
             )
         }
     }
