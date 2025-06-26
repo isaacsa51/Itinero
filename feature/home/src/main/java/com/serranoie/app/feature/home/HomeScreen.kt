@@ -18,23 +18,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -64,6 +64,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
 import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
@@ -198,6 +199,11 @@ fun HomeScreen(
                         "Itinero", maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
                 },
+                actions = {
+                    IconButton(onClick = { /*navController.navigate("settings")*/ }) {
+                        Icon(Icons.Outlined.Settings, contentDescription = "Settings")
+                    }
+                },
                 scrollBehavior = scrollBehavior,
             )
         }) { paddingValues ->
@@ -320,7 +326,9 @@ fun HomeScreenShimmer(
                 Text(
                     text = "Loading trip summary information...",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth().shimmerable()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shimmerable()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -336,7 +344,9 @@ fun HomeScreenShimmer(
                 Text(
                     text = "Loading trip summary information...",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth().shimmerable()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shimmerable()
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -344,7 +354,9 @@ fun HomeScreenShimmer(
                 Text(
                     text = "Loading trip summary information...",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth().AIShimmer()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .AIShimmer()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -352,8 +364,190 @@ fun HomeScreenShimmer(
                 Text(
                     text = "Loading trip summary information...",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth().AIShimmer()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .AIShimmer()
                 )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Today's Tasks",
+                style = MaterialTheme.typography.headlineSmallEmphasized
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Expense Summary Card
+            ICard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shimmerable(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Expense Summary",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Breakfast",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "$25.00",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Transportation",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "$15.50",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    androidx.compose.material3.HorizontalDivider()
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total Today",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "$40.50",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Today's Itinerary
+            ICard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shimmerable(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Today's Itinerary",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Itinerary Item 1
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = "10:00 AM",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(80.dp)
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Visit Local Market",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Explore traditional crafts and local foods",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Itinerary Item 2
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = "2:00 PM",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(80.dp)
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Museum Tour",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Guided tour of the city's history museum",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Itinerary Item 3
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = "7:00 PM",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(80.dp)
+                        )
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Dinner Reservation",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Traditional cuisine at La Bella Vista",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -504,6 +698,10 @@ fun TripDetailsContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        TodayTasksSection()
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = "Accommodation", style = MaterialTheme.typography.headlineSmallEmphasized
         )
@@ -527,7 +725,7 @@ fun TripDetailsContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "ADDRESS",
+                text = "Address",
                 style = MaterialTheme.typography.labelSmallEmphasized,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
@@ -599,7 +797,7 @@ fun InfoCard(
     subtitle: String,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedCard(
+    ICard(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -639,7 +837,7 @@ fun PeopleInfoCard(
     modifier: Modifier = Modifier,
     tripInfo: Trip,
 ) {
-    OutlinedCard(
+    ICard(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -782,7 +980,6 @@ fun SummarySection(
         Text(
             text = "Summary",
             style = MaterialTheme.typography.headlineSmallEmphasized,
-            modifier = Modifier.shimmerable()
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -798,6 +995,184 @@ fun SummarySection(
             color = Color.Gray,
             modifier = Modifier.shimmerable()
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun TodayTasksSection() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Today's Tasks",
+            style = MaterialTheme.typography.headlineSmallEmphasized
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ICard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Expense Summary",
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Breakfast",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "$25.00",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Transportation",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "$15.50",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                androidx.compose.material3.HorizontalDivider()
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Total Yesterday",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "$40.50",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Today's Itinerary
+        ICard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Today's Itinerary",
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Itinerary Item 1
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "10:00 AM",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(80.dp)
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Visit Local Market",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Explore traditional crafts and local foods",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Itinerary Item 2
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "2:00 PM",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(80.dp)
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Museum Tour",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Guided tour of the city's history museum",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Itinerary Item 3
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "7:00 PM",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(80.dp)
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Dinner Reservation",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Traditional cuisine at La Bella Vista",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -956,7 +1331,7 @@ fun HomeScreenPreviewLoading() {
             location = "Germany",
             mapUri = "test"
         )
-        val tripInfo = Trip(
+        Trip(
             id = "ITN-51712",
             groupName = "My itinero group name",
             destination = "Germany",

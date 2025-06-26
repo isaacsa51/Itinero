@@ -1,6 +1,6 @@
 package com.serranoie.app.designsystemlib.ui.theme.component
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -47,6 +45,7 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
  *
  * @param modifier Modifier to be applied to the container
  * @param title Optional title displayed above the group
+ * @param outline Whether to show an outline border around the group
  * @param content The composable content to be displayed inside the group
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -54,6 +53,7 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 fun FlexibleListGroup(
     modifier: Modifier = Modifier,
     title: String? = null,
+    outline: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -67,8 +67,11 @@ fun FlexibleListGroup(
 
         Surface(
             shape = RoundedCornerShape(8.dp),
-            tonalElevation = 2.dp,
-            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 4.dp,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            border = if (outline) BorderStroke(
+                1.dp, MaterialTheme.colorScheme.outlineVariant
+            ) else null,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
@@ -148,14 +151,13 @@ fun ListItem(
  */
 @Composable
 fun CustomSettingsItem(
-    onClick: () -> Unit,
-    content: @Composable RowScope.() -> Unit
+    onClick: () -> Unit, content: @Composable RowScope.() -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         content = content
     )
@@ -180,7 +182,7 @@ fun PaddedListGroup(
             Text(
                 text = it,
                 style = MaterialTheme.typography.labelLargeEmphasized,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 10.dp)
             )
         }
 
@@ -200,6 +202,7 @@ fun PaddedListGroup(
  * @param icon Leading icon
  * @param onClick Click handler for the item
  * @param position The position of this item in the list (affects corner rounding)
+ * @param outline Whether to show an outline border around the item
  */
 @Composable
 fun PaddedListItem(
@@ -207,7 +210,8 @@ fun PaddedListItem(
     subtitle: String? = null,
     icon: ImageVector,
     onClick: () -> Unit,
-    position: PaddedListItemPosition = PaddedListItemPosition.Middle
+    position: PaddedListItemPosition = PaddedListItemPosition.Middle,
+    outline: Boolean = true
 ) {
     val shape = when (position) {
         PaddedListItemPosition.First -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
@@ -219,17 +223,18 @@ fun PaddedListItem(
     Surface(
         shape = shape,
         tonalElevation = 4.dp,
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = if (outline) BorderStroke(
+            1.dp, MaterialTheme.colorScheme.outlineVariant
+        ) else null,
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
     ) {
-        Row(
-            modifier = Modifier
-                .clickable { onClick() }
-                .padding(horizontal = 16.dp, vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically) {
             Icon(imageVector = icon, contentDescription = null)
             Spacer(modifier = Modifier.width(16.dp))
             Column {
@@ -257,6 +262,7 @@ fun PaddedListItem(
 fun CustomPaddedListItem(
     onClick: () -> Unit,
     position: PaddedListItemPosition = PaddedListItemPosition.Middle,
+    outline: Boolean = true,
     content: @Composable RowScope.() -> Unit
 ) {
     val shape = when (position) {
@@ -269,18 +275,19 @@ fun CustomPaddedListItem(
     Surface(
         shape = shape,
         tonalElevation = 4.dp,
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = if (outline) BorderStroke(
+            1.dp, MaterialTheme.colorScheme.outlineVariant
+        ) else null,
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
     ) {
-        Row(
-            modifier = Modifier
-                .clickable { onClick() }
-                .padding(horizontal = 16.dp, vertical = 20.dp),
+        Row(modifier = Modifier
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
+            content = content)
     }
 }
 
@@ -297,6 +304,7 @@ fun CustomPaddedListItem(
 fun CustomPaddedExpandableItem(
     isExpanded: Boolean,
     onToggleExpanded: () -> Unit,
+    outline: Boolean = true,
     position: PaddedListItemPosition = PaddedListItemPosition.Middle,
     defaultContent: @Composable RowScope.() -> Unit,
     expandedContent: @Composable ColumnScope.() -> Unit
@@ -311,25 +319,27 @@ fun CustomPaddedExpandableItem(
     Surface(
         shape = shape,
         tonalElevation = 4.dp,
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = if (outline) BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outlineVariant
+        ) else null,
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
     ) {
         Column {
             // Default content - always clickable
-            Row(
-                modifier = Modifier
-                    .clickable { onToggleExpanded() }
-                    .padding(horizontal = 16.dp, vertical = 20.dp),
+            Row(modifier = Modifier
+                .clickable { onToggleExpanded() }
+                .padding(horizontal = 16.dp, vertical = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                content = defaultContent
-            )
+                content = defaultContent)
 
             // Expanded content - only shown when expanded
             if (isExpanded) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                     content = expandedContent
                 )
             }
@@ -344,42 +354,8 @@ enum class PaddedListItemPosition {
     First, Middle, Last, Single
 }
 
-/**
- * Legacy composable for backward compatibility. Consider using PaddedListGroup with individual items instead.
- */
-@Composable
-fun LegacyPaddedListGroup(sections: List<SettingItem>) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        itemsIndexed(sections) { index, item ->
-            val position = when {
-                sections.size == 1 -> PaddedListItemPosition.Single
-                index == 0 -> PaddedListItemPosition.First
-                index == sections.lastIndex -> PaddedListItemPosition.Last
-                else -> PaddedListItemPosition.Middle
-            }
-
-            PaddedListItem(
-                title = item.title,
-                subtitle = item.subtitle,
-                icon = item.icon,
-                onClick = item.onClick,
-                position = position
-            )
-        }
-    }
-}
-
 data class SettingItem(
-    val title: String,
-    val subtitle: String? = null,
-    val icon: ImageVector,
-    val onClick: () -> Unit
+    val title: String, val subtitle: String? = null, val icon: ImageVector, val onClick: () -> Unit
 )
 
 @ComponentPreview
@@ -399,9 +375,7 @@ fun FlexibleSettingsGroupPreview() {
                         showDivider = true
                     )
                     ListItem(
-                        title = "Setting 2",
-                        onClick = { }
-                    )
+                        title = "Setting 2", onClick = { })
                 }
             }
 
@@ -462,13 +436,11 @@ fun FlexibleSettingsGroupPreview() {
                         subtitle = "App, system, and emergency",
                         icon = Icons.Default.Settings,
                         onClick = {},
-                        position = PaddedListItemPosition.Single
+                        position = PaddedListItemPosition.First
                     )
 
-                    // Example with custom icon and middle position
                     CustomPaddedListItem(
-                        onClick = { /* Custom action */ },
-                        position = PaddedListItemPosition.Middle
+                        onClick = { /* Custom action */ }, position = PaddedListItemPosition.Middle
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowForward,
@@ -547,8 +519,7 @@ fun PaddedListGroupPreview() {
                     title = "Custom Content"
                 ) {
                     CustomPaddedListItem(
-                        onClick = { },
-                        position = PaddedListItemPosition.Single
+                        onClick = { }, position = PaddedListItemPosition.First
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -615,8 +586,7 @@ fun PaddedListGroupPreview() {
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        }
-                    )
+                        })
                 }
             }
         }
