@@ -24,7 +24,8 @@ fun ItineraryItemEntity.toDomain(): ItineraryItem {
         id = id,
         groupCode = groupCode,
         name = name,
-        dateTime = dateTime,
+        date = dateTime.split(" ").getOrNull(0) ?: dateTime,
+        time = dateTime.split(" ").drop(1).joinToString(" ").ifEmpty { "TBD" },
         location = location,
         summary = summary,
         isCompleted = isCompleted
@@ -36,7 +37,7 @@ fun ItineraryItem.toEntity(): ItineraryItemEntity {
         id = id,
         groupCode = groupCode,
         name = name,
-        dateTime = dateTime,
+        dateTime = "$date $time",
         location = location,
         summary = summary,
         isCompleted = isCompleted
@@ -48,7 +49,8 @@ fun ItineraryItemDto.toDomain(): ItineraryItem {
         id = id.toIntOrNull() ?: 0,
         groupCode = "",
         name = title,
-        dateTime = "$date $time",
+        date = date,
+        time = time,
         location = location,
         summary = "$description${if (notes.isNotEmpty()) "\n\nNotes: $notes" else ""}",
         isCompleted = isCompleted
@@ -59,8 +61,8 @@ fun CreateItineraryItem.toDto(): CreateItineraryItemDto {
     return CreateItineraryItemDto(
         title = name,
         description = summary,
-        date = dateTime.split(" ")[0],
-        time = dateTime.split(" ").getOrNull(1) ?: "00:00",
+        date = date,
+        time = time,
         location = location,
         category = category ?: "general",
         notes = notes ?: ""
@@ -71,8 +73,8 @@ fun UpdateItineraryItem.toDto(): UpdateItineraryItemDto {
     return UpdateItineraryItemDto(
         title = name,
         description = summary,
-        date = dateTime.split(" ")[0],
-        time = dateTime.split(" ").getOrNull(1) ?: "00:00",
+        date = date,
+        time = time,
         location = location,
         category = category ?: "general",
         notes = notes ?: ""

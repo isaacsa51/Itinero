@@ -18,7 +18,8 @@ data class ItineraryItem(
     val id: Int,
     val groupCode: String,
     val name: String,
-    val dateTime: String,
+    val date: String,
+    val time: String,
     val location: String,
     val summary: String,
     val isCompleted: Boolean = false

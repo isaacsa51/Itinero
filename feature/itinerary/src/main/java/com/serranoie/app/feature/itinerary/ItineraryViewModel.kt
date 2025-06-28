@@ -95,8 +95,8 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
             _uiState.value = ItineraryUiState.Loading
             when (val result = itineraryUseCase.createActivityUseCase(groupCode, request)) {
                 is Result.Success -> {
+                    Log.d("ITINERO - Itinerary ViewModel", "Activity created successfully, data: ${result.data}")
                     _uiState.value = ItineraryUiState.Success(result.data)
-                    // Refresh the list to show the new item
                     fetchItinerary(groupCode, forceRefresh = true)
                 }
 
@@ -121,7 +121,6 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 is Result.Success -> {
                     _selectedItem.value = result.data
                     _uiState.value = ItineraryUiState.Success(result.data)
-                    // Refresh the list to show updated data
                     if (currentGroupCode.isNotEmpty()) {
                         fetchItinerary(currentGroupCode, forceRefresh = true)
                     }
@@ -147,7 +146,6 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
             when (val result = itineraryUseCase.deleteActivityByIdUseCase(itemId)) {
                 is Result.Success -> {
                     _uiState.value = ItineraryUiState.Success(Unit)
-                    // Remove the item from local state
                     _itineraryData.value =
                         _itineraryData.value.filter { it.id.toString() != itemId }
                     if (_selectedItem.value?.id.toString() == itemId) {

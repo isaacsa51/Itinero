@@ -12,6 +12,12 @@ sealed class Route(val route: String) {
     data object Welcome : Route(Screen.WELCOME.name)
     data object Itinerary : Route(Screen.ITINERARY.name)
     data object AddItinerary : Route(Screen.ADD_ITINERARY.name)
+    data object EditItinerary : Route("EDIT_ITINERARY/{itemId}") {
+        fun createRoute(itemId: String) = "EDIT_ITINERARY/$itemId"
+        fun itemIdFromRoute(backStackEntry: androidx.navigation.NavBackStackEntry): String? {
+            return backStackEntry.arguments?.getString("itemId")
+        }
+    }
     data object Expenses : Route(Screen.EXPENSES.name)
     data object AddExpense : Route(Screen.ADD_EXPENSE.name)
     data object ExpenseDetails : Route(Screen.EXPENSE_DETAILS.name)

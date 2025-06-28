@@ -1,37 +1,23 @@
 package com.serranoie.app.feature.itinerary
 
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Arrangement.Bottom
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,26 +25,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
@@ -77,39 +54,42 @@ fun ItineraryScreen(
     uiState: ItineraryUiState,
     onRefresh: () -> Unit,
     onToggleCompletion: (String) -> Unit,
-    onSwiped: () -> Unit
+    onSwiped: () -> Unit,
+    onActivityClick: (ItineraryItem) -> Unit = {}
 ) {
     val startDate = itinerary.keys.minOrNull() ?: LocalDate.now()
     val endDate = itinerary.keys.maxOrNull() ?: startDate
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
-    Scaffold(topBar = {
-        MediumTopAppBar(
-            title = {
-                Text(
-                    "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }, content = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
+    Scaffold(
+        topBar = {
+            MediumTopAppBar(
+                title = {
+                    Text(
+                        "Itinerary", maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
-                })
-            },
-            actions = {
-                IconButton(onClick = { /* do something */ }) {
-                    Icon(
-                        imageVector = Icons.Rounded.MoreVert,
-                        contentDescription = "Localized description"
-                    )
-                }
-            },
-            scrollBehavior = scrollBehavior
-        )
-    }) { paddingValues ->
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }, content = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go back"
+                        )
+                    })
+                },
+                actions = {
+                    IconButton(onClick = { /* do something */ }) {
+                        Icon(
+                            imageVector = Icons.Rounded.MoreVert,
+                            contentDescription = "Localized description"
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior
+            )
+        },
+    ) { paddingValues ->
         val hasAnyItems = itinerary.values.any { it.isNotEmpty() }
 
         PullToRefreshBox(
@@ -118,7 +98,6 @@ fun ItineraryScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             if (uiState is ItineraryUiState.Loading && itinerary.isEmpty()) {
-                // Show shimmer loading for empty state
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -133,6 +112,7 @@ fun ItineraryScreen(
                                     ItineraryItem(
                                         id = "loading_$index",
                                         title = "Loading activity",
+                                        date = "2023-10-01",
                                         time = "Loading time",
                                         location = "Loading location",
                                         description = "Loading description"
@@ -175,7 +155,7 @@ fun ItineraryScreen(
                         items(generateDateRange(startDate, endDate)) { date ->
                             ItineraryDateSection(
                                 date = date,
-                                activities = itinerary[date].orEmpty(), // Use itinerary directly
+                                activities = itinerary[date].orEmpty(),
                                 onActivitySwiped = { swipedActivity, isCompleting ->
                                     Log.d(
                                         "ITINERO - ItineraryScreen",
@@ -191,7 +171,9 @@ fun ItineraryScreen(
                                         )
                                         onSwiped()
                                     }
-                                })
+                                },
+                                onActivityClick = onActivityClick
+                            )
                         }
                     }
                 }
@@ -205,7 +187,8 @@ fun ItineraryScreen(
 fun ItineraryDateSection(
     date: LocalDate,
     activities: List<ItineraryItem>,
-    onActivitySwiped: (ItineraryItem, Boolean) -> Unit
+    onActivitySwiped: (ItineraryItem, Boolean) -> Unit,
+    onActivityClick: (ItineraryItem) -> Unit = {}
 ) {
     Row {
         DateRangeToolbar(date = date)
@@ -235,9 +218,6 @@ fun ItineraryDateSection(
                     ICard(
                         swipeable = true,
                         isCompleted = activity.isCompleted,
-                        onSwipe = {
-                            onActivitySwiped(activity, !activity.isCompleted)
-                        },
                         headerTitle = activity.title,
                         headerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -257,26 +237,36 @@ fun ItineraryDateSection(
                                 background = MaterialTheme.colorScheme.error,
                                 stayDismissed = false,
                                 onDismiss = { onActivitySwiped(activity, false) })
-                        }
-                    ) {
-                        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
-                            Text(
-                                text = "🕒 ${activity.time}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.shimmerable()
-                            )
-                            Text(
-                                text = "📍 ${activity.location}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.shimmerable()
-                            )
-                            Text(
-                                text = "❓ ${activity.description}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.shimmerable()
-                            )
-                        }
-                    }
+                        },
+                        onSwipe = {
+                            onActivitySwiped(activity, !activity.isCompleted)
+                        },
+                        content = {
+                            Column(
+                                modifier = Modifier.padding(
+                                    horizontal = 24.dp,
+                                    vertical = 8.dp
+                                )
+                            ) {
+                                Text(
+                                    text = "🕒 ${activity.time} | ${activity.date}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.shimmerable()
+                                )
+                                Text(
+                                    text = "📍 ${activity.location}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.shimmerable()
+                                )
+                                Text(
+                                    text = "❓ ${activity.description}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.shimmerable()
+                                )
+                            }
+                        },
+                        onClick = { onActivityClick(activity) }
+                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -296,24 +286,14 @@ fun ItineraryDateSection(
     }
 }
 
-// Data model for itinerary item
 data class ItineraryItem(
     val id: String? = null,
     val title: String,
+    val date: String,
     val time: String,
     val location: String,
     val description: String,
     var isCompleted: Boolean = false
-)
-
-
-data class SwipeActionsConfig(
-    val threshold: Float,
-    val icon: ImageVector,
-    val iconTint: Color,
-    val background: Color,
-    val stayDismissed: Boolean,
-    val onDismiss: () -> Unit,
 )
 
 @ThemePreviews
@@ -326,6 +306,7 @@ private fun ItineraryScreenPreview() {
             ItineraryItem(
                 id = "1", // Add ID for preview
                 title = "Visit Eiffel Tower",
+                date = "2023-10-01",
                 time = "10:00 AM",
                 location = "Champ de Mars, Paris",
                 description = "Enjoy the view from the top",
@@ -333,6 +314,7 @@ private fun ItineraryScreenPreview() {
             ), ItineraryItem(
                 id = "2", // Add ID for preview
                 title = "Lunch at Le Jules Verne",
+                date = "2023-10-01",
                 time = "1:00 PM",
                 location = "Eiffel Tower, 2nd floor",
                 description = "Reservation under Smith",
@@ -342,6 +324,7 @@ private fun ItineraryScreenPreview() {
             ItineraryItem(
                 id = "3", // Add ID for preview
                 title = "Louvre Museum",
+                date = "2023-10-02",
                 time = "9:30 AM",
                 location = "Rue de Rivoli, Paris",
                 description = "Don't miss the Mona Lisa",
@@ -357,7 +340,11 @@ private fun ItineraryScreenPreview() {
             uiState = ItineraryUiState.Idle,
             onRefresh = {},
             onToggleCompletion = {},
-            onSwiped = {}
+            onSwiped = {},
+            onActivityClick = { item: ItineraryItem ->
+                Log.d("ITINERO - ITNavGraph", "=== ITEM CLICKED ===")
+                Log.d("ITINERO - ITNavGraph", "Item ID: ${item.id}")
+            }
         )
     }
 }

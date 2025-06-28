@@ -17,7 +17,8 @@ import kotlinx.serialization.Serializable
 data class CreateItineraryItem(
     val name: String,
     val summary: String,
-    val dateTime: String,
+    val date: String,
+    val time: String,
     val location: String,
     val category: String? = null,
     val notes: String? = null

@@ -14,6 +14,7 @@ package com.serranoie.app.designsystemlib.ui.theme.component.card
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -84,6 +85,7 @@ data class SwipeActionsConfig(
  * @param headerIconContentDescription Content description for the header icon
  * @param swipeActionsConfig Configuration for swipe actions (if null, uses default swipe behavior)
  * @param content The content of the card
+ * @param onClick Callback when the card is clicked
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -104,7 +106,8 @@ fun ICard(
     headerIcon: ImageVector? = if (isCompleted) Icons.Default.CheckCircle else null,
     headerIconContentDescription: String? = if (isCompleted) "Completed" else null,
     swipeActionsConfig: SwipeActionsConfig? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
+    onClick: () -> Unit
 ) {
     val cardContent: @Composable () -> Unit = {
         Column {
@@ -160,7 +163,8 @@ fun ICard(
             borderColor = borderColor,
             dragThreshold = dragThreshold,
             swipeActionsConfig = swipeActionsConfig,
-            content = cardContent
+            content = cardContent,
+            onClick = onClick
         )
     } else {
         Surface(
@@ -168,7 +172,8 @@ fun ICard(
                 .fillMaxWidth()
                 .border(
                     width = borderWidth, color = borderColor, shape = shape
-                ),
+                )
+                .clickable(onClick = onClick),
             shape = shape,
             tonalElevation = tonalElevation,
             color = color
@@ -192,6 +197,7 @@ private fun ISwipeableCard(
     dragThreshold: Float = 150f,
     swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit,
+    onClick: () -> Unit
 ) {
     val offsetXState = remember { mutableStateOf(0f) }
     val localIsCompletedState = remember { mutableStateOf(isCompleted) }
@@ -267,7 +273,8 @@ private fun ISwipeableCard(
                 )
                 .border(
                     width = borderWidth, color = borderColor, shape = shape
-                ),
+                )
+                .clickable(onClick = onClick),
             shape = shape,
             tonalElevation = tonalElevation,
             color = color
@@ -286,9 +293,7 @@ private fun ExpenseCard(
     isCompleted: Boolean = false,
     icon: ImageVector
 ) {
-    ICard(
-        swipeable = false, isCompleted = isCompleted
-    ) {
+    ICard(isCompleted = isCompleted, swipeable = false, content = {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -315,7 +320,7 @@ private fun ExpenseCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
+    }, onClick = { })
 }
 
 @ComponentPreview
@@ -324,9 +329,7 @@ private fun OutlinedCardPreview() {
     PreviewWrapper {
         Column(modifier = Modifier.padding(16.dp)) {
             // Regular non-swipeable card without header
-            ICard(
-                swipeable = false, isCompleted = false
-            ) {
+            ICard(isCompleted = false, swipeable = false, content = {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Basic Card", style = MaterialTheme.typography.titleMedium
@@ -336,51 +339,53 @@ private fun OutlinedCardPreview() {
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-            }
+            }, onClick = { })
 
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Card with colorful header
             ICard(
-                swipeable = false,
                 isCompleted = false,
+                swipeable = false,
                 headerTitle = "Card with Header",
                 headerColor = MaterialTheme.colorScheme.primaryContainer,
-                headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "This card has a colorful header",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+                headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                content = {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "This card has a colorful header",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
+                onClick = { })
 
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Swipeable card with header
             ICard(
-                swipeable = true,
                 isCompleted = false,
                 onSwipe = { /* Handle swipe action */ },
+                swipeable = true,
                 headerTitle = "Swipeable Card",
-                headerIcon = Icons.Default.Done
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Swipe me to mark as completed",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+                headerIcon = Icons.Default.Done,
+                content = {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Swipe me to mark as completed",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
+                onClick = { })
 
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Swipeable card with custom SwipeActionsConfig
             ICard(
-                swipeable = true,
                 isCompleted = false,
                 onSwipe = { /* Handle swipe action */ },
+                swipeable = true,
                 headerTitle = "Custom Swipe Card",
                 headerIcon = Icons.Default.Done,
                 swipeActionsConfig = SwipeActionsConfig(
@@ -389,32 +394,34 @@ private fun OutlinedCardPreview() {
                     iconTint = MaterialTheme.colorScheme.primary,
                     background = MaterialTheme.colorScheme.primaryContainer,
                     stayDismissed = false,
-                    onDismiss = { /* Custom dismiss action */ })
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Swipe me with custom config",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+                    onDismiss = { /* Custom dismiss action */ }),
+                content = {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Swipe me with custom config",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
+                onClick = { })
 
             Spacer(modifier = Modifier.padding(8.dp))
 
             // Completed swipeable card with header
             ICard(
-                swipeable = true,
                 isCompleted = true,
                 onSwipe = { /* Handle swipe action */ },
-                headerTitle = "Completed Card"
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "This card is already marked as completed",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+                swipeable = true,
+                headerTitle = "Completed Card",
+                content = {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "This card is already marked as completed",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
+                onClick = { })
 
             Spacer(modifier = Modifier.padding(8.dp))
 

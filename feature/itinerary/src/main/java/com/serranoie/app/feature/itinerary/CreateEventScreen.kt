@@ -69,10 +69,8 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
@@ -105,18 +103,14 @@ fun CreateEventScreen(
     onUpdateActivity: (id: String, name: String, time: String, location: String, summary: String) -> Unit = { _, _, _, _, _ -> },
     onSaveComplete: () -> Unit = {}
 ) {
-    // Initialize fields with existing item data or empty values
     var eventName by remember { mutableStateOf(existingItem?.title ?: "") }
     var eventTime by remember { mutableStateOf(existingItem?.time ?: "") }
     var eventLocation by remember { mutableStateOf(existingItem?.location ?: "") }
     var eventSummary by remember { mutableStateOf(existingItem?.description ?: "") }
     var showCard by remember { mutableStateOf(true) }
-
-    // Add selectedDateTime state for DateHolder
     var selectedDateTime by remember { mutableStateOf<Date?>(null) }
     val view = LocalView.current
 
-    // Reminder states
     var reminderAtEventTime by remember { mutableStateOf(false) }
     var customReminder by remember { mutableStateOf(false) }
     var customReminderHours by remember { mutableStateOf(0) }
@@ -124,7 +118,6 @@ fun CreateEventScreen(
     var showHoursDropdown by remember { mutableStateOf(false) }
     var showMinutesDropdown by remember { mutableStateOf(false) }
 
-    // Check if we're in edit mode (any field has data)
     val isEditMode =
         eventName.isNotEmpty() || eventTime.isNotEmpty() || eventLocation.isNotEmpty() || eventSummary.isNotEmpty()
 
@@ -154,7 +147,6 @@ fun CreateEventScreen(
                     showCard = false
                 })
 
-            // Text fields section
             ActivityDetailsSection(
                 eventName = eventName,
                 onEventNameChange = { eventName = it },
@@ -170,7 +162,6 @@ fun CreateEventScreen(
                 view = view
             )
 
-            // Reminder section - only show if eventTime is populated
             ReminderSection(
                 visible = eventTime.isNotBlank(),
                 reminderAtEventTime = reminderAtEventTime,
@@ -186,7 +177,6 @@ fun CreateEventScreen(
                 showMinutesDropdown = showMinutesDropdown,
                 onShowMinutesDropdownChange = { showMinutesDropdown = it })
 
-            // Save Button
             SaveButtonSection(
                 existingItem = existingItem,
                 eventName = eventName,
@@ -526,14 +516,16 @@ fun DateHolder(
                 showDatePicker = true
             },
         color = Color.Transparent,
-    ) {
-        Text(
-            text = "Date: $formattedDate",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.padding(basePadding),
-        )
-    }
+        content = {
+            Text(
+                text = "Date: $formattedDate",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(basePadding),
+            )
+        },
+        onClick = { showDatePicker = true },
+    )
 
     if (showDatePicker) {
         DatePickerDialog(
@@ -553,14 +545,12 @@ fun DateHolder(
                                 timeZone = TimeZone.getDefault()
                             }
 
-                            // Check if the selected date is different from the current date
                             if (selectedCalendar.get(Calendar.YEAR) != currentCalendar.get(
                                     Calendar.YEAR
                                 ) || selectedCalendar.get(Calendar.DAY_OF_YEAR) != currentCalendar.get(
                                     Calendar.DAY_OF_YEAR
                                 )
                             ) {
-                                // Add one day if the selected date is not the current day
                                 selectedCalendar.add(Calendar.DAY_OF_YEAR, 1)
                             }
 
@@ -653,146 +643,140 @@ private fun ReminderSection(
             )
 
             ICard(
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // Reminder at event time checkbox
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = reminderAtEventTime,
-                            onCheckedChange = onReminderAtEventTimeChange
-                        )
-                        Text(
-                            text = "Remind me at event time",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.padding(4.dp))
-
-                    // Custom reminder checkbox
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = customReminder, onCheckedChange = onCustomReminderChange
-                        )
-                        Text(
-                            text = "Custom reminder",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-
-                    // Custom reminder time selection
-                    AnimatedVisibility(
-                        visible = customReminder, enter = slideInHorizontally(
-                            initialOffsetX = { -it }, animationSpec = tween(300)
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(start = 40.dp, top = 8.dp, bottom = 8.dp)
-                                .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), content = {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Remind me:",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            Checkbox(
+                                checked = reminderAtEventTime,
+                                onCheckedChange = onReminderAtEventTimeChange
                             )
+                            Text(
+                                text = "Remind me at event time",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
 
-                            Spacer(modifier = Modifier.padding(4.dp))
+                        Spacer(modifier = Modifier.padding(4.dp))
 
-                            // Create a scrollable row to prevent overflow
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = customReminder, onCheckedChange = onCustomReminderChange
+                            )
+                            Text(
+                                text = "Custom reminder",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+
+                        AnimatedVisibility(
+                            visible = customReminder, enter = slideInHorizontally(
+                                initialOffsetX = { -it }, animationSpec = tween(300)
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(start = 40.dp, top = 8.dp, bottom = 8.dp)
+                                    .fillMaxWidth()
                             ) {
-                                // Hours dropdown
-                                Box(modifier = Modifier.weight(1f, false)) {
-                                    ICard(
-                                        modifier = Modifier.clickable {
-                                            onShowHoursDropdownChange(true)
-                                        }, shape = RoundedCornerShape(4.dp)
-                                    ) {
-                                        Text(
-                                            text = if (customReminderHours == 0) "0 hours" else "$customReminderHours hour${if (customReminderHours > 1) "s" else ""}",
-                                            modifier = Modifier.padding(8.dp),
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
+                                Text(
+                                    text = "Remind me:",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
 
-                                    DropdownMenu(
-                                        expanded = showHoursDropdown,
-                                        onDismissRequest = { onShowHoursDropdownChange(false) },
-                                        modifier = Modifier.width(120.dp)
-                                    ) {
-                                        (0..24).forEach { hour ->
-                                            DropdownMenuItem(text = {
+                                Spacer(modifier = Modifier.padding(4.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(modifier = Modifier.weight(1f, false)) {
+                                        ICard(
+                                            modifier = Modifier.clickable {
+                                                onShowHoursDropdownChange(true)
+                                            }, shape = RoundedCornerShape(4.dp), content = {
                                                 Text(
-                                                    text = if (hour == 0) "0 hours" else "$hour hour${if (hour > 1) "s" else ""}",
+                                                    text = if (customReminderHours == 0) "0 hours" else "$customReminderHours hour${if (customReminderHours > 1) "s" else ""}",
+                                                    modifier = Modifier.padding(8.dp),
                                                     style = MaterialTheme.typography.bodySmall
                                                 )
-                                            }, onClick = {
-                                                onCustomReminderHoursChange(hour)
-                                                onShowHoursDropdownChange(false)
-                                            })
-                                        }
-                                    }
-                                }
-
-                                Text(
-                                    text = "and",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                // Minutes dropdown
-                                Box(modifier = Modifier.weight(1f, false)) {
-                                    ICard(
-                                        modifier = Modifier.clickable {
-                                            onShowMinutesDropdownChange(true)
-                                        }, shape = RoundedCornerShape(4.dp)
-                                    ) {
-                                        Text(
-                                            text = "$customReminderMinutes minute${if (customReminderMinutes > 1) "s" else ""}",
-                                            modifier = Modifier.padding(8.dp),
-                                            style = MaterialTheme.typography.bodySmall
+                                            }, onClick = { }
                                         )
-                                    }
 
-                                    DropdownMenu(
-                                        expanded = showMinutesDropdown,
-                                        onDismissRequest = { onShowMinutesDropdownChange(false) },
-                                        modifier = Modifier.width(120.dp)
-                                    ) {
-                                        listOf(5, 10, 15, 30, 45).forEach { minutes ->
-                                            DropdownMenuItem(text = {
-                                                Text("$minutes minute${if (minutes > 1) "s" else ""}")
-                                            }, onClick = {
-                                                onCustomReminderMinutesChange(minutes)
-                                                onShowMinutesDropdownChange(false)
-                                            })
+                                        DropdownMenu(
+                                            expanded = showHoursDropdown,
+                                            onDismissRequest = { onShowHoursDropdownChange(false) },
+                                            modifier = Modifier.width(120.dp)
+                                        ) {
+                                            (0..24).forEach { hour ->
+                                                DropdownMenuItem(text = {
+                                                    Text(
+                                                        text = if (hour == 0) "0 hours" else "$hour hour${if (hour > 1) "s" else ""}",
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+                                                }, onClick = {
+                                                    onCustomReminderHoursChange(hour)
+                                                    onShowHoursDropdownChange(false)
+                                                })
+                                            }
                                         }
                                     }
-                                }
 
-                                Text(
-                                    text = "before",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                    Text(
+                                        text = "and",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+
+                                    Box(modifier = Modifier.weight(1f, false)) {
+                                        ICard(
+                                            modifier = Modifier.clickable {
+                                                onShowMinutesDropdownChange(true)
+                                            }, shape = RoundedCornerShape(4.dp), content = {
+                                                Text(
+                                                    text = "$customReminderMinutes minute${if (customReminderMinutes > 1) "s" else ""}",
+                                                    modifier = Modifier.padding(8.dp),
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                            }, onClick = { }
+                                        )
+
+                                        DropdownMenu(
+                                            expanded = showMinutesDropdown,
+                                            onDismissRequest = { onShowMinutesDropdownChange(false) },
+                                            modifier = Modifier.width(120.dp)
+                                        ) {
+                                            listOf(5, 10, 15, 30, 45).forEach { minutes ->
+                                                DropdownMenuItem(text = {
+                                                    Text("$minutes minute${if (minutes > 1) "s" else ""}")
+                                                }, onClick = {
+                                                    onCustomReminderMinutesChange(minutes)
+                                                    onShowMinutesDropdownChange(false)
+                                                })
+                                            }
+                                        }
+                                    }
+
+                                    Text(
+                                        text = "before",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
-                }
-            }
+                }, onClick = { }
+            )
         }
     }
 }
@@ -814,15 +798,12 @@ private fun SaveButtonSection(
             .padding(16.dp)
             .padding(top = 8.dp)
             .fillMaxWidth(), onClick = {
-        // Validate that required fields are not empty
         if (eventName.isNotBlank() && eventTime.isNotBlank() && eventLocation.isNotBlank() && eventSummary.isNotBlank()) {
             if (existingItem != null) {
-                // Update existing item
                 onUpdateActivity(
                     existingItem.id ?: "", eventName, eventTime, eventLocation, eventSummary
                 )
             } else {
-                // Create new item
                 onCreateActivity(
                     eventName, eventTime, eventLocation, eventSummary
                 )
