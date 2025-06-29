@@ -51,6 +51,12 @@ object Utils {
         }
     }
 
+    fun dateToFormattedString(date: Date?): String {
+        if (date == null) return ""
+        val targetFormat = SimpleDateFormat("dd MMMM yyyy, hh:mm a", Locale.getDefault())
+        return targetFormat.format(date)
+    }
+
     fun formatPrice(price: Double): String {
         return String.format(Locale.getDefault(), "%.2f", price)
     }

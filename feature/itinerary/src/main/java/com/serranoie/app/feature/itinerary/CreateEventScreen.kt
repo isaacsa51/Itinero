@@ -64,6 +64,11 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -74,6 +79,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.theme.component.formatMyDate
 import com.serranoie.app.designsystemlib.ui.utils.Utils.dateToString
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -87,10 +93,7 @@ data class TaskInfo(
 )
 
 val sampleTask = TaskInfo(
-    name = "Visit Café with a view of the Eiffel Tower",
-    time = "12:00 PM",
-    location = "Paris, France",
-    summary = "Seems like lately you are traveling around the downtown part of the city, maybe suggest going into a café with a view of the Eiffel Tower?"
+    name = "Visit Café", time = "12:00 PM", location = "Paris, France", summary = "Summary"
 )
 
 @Composable
@@ -106,27 +109,20 @@ fun CreateEventScreen(
     var eventLocation by remember { mutableStateOf(existingItem?.location ?: "") }
     var eventSummary by remember { mutableStateOf(existingItem?.description ?: "") }
     var showCard by remember { mutableStateOf(true) }
-
+    
     var selectedDateTime by remember {
         mutableStateOf<Date?>(existingItem?.let { item ->
             try {
                 val dateTimeString = "${item.date} ${item.time}"
-                val sdf = SimpleDateFormat("dd MMMM yyyy hh:mm a", Locale.getDefault())
-                val parsedDate = sdf.parse(dateTimeString)
-                Log.d(
-                    "CreateEvent",
-                    "CreateEventScreen: Successfully parsed '$dateTimeString' to $parsedDate"
-                )
-                parsedDate
+                SimpleDateFormat("dd MMMM yyyy hh:mm a", Locale.getDefault()).parse(dateTimeString)
             } catch (e: Exception) {
-                Log.d(
-                    "CreateEvent",
-                    "CreateEventScreen: Failed to parse '${item.date} ${item.time}': ${e.message}"
-                )
+                Log.e("CreateEventScreen", "Error parsing existing item date/time: ${item.date} ${item.time}", e)
                 Date()
             }
         } ?: Date())
     }
+
+    Log.w("selectedDateTime", selectedDateTime.toString())
 
     var reminderAtEventTime by remember { mutableStateOf(false) }
     var customReminder by remember { mutableStateOf(false) }
@@ -192,11 +188,9 @@ fun CreateEventScreen(
                 eventName = eventName,
                 onEventNameChange = { eventName = it },
                 selectedDateTime = selectedDateTime,
-                onDateTimeSelected = { date ->
-                    selectedDateTime = date
-                    if (!isEditMode || eventTime.isEmpty()) {
-                        eventTime = dateToString(date)
-                    }
+                onDateTimeSelected = { newDate ->
+                    selectedDateTime = newDate
+                    eventTime = formatMyDate(newDate)
                 },
                 eventLocation = eventLocation,
                 onEventLocationChange = { eventLocation = it },
@@ -261,7 +255,7 @@ private fun ActivityDetailsSection(
         )
 
         DateTimeInput(
-            selectedDateTime = selectedDateTime,
+            selectedDateTime = selectedDateTime, 
             onDateTimeSelected = onDateTimeSelected,
             modifier = Modifier.padding(16.dp, 0.dp)
         )
@@ -625,8 +619,8 @@ private fun ReminderSection(
                                     Box(modifier = Modifier.weight(1f, false)) {
                                         ICard(
                                             modifier = Modifier.clickable {
-                                            onShowHoursDropdownChange(true)
-                                        },
+                                                onShowHoursDropdownChange(true)
+                                            },
                                             shape = RoundedCornerShape(4.dp),
                                             onClick = { onShowHoursDropdownChange(true) },
                                             content = {
@@ -665,8 +659,8 @@ private fun ReminderSection(
                                     Box(modifier = Modifier.weight(1f, false)) {
                                         ICard(
                                             modifier = Modifier.clickable {
-                                            onShowMinutesDropdownChange(true)
-                                        },
+                                                onShowMinutesDropdownChange(true)
+                                            },
                                             shape = RoundedCornerShape(4.dp),
                                             onClick = { onShowMinutesDropdownChange(true) },
                                             content = {

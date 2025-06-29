@@ -34,9 +34,12 @@ import androidx.compose.ui.unit.Dp
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Utils.dateToString
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
+import kotlin.text.format
 
 /**
  * A reusable date and time input component that displays a clickable card
@@ -183,4 +186,10 @@ fun DateTimeInput(
             androidx.compose.material3.TimePicker(state = timePickerState)
         }
     }
+}
+
+fun formatMyDate(date: Date): String {
+    val targetFormat = SimpleDateFormat("dd MMMM yyyy, hh:mm a",
+        Locale.getDefault())
+    return targetFormat.format(date)
 }

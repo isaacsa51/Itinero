@@ -203,7 +203,7 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "title": "Updated Tokyo Skytree Visit",
+  "name": "Updated Tokyo Skytree Visit",
   "description": "Updated visit to Tokyo Skytree with dinner",
   "date": "2025-12-13",
   "time": "14:00",

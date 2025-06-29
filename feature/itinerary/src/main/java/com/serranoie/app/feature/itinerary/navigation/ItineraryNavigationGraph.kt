@@ -16,8 +16,10 @@ import com.serranoie.app.feature.itinerary.domain.model.UpdateItineraryItem
 import com.serranoie.itinero.core.domain.model.Trip
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import com.serranoie.app.feature.itinerary.ItineraryItem as ScreenItineraryItem
 import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem as DomainItineraryItem
 
@@ -124,10 +126,6 @@ fun NavGraphBuilder.itineraryGraph(
                 val foundItem = itineraryData.find { it.id.toString() == id }
                 Log.d("ItineraryNavGraph", "Found item: ${foundItem?.name}")
                 foundItem?.let { domainItem ->
-                    Log.d(
-                        "ItineraryNavGraph",
-                        "Domain item - Name: ${domainItem.name}, Date: ${domainItem.date}, Time: ${domainItem.time}"
-                    )
                     ScreenItineraryItem(
                         id = domainItem.id.toString(),
                         name = domainItem.name,
@@ -136,12 +134,7 @@ fun NavGraphBuilder.itineraryGraph(
                         location = domainItem.location,
                         description = domainItem.description,
                         isCompleted = domainItem.isCompleted
-                    ).also { screenItem ->
-                        Log.d(
-                            "ItineraryNavGraph",
-                            "Screen item - Title: ${screenItem.name}, Date: ${screenItem.date}, Time: ${screenItem.time}"
-                        )
-                    }
+                    )
                 }
             } else {
                 Log.w("ItineraryNavGraph", "Item ID is null or empty")
@@ -238,6 +231,31 @@ private fun parseDateTimeFromCreateEventScreen(dateTime: String): Pair<String, S
     Log.d("ItineraryNavGraph", "Parsing dateTime: '$dateTime'")
 
     return when {
+        // Handle raw Date object format: "Tue Jul 01 12:00:00 CST 2025"
+        dateTime.matches(Regex("\\w{3} \\w{3} \\d{2} \\d{2}:\\d{2}:\\d{2} \\w{3} \\d{4}")) -> {
+            try {
+                val sdf = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.getDefault())
+                val date = sdf.parse(dateTime)
+                if (date != null) {
+                    val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+                    val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    val parsedDate = dateFormat.format(date)
+                    val parsedTime = timeFormat.format(date)
+                    Log.d(
+                        "ItineraryNavGraph",
+                        "Parsed Date format - Date: '$parsedDate', Time: '$parsedTime'"
+                    )
+                    Pair(parsedDate, parsedTime)
+                } else {
+                    Log.w("ItineraryNavGraph", "Failed to parse Date format: $dateTime")
+                    Pair(dateTime.trim(), "TBD")
+                }
+            } catch (e: Exception) {
+                Log.w("ItineraryNavGraph", "Error parsing Date format: $dateTime", e)
+                Pair(dateTime.trim(), "TBD")
+            }
+        }
+
         // Handle format: "28 June 2025, 12:00 PM"
         dateTime.contains(", ") && (dateTime.contains(" AM") || dateTime.contains(" PM")) -> {
             val parts = dateTime.split(", ")
