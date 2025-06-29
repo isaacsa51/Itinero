@@ -185,13 +185,11 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "title": "Visit Tokyo Skytree",
+  "name": "Visit Tokyo Skytree",
   "description": "Visit the famous Tokyo Skytree tower",
-  "date": "2025-12-13",
-  "time": "10:00",
-  "location": "Tokyo Skytree, Tokyo, Japan",
-  "category": "sightseeing",
-  "notes": "Buy tickets in advance"
+  "date": "12 July 2025",
+  "time": "10:00 AM",
+  "location": "Tokyo Skytree, Tokyo, Japan"
 }
 
 ### Get specific itinerary item

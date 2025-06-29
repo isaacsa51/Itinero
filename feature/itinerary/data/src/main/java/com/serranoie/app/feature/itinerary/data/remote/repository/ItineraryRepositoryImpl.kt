@@ -25,18 +25,18 @@ import com.serranoie.itinero.core.domain.result.safeApiCall
 import kotlinx.coroutines.flow.Flow
 
 class ItineraryRepositoryImpl(
-    private val api: ItineraryApi,
-    private val localRepository: LocalItineraryRepository
+    private val api: ItineraryApi, private val localRepository: LocalItineraryRepository
 ) : ItineraryRepository {
 
     /**
      * Toggles the completion status of an itinerary item
      */
-    override suspend fun toggleActivityCompletion(itemId: String): Result<Unit> {
-        return when (val result = safeApiCall { api.toggleItineraryItemCompletion(itemId) }) {
+    override suspend fun toggleActivityCompletion(groupCode: String, itemId: String): Result<Unit> {
+        return when (val result =
+            safeApiCall { api.toggleItineraryItemCompletion(groupCode, itemId) }) {
             is Result.Success -> {
                 // Refresh the item data to get updated completion status
-                getActivityById(itemId, forceRefresh = true)
+                getActivityById(groupCode, itemId, forceRefresh = true)
                 result
             }
 
@@ -48,8 +48,7 @@ class ItineraryRepositoryImpl(
      * Gets all itinerary items with cache-first strategy
      */
     override suspend fun getAllActivities(
-        groupCode: String,
-        forceRefresh: Boolean
+        groupCode: String, forceRefresh: Boolean
     ): Result<List<ItineraryItem>> {
         // If not forcing refresh, try cache first
         if (!forceRefresh) {
@@ -60,6 +59,7 @@ class ItineraryRepositoryImpl(
                         return Result.Success(cachedItems)
                     }
                 }
+
                 is Result.Error -> {
                     Log.e(
                         "ITINERO - ItineraryRepository",
@@ -82,6 +82,7 @@ class ItineraryRepositoryImpl(
                 }
                 remoteResult
             }
+
             is Result.Error -> {
                 // If remote fails and we have cached data, return cached data
                 if (!forceRefresh) {
@@ -92,6 +93,7 @@ class ItineraryRepositoryImpl(
                                 return Result.Success(cachedItems)
                             }
                         }
+
                         is Result.Error -> {
                             Log.e(
                                 "ITINERO - ItineraryRepository",
@@ -109,8 +111,7 @@ class ItineraryRepositoryImpl(
      * Gets itinerary item by ID with comprehensive caching strategy
      */
     override suspend fun getActivityById(
-        itemId: String,
-        forceRefresh: Boolean
+        groupCode: String, itemId: String, forceRefresh: Boolean
     ): Result<ItineraryItem> {
         // If not forcing refresh, try cache first
         if (!forceRefresh) {
@@ -120,6 +121,7 @@ class ItineraryRepositoryImpl(
                         return Result.Success(cachedItem)
                     }
                 }
+
                 is Result.Error -> {
                     Log.e(
                         "ITINERO - ItineraryRepository",
@@ -131,13 +133,14 @@ class ItineraryRepositoryImpl(
 
         // Fetch from remote
         return when (val remoteResult = safeApiCall {
-            api.getItineraryItem(itemId).toDomain()
+            api.getItineraryItem(groupCode, itemId).toDomain()
         }) {
             is Result.Success -> {
                 // Cache the fresh data
                 localRepository.updateItineraryItem(remoteResult.data)
                 remoteResult
             }
+
             is Result.Error -> {
                 // If remote fails and we have cached data, return cached data
                 if (!forceRefresh) {
@@ -147,6 +150,7 @@ class ItineraryRepositoryImpl(
                                 return Result.Success(cachedItem)
                             }
                         }
+
                         is Result.Error -> {
                             Log.e(
                                 "ITINERO - ItineraryRepository",
@@ -164,8 +168,7 @@ class ItineraryRepositoryImpl(
      * Creates a new itinerary item
      */
     override suspend fun createActivity(
-        groupCode: String,
-        request: CreateItineraryItem
+        groupCode: String, request: CreateItineraryItem
     ): Result<ItineraryItem> {
         return when (val result = safeApiCall {
             api.createItineraryItem(groupCode, request.toDto()).toDomain()
@@ -176,6 +179,7 @@ class ItineraryRepositoryImpl(
                 localRepository.updateItineraryItem(result.data)
                 result
             }
+
             is Result.Error -> result
         }
     }
@@ -184,17 +188,17 @@ class ItineraryRepositoryImpl(
      * Updates an existing itinerary item
      */
     override suspend fun updateActivityInfo(
-        itemId: String,
-        request: UpdateItineraryItem
+        groupCode: String, itemId: String, request: UpdateItineraryItem
     ): Result<ItineraryItem> {
         return when (val result = safeApiCall {
-            api.updateItineraryItem(itemId, request.toDto()).toDomain()
+            api.updateItineraryItem(groupCode, itemId, request.toDto()).toDomain()
         }) {
             is Result.Success -> {
                 // Update cache with fresh data
                 localRepository.updateItineraryItem(result.data)
                 result
             }
+
             is Result.Error -> {
                 Log.e("ITINERO - ItineraryRepository", "Update failed: ${result.exception.message}")
                 result
@@ -205,13 +209,14 @@ class ItineraryRepositoryImpl(
     /**
      * Deletes an itinerary item
      */
-    override suspend fun deleteActivityById(itemId: String): Result<Unit> {
-        return when (val result = safeApiCall { api.deleteItineraryItem(itemId) }) {
+    override suspend fun deleteActivityById(groupCode: String, itemId: String): Result<Unit> {
+        return when (val result = safeApiCall { api.deleteItineraryItem(groupCode, itemId) }) {
             is Result.Success -> {
                 // Remove from cache
                 localRepository.deleteItineraryItemById(itemId)
                 result
             }
+
             is Result.Error -> result
         }
     }

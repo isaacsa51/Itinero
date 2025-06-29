@@ -90,7 +90,6 @@ fun HomeRootScreen(
                 navController = navController, startDestination = Route.Home.route
             ) {
                 composable(Route.Home.route) {
-                    val viewmodel = koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
                     val snackbarHostState = remember { SnackbarHostState() }
 
                     HomeScreen(
@@ -98,11 +97,11 @@ fun HomeRootScreen(
                         tripId = tripId,
                         uiState = uiState,
                         tripInfo = tripInfo,
-                        onGetTravel = { viewmodel.getCurrentTravel() },
+                        onGetTravel = { homeViewModel.getCurrentTravel() },
                         onShowSnackbar = { message ->
                             snackbarHostState.showSnackbar(message)
                         },
-                        onRefresh = { viewmodel.refreshTrip() })
+                        onRefresh = { homeViewModel.refreshTrip() })
                 }
 
                 itineraryGraph(navController, tripId, tripInfo)

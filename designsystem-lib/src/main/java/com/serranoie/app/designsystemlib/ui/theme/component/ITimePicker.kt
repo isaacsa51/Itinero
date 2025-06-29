@@ -1,7 +1,7 @@
 /*
  - Copyright (c) 2025 Isaac Serrano.
  -
- - File: TImePickerDialog.kt
+ - File: ITimePicker.kt
  - Project: Itinero
  - Module: Itinero.designsystem-lib.main
  -
@@ -35,15 +35,15 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.timePickerHeight
 
 @Composable
-fun TimePickerDialog(
-    title: String = "Select a date",
-    onDismissRequest: () -> Unit,
-    confirmButton: @Composable (() -> Unit),
-    dismissButton: @Composable (() -> Unit)? = null,
-    content: @Composable () -> Unit,
+fun ITimePicker(
+    dialogTitle: String = "Select a date",
+    onDismissed: () -> Unit,
+    onConfirmButtonClicked: @Composable (() -> Unit),
+    onDismissButtonClicked: @Composable (() -> Unit)? = null,
+    timePickerContent: @Composable () -> Unit,
 ) {
     Dialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = onDismissed,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
         ),
@@ -68,18 +68,18 @@ fun TimePickerDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = basePadding),
-                    text = title,
+                    text = dialogTitle,
                     style = MaterialTheme.typography.labelMedium,
                 )
-                content()
+                timePickerContent()
                 Row(
                     modifier = Modifier
                         .height(timePickerHeight)
                         .fillMaxWidth(),
                 ) {
                     Spacer(modifier = Modifier.weight(1f))
-                    dismissButton?.invoke()
-                    confirmButton()
+                    onDismissButtonClicked?.invoke()
+                    onConfirmButtonClicked()
                 }
             }
         }

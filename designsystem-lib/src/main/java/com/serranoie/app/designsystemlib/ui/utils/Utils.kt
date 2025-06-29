@@ -52,6 +52,6 @@ object Utils {
     }
 
     fun formatPrice(price: Double): String {
-        return String.format("%.2f", price)
+        return String.format(Locale.getDefault(), "%.2f", price)
     }
 }

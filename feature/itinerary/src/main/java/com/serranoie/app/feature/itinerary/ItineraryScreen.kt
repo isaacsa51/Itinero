@@ -111,7 +111,7 @@ fun ItineraryScreen(
                                 activities = listOf(
                                     ItineraryItem(
                                         id = "loading_$index",
-                                        title = "Loading activity",
+                                        name = "Loading activity",
                                         date = "2023-10-01",
                                         time = "Loading time",
                                         location = "Loading location",
@@ -159,7 +159,7 @@ fun ItineraryScreen(
                                 onActivitySwiped = { swipedActivity, isCompleting ->
                                     Log.d(
                                         "ITINERO - ItineraryScreen",
-                                        "Swiped activity: ${swipedActivity.title}, isCompleting: $isCompleting"
+                                        "Swiped activity: ${swipedActivity.name}, isCompleting: $isCompleting"
                                     )
 
                                     if (!swipedActivity.id.isNullOrEmpty()) {
@@ -218,7 +218,7 @@ fun ItineraryDateSection(
                     ICard(
                         swipeable = true,
                         isCompleted = activity.isCompleted,
-                        headerTitle = activity.title,
+                        headerTitle = activity.name,
                         headerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
                         swipeActionsConfig = if (!activity.isCompleted) {
@@ -249,7 +249,7 @@ fun ItineraryDateSection(
                                 )
                             ) {
                                 Text(
-                                    text = "🕒 ${activity.time} | ${activity.date}",
+                                    text = "🕒 ${activity.time} ~ ${activity.date}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.shimmerable()
                                 )
@@ -288,7 +288,7 @@ fun ItineraryDateSection(
 
 data class ItineraryItem(
     val id: String? = null,
-    val title: String,
+    val name: String,
     val date: String,
     val time: String,
     val location: String,
@@ -305,7 +305,7 @@ private fun ItineraryScreenPreview() {
         startDate to listOf(
             ItineraryItem(
                 id = "1", // Add ID for preview
-                title = "Visit Eiffel Tower",
+                name = "Visit Eiffel Tower",
                 date = "2023-10-01",
                 time = "10:00 AM",
                 location = "Champ de Mars, Paris",
@@ -313,7 +313,7 @@ private fun ItineraryScreenPreview() {
                 isCompleted = false
             ), ItineraryItem(
                 id = "2", // Add ID for preview
-                title = "Lunch at Le Jules Verne",
+                name = "Lunch at Le Jules Verne",
                 date = "2023-10-01",
                 time = "1:00 PM",
                 location = "Eiffel Tower, 2nd floor",
@@ -323,7 +323,7 @@ private fun ItineraryScreenPreview() {
         ), startDate.plusDays(1) to listOf(
             ItineraryItem(
                 id = "3", // Add ID for preview
-                title = "Louvre Museum",
+                name = "Louvre Museum",
                 date = "2023-10-02",
                 time = "9:30 AM",
                 location = "Rue de Rivoli, Paris",

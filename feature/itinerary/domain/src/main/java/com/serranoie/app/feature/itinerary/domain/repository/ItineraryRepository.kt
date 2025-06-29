@@ -18,30 +18,25 @@ import com.serranoie.itinero.core.domain.result.Result
 
 interface ItineraryRepository {
     suspend fun getAllActivities(
-        groupCode: String,
-        forceRefresh: Boolean = false
+        groupCode: String, forceRefresh: Boolean = false
     ): Result<List<ItineraryItem>>
 
     suspend fun getActivityById(
-        itemId: String,
-        forceRefresh: Boolean = false
+        groupCode: String, itemId: String, forceRefresh: Boolean = false
     ): Result<ItineraryItem>
 
     suspend fun createActivity(
-        groupCode: String,
-        request: CreateItineraryItem
+        groupCode: String, request: CreateItineraryItem
     ): Result<ItineraryItem>
 
-    suspend fun deleteActivityById(itemId: String): Result<Unit>
+    suspend fun deleteActivityById(groupCode: String, itemId: String): Result<Unit>
 
     suspend fun updateActivityInfo(
-        itemId: String,
-        request: UpdateItineraryItem
+        groupCode: String, itemId: String, request: UpdateItineraryItem
     ): Result<ItineraryItem>
 
-    suspend fun toggleActivityCompletion(itemId: String): Result<Unit>
+    suspend fun toggleActivityCompletion(groupCode: String, itemId: String): Result<Unit>
 
-    // Cache management methods (non-reactive)
     suspend fun clearCache(): Result<Unit>
 
     suspend fun hasCachedData(groupCode: String): Boolean

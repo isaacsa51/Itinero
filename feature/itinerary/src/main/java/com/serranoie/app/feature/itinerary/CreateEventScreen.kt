@@ -1,7 +1,7 @@
 package com.serranoie.app.feature.itinerary
 
 import android.graphics.BlurMaskFilter
-import android.view.View
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -37,22 +37,17 @@ import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -69,23 +64,20 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
-import com.serranoie.app.designsystemlib.ui.theme.component.TimePickerDialog
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
-import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Utils.dateToString
-import java.util.Calendar
+import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
@@ -94,39 +86,78 @@ data class TaskInfo(
     val name: String, val time: String, val location: String, val summary: String
 )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+val sampleTask = TaskInfo(
+    name = "Visit Café with a view of the Eiffel Tower",
+    time = "12:00 PM",
+    location = "Paris, France",
+    summary = "Seems like lately you are traveling around the downtown part of the city, maybe suggest going into a café with a view of the Eiffel Tower?"
+)
+
 @Composable
 fun CreateEventScreen(
     navController: NavController,
     existingItem: ItineraryItem? = null,
-    onCreateActivity: (name: String, time: String, location: String, summary: String) -> Unit = { _, _, _, _ -> },
-    onUpdateActivity: (id: String, name: String, time: String, location: String, summary: String) -> Unit = { _, _, _, _, _ -> },
+    onCreateActivity: (name: String, time: String, location: String, description: String) -> Unit = { _, _, _, _ -> },
+    onUpdateActivity: (id: String, name: String, time: String, location: String, description: String) -> Unit = { _, _, _, _, _ -> },
     onSaveComplete: () -> Unit = {}
 ) {
-    var eventName by remember { mutableStateOf(existingItem?.title ?: "") }
+    var eventName by remember { mutableStateOf(existingItem?.name ?: "") }
     var eventTime by remember { mutableStateOf(existingItem?.time ?: "") }
     var eventLocation by remember { mutableStateOf(existingItem?.location ?: "") }
     var eventSummary by remember { mutableStateOf(existingItem?.description ?: "") }
     var showCard by remember { mutableStateOf(true) }
-    var selectedDateTime by remember { mutableStateOf<Date?>(null) }
-    val view = LocalView.current
+
+    var selectedDateTime by remember {
+        mutableStateOf<Date?>(existingItem?.let { item ->
+            try {
+                val dateTimeString = "${item.date} ${item.time}"
+                val sdf = SimpleDateFormat("dd MMMM yyyy hh:mm a", Locale.getDefault())
+                val parsedDate = sdf.parse(dateTimeString)
+                Log.d(
+                    "CreateEvent",
+                    "CreateEventScreen: Successfully parsed '$dateTimeString' to $parsedDate"
+                )
+                parsedDate
+            } catch (e: Exception) {
+                Log.d(
+                    "CreateEvent",
+                    "CreateEventScreen: Failed to parse '${item.date} ${item.time}': ${e.message}"
+                )
+                Date()
+            }
+        } ?: Date())
+    }
 
     var reminderAtEventTime by remember { mutableStateOf(false) }
     var customReminder by remember { mutableStateOf(false) }
-    var customReminderHours by remember { mutableStateOf(0) }
-    var customReminderMinutes by remember { mutableStateOf(15) }
+    var customReminderHours by remember { mutableIntStateOf(0) }
+    var customReminderMinutes by remember { mutableIntStateOf(15) }
     var showHoursDropdown by remember { mutableStateOf(false) }
     var showMinutesDropdown by remember { mutableStateOf(false) }
 
-    val isEditMode =
-        eventName.isNotEmpty() || eventTime.isNotEmpty() || eventLocation.isNotEmpty() || eventSummary.isNotEmpty()
+    val isEditMode = existingItem != null
 
-    val sampleTask = TaskInfo(
-        name = "Visit the Eiffel Tower",
-        time = "12 Jun 2025, 10:00 AM",
-        location = "Eiffel Tower, Paris, France",
-        summary = "Daily itinerary planning and review"
-    )
+    // FIX
+    LaunchedEffect(isEditMode, existingItem) {
+        if (isEditMode) {
+            existingItem?.let {
+                eventName = it.name
+                eventTime = it.time
+                if (!isEditMode || eventTime.isEmpty()) {
+                    eventTime = it.time
+                    if (!isEditMode) {
+                        selectedDateTime =
+                            SimpleDateFormat("dd MMMM yyyy hh:mm a", Locale.getDefault()).parse(
+                                eventTime
+                            ) ?: Date()
+                    }
+                }
+
+                eventLocation = it.location
+                eventSummary = it.description
+            }
+        }
+    }
 
     Scaffold { paddingValues ->
         Column(
@@ -142,6 +173,16 @@ fun CreateEventScreen(
                 onCardClick = {
                     eventName = sampleTask.name
                     eventTime = sampleTask.time
+                    if (!isEditMode || eventTime.isEmpty()) {
+                        eventTime = sampleTask.time
+                        if (!isEditMode) {
+                            selectedDateTime =
+                                SimpleDateFormat("dd MMMM yyyy hh:mm a", Locale.getDefault()).parse(
+                                    eventTime
+                                ) ?: Date()
+                        }
+                    }
+
                     eventLocation = sampleTask.location
                     eventSummary = sampleTask.summary
                     showCard = false
@@ -151,15 +192,16 @@ fun CreateEventScreen(
                 eventName = eventName,
                 onEventNameChange = { eventName = it },
                 selectedDateTime = selectedDateTime,
-                onDateTimeChange = { date ->
+                onDateTimeSelected = { date ->
                     selectedDateTime = date
-                    eventTime = dateToString(date)
+                    if (!isEditMode || eventTime.isEmpty()) {
+                        eventTime = dateToString(date)
+                    }
                 },
                 eventLocation = eventLocation,
                 onEventLocationChange = { eventLocation = it },
                 eventSummary = eventSummary,
                 onEventSummaryChange = { eventSummary = it },
-                view = view
             )
 
             ReminderSection(
@@ -197,12 +239,11 @@ private fun ActivityDetailsSection(
     eventName: String,
     onEventNameChange: (String) -> Unit,
     selectedDateTime: Date?,
-    onDateTimeChange: (Date) -> Unit,
+    onDateTimeSelected: (Date) -> Unit,
     eventLocation: String,
     onEventLocationChange: (String) -> Unit,
     eventSummary: String,
     onEventSummaryChange: (String) -> Unit,
-    view: View
 ) {
     Column {
         Text(
@@ -219,24 +260,23 @@ private fun ActivityDetailsSection(
             modifier = Modifier.padding(16.dp, 0.dp)
         )
 
-        Column(modifier = Modifier.padding(16.dp, 0.dp)) {
-            DateHolder(
-                selectedDateTime = selectedDateTime, onSelectedDateTimeResponse = onDateTimeChange
-            )
-        }
+        DateTimeInput(
+            selectedDateTime = selectedDateTime,
+            onDateTimeSelected = onDateTimeSelected,
+            modifier = Modifier.padding(16.dp, 0.dp)
+        )
 
         ITextField(
             value = eventLocation,
             onValueChange = onEventLocationChange,
             label = "Location",
             modifier = Modifier.padding(16.dp, 0.dp)
-
         )
 
         ITextField(
             value = eventSummary,
             onValueChange = onEventSummaryChange,
-            label = "Summary",
+            label = "Description",
             modifier = Modifier.padding(16.dp, 0.dp)
         )
     }
@@ -271,7 +311,7 @@ private fun HeaderSection(
                         Spacer(modifier = Modifier.padding(8.dp))
 
                         Text(
-                            text = "Take a look at the suggestion below and add them to your itinerary. You can always edit them later.",
+                            text = "Take a look at the suggestion below and add it to your itinerary. You can always edit it later.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -279,8 +319,7 @@ private fun HeaderSection(
                         Spacer(modifier = Modifier.padding(8.dp))
 
                         Text(
-                            text = "AI Text suggestion holder...\n" +
-                                    "Seems like lately you are traveling around the downtown part of the city, maybe suggest going into a café with a view of the Eiffel Tower?",
+                            text = "AI Text suggestion holder...\n" + "Seems like lately you are traveling around the downtown part of the city, maybe suggest going into a café with a view of the Eiffel Tower?",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.Gray
                         )
@@ -352,10 +391,6 @@ private fun AnimatedBorderCard(
     description: String,
     modifier: Modifier = Modifier
 ) {
-    val cornerRadius = 10.dp
-    val gradientColors =
-        listOf(Color(0xFFC26A92), Color(0xFF4A8DD8), Color(0xFF784CF0), Color(0xFF4A8DD8))
-
     val infiniteTransition = rememberInfiniteTransition()
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f, targetValue = 360f, animationSpec = infiniteRepeatable(
@@ -363,6 +398,10 @@ private fun AnimatedBorderCard(
             repeatMode = androidx.compose.animation.core.RepeatMode.Restart
         )
     )
+
+    val cornerRadius = 10.dp
+    val gradientColors =
+        listOf(Color(0xFFC26A92), Color(0xFF4A8DD8), Color(0xFF784CF0), Color(0xFF4A8DD8))
 
     Box(
         modifier = modifier
@@ -378,7 +417,6 @@ private fun AnimatedBorderCard(
                 val startOffsetY = -radius * sin(directionAngle)
                 val endOffsetX = radius * cos(directionAngle)
                 val endOffsetY = radius * sin(directionAngle)
-
                 val paint = Paint().asFrameworkPaint().apply {
                     isAntiAlias = true
                     style = android.graphics.Paint.Style.STROKE
@@ -476,7 +514,8 @@ private fun AnimatedBorderCard(
 
 @Composable
 fun InfoRow(
-    icon: ImageVector, text: String,
+    icon: ImageVector,
+    text: String,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
@@ -488,127 +527,6 @@ fun InfoRow(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DateHolder(
-    selectedDateTime: Date?, onSelectedDateTimeResponse: (Date) -> Unit
-) {
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDateTime?.time,
-    )
-    var showDatePicker by remember { mutableStateOf(false) }
-    val timePickerState = rememberTimePickerState()
-    var showTimePicker by remember { mutableStateOf(false) }
-    var formattedDate by remember(selectedDateTime) {
-        mutableStateOf(selectedDateTime?.let { date ->
-            dateToString(date)
-        } ?: "Invalid date")
-    }
-
-    ICard(
-        modifier = Modifier
-            .padding(vertical = basePadding)
-            .fillMaxWidth()
-            .clickable {
-                showDatePicker = true
-            },
-        color = Color.Transparent,
-        content = {
-            Text(
-                text = "Date: $formattedDate",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(basePadding),
-            )
-        },
-        onClick = { showDatePicker = true },
-    )
-
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val selectedDateMillis = datePickerState.selectedDateMillis
-
-                        if (selectedDateMillis != null) {
-                            val selectedCalendar = Calendar.getInstance().apply {
-                                timeInMillis = selectedDateMillis
-                                timeZone = TimeZone.getDefault()
-                            }
-
-                            val currentCalendar = Calendar.getInstance().apply {
-                                timeZone = TimeZone.getDefault()
-                            }
-
-                            if (selectedCalendar.get(Calendar.YEAR) != currentCalendar.get(
-                                    Calendar.YEAR
-                                ) || selectedCalendar.get(Calendar.DAY_OF_YEAR) != currentCalendar.get(
-                                    Calendar.DAY_OF_YEAR
-                                )
-                            ) {
-                                selectedCalendar.add(Calendar.DAY_OF_YEAR, 1)
-                            }
-
-                            onSelectedDateTimeResponse(selectedCalendar.time)
-                            showDatePicker = false
-                            showTimePicker = true
-                        }
-                    },
-                ) {
-                    Text("Ok")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDatePicker = false
-                }) {
-                    Text("Cancel")
-                }
-            },
-        ) {
-            DatePicker(
-                state = datePickerState
-            )
-        }
-    }
-
-    if (showTimePicker) {
-        TimePickerDialog(
-            onDismissRequest = {
-                showTimePicker = false
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    selectedDateTime?.let { nonNullDate ->
-                        val calendar = Calendar.getInstance(TimeZone.getDefault())
-                        calendar.time = nonNullDate
-                        calendar.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                        calendar.set(Calendar.MINUTE, timePickerState.minute)
-                        calendar.timeZone = TimeZone.getDefault()
-
-                        onSelectedDateTimeResponse(calendar.time)
-                        showTimePicker = false
-                        formattedDate = dateToString(calendar.time)
-                    }
-                }) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showTimePicker = false
-                }) {
-                    Text("Cancel")
-                }
-            },
-        ) {
-            TimePicker(state = timePickerState)
-        }
     }
 }
 
@@ -643,7 +561,10 @@ private fun ReminderSection(
             )
 
             ICard(
-                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), content = {
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                onClick = { onShowMinutesDropdownChange(true) },
+                content = {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -683,7 +604,9 @@ private fun ReminderSection(
                         ) {
                             Column(
                                 modifier = Modifier
-                                    .padding(start = 40.dp, top = 8.dp, bottom = 8.dp)
+                                    .padding(
+                                        start = 40.dp, top = 8.dp, bottom = 8.dp
+                                    )
                                     .fillMaxWidth()
                             ) {
                                 Text(
@@ -702,15 +625,17 @@ private fun ReminderSection(
                                     Box(modifier = Modifier.weight(1f, false)) {
                                         ICard(
                                             modifier = Modifier.clickable {
-                                                onShowHoursDropdownChange(true)
-                                            }, shape = RoundedCornerShape(4.dp), content = {
+                                            onShowHoursDropdownChange(true)
+                                        },
+                                            shape = RoundedCornerShape(4.dp),
+                                            onClick = { onShowHoursDropdownChange(true) },
+                                            content = {
                                                 Text(
                                                     text = if (customReminderHours == 0) "0 hours" else "$customReminderHours hour${if (customReminderHours > 1) "s" else ""}",
                                                     modifier = Modifier.padding(8.dp),
                                                     style = MaterialTheme.typography.bodySmall
                                                 )
-                                            }, onClick = { }
-                                        )
+                                            })
 
                                         DropdownMenu(
                                             expanded = showHoursDropdown,
@@ -740,15 +665,17 @@ private fun ReminderSection(
                                     Box(modifier = Modifier.weight(1f, false)) {
                                         ICard(
                                             modifier = Modifier.clickable {
-                                                onShowMinutesDropdownChange(true)
-                                            }, shape = RoundedCornerShape(4.dp), content = {
+                                            onShowMinutesDropdownChange(true)
+                                        },
+                                            shape = RoundedCornerShape(4.dp),
+                                            onClick = { onShowMinutesDropdownChange(true) },
+                                            content = {
                                                 Text(
                                                     text = "$customReminderMinutes minute${if (customReminderMinutes > 1) "s" else ""}",
                                                     modifier = Modifier.padding(8.dp),
                                                     style = MaterialTheme.typography.bodySmall
                                                 )
-                                            }, onClick = { }
-                                        )
+                                            })
 
                                         DropdownMenu(
                                             expanded = showMinutesDropdown,
@@ -775,8 +702,7 @@ private fun ReminderSection(
                             }
                         }
                     }
-                }, onClick = { }
-            )
+                })
         }
     }
 }

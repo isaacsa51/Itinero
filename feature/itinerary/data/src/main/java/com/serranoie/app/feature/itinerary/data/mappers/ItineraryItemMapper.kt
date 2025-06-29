@@ -24,10 +24,10 @@ fun ItineraryItemEntity.toDomain(): ItineraryItem {
         id = id,
         groupCode = groupCode,
         name = name,
-        date = dateTime.split(" ").getOrNull(0) ?: dateTime,
-        time = dateTime.split(" ").drop(1).joinToString(" ").ifEmpty { "TBD" },
+        date = date,
+        time = time,
         location = location,
-        summary = summary,
+        description = description,
         isCompleted = isCompleted
     )
 }
@@ -37,9 +37,10 @@ fun ItineraryItem.toEntity(): ItineraryItemEntity {
         id = id,
         groupCode = groupCode,
         name = name,
-        dateTime = "$date $time",
+        date = date,
+        time = time,
         location = location,
-        summary = summary,
+        description = description,
         isCompleted = isCompleted
     )
 }
@@ -48,35 +49,33 @@ fun ItineraryItemDto.toDomain(): ItineraryItem {
     return ItineraryItem(
         id = id.toIntOrNull() ?: 0,
         groupCode = "",
-        name = title,
+        name = name,
         date = date,
         time = time,
         location = location,
-        summary = "$description${if (notes.isNotEmpty()) "\n\nNotes: $notes" else ""}",
-        isCompleted = isCompleted
+        description = description,
+        isCompleted = false
     )
 }
 
 fun CreateItineraryItem.toDto(): CreateItineraryItemDto {
     return CreateItineraryItemDto(
-        title = name,
-        description = summary,
+        name = name,
+        description = description,
         date = date,
         time = time,
         location = location,
-        category = category ?: "general",
-        notes = notes ?: ""
+        isCompleted = false
     )
 }
 
 fun UpdateItineraryItem.toDto(): UpdateItineraryItemDto {
     return UpdateItineraryItemDto(
-        title = name,
-        description = summary,
+        name = name,
+        description = description,
         date = date,
         time = time,
         location = location,
-        category = category ?: "general",
-        notes = notes ?: ""
+        isCompleted = false
     )
 }

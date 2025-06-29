@@ -21,6 +21,6 @@ data class ItineraryItem(
     val date: String,
     val time: String,
     val location: String,
-    val summary: String,
+    val description: String,
     val isCompleted: Boolean = false
 )
