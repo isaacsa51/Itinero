@@ -40,18 +40,21 @@ fun SelectField(
     leadingIcon: ImageVector?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    titleHeader: Boolean? = true,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
     Column(modifier = modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
-        )
+        if (titleHeader == true) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+            )
+        }
 
         Surface(
             shape = RoundedCornerShape(8.dp),
@@ -106,6 +109,7 @@ private fun SelectFieldPreview() {
                 value = "Food",
                 onSelect = { },
                 label = "Category",
+                titleHeader = true,
                 leadingIcon = androidx.compose.material.icons.Icons.Default.Restaurant
             )
 
@@ -114,6 +118,7 @@ private fun SelectFieldPreview() {
             SelectField(
                 value = "2023-07-15",
                 onSelect = { },
+                titleHeader = false,
                 label = "Date",
                 leadingIcon = androidx.compose.material.icons.Icons.Default.CalendarToday
             )

@@ -1,7 +1,7 @@
 ### Environment Variables
 @base_url = http://127.0.0.1:8080
 @auth_token = {{auth_token}}
-@group_code = ITN-81015
+@group_code = ITN-37571
 
 ### ========================================
 ### AUTHENTICATION ENDPOINTS
@@ -15,7 +15,7 @@ Content-Type: application/json
   "name": "User invited",
   "surname": "Test",
   "phone": "1234567890",
-  "email": "user",
+  "email": "admin",
   "password": "root"
 }
 
@@ -185,27 +185,25 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "title": "Visit Tokyo Skytree",
+  "name": "Visit Tokyo Skytree",
   "description": "Visit the famous Tokyo Skytree tower",
-  "date": "2025-12-13",
-  "time": "10:00",
-  "location": "Tokyo Skytree, Tokyo, Japan",
-  "category": "sightseeing",
-  "notes": "Buy tickets in advance"
+  "date": "12 July 2025",
+  "time": "10:00 AM",
+  "location": "Tokyo Skytree, Tokyo, Japan"
 }
 
 ### Get specific itinerary item
 @item_id = 1
-GET {{base_url}}/itinerary/{{item_id}}
+GET {{base_url}}/trips/{{group_code}}/itinerary/{{item_id}}
 Authorization: Bearer {{auth_token}}
 
 ### Update itinerary item
-PUT {{base_url}}/itinerary/{{item_id}}
+PUT {{base_url}}/trips/{{group_code}}/itinerary/{{item_id}}
 Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "title": "Updated Tokyo Skytree Visit",
+  "name": "Updated Tokyo Skytree Visit",
   "description": "Updated visit to Tokyo Skytree with dinner",
   "date": "2025-12-13",
   "time": "14:00",
@@ -215,9 +213,9 @@ Content-Type: application/json
 }
 
 ### Delete itinerary item
-DELETE {{base_url}}/itinerary/{{item_id}}
+DELETE {{base_url}}/trips/{{group_code}}/itinerary/{{item_id}}
 Authorization: Bearer {{auth_token}}
 
 ### Toggle completion status of itinerary item
-PATCH {{base_url}}/itinerary/{{item_id}}/complete
+PATCH {{base_url}}/trips/{{group_code}}/itinerary/{{item_id}}/complete
 Authorization: Bearer {{auth_token}}

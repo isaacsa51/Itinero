@@ -23,13 +23,12 @@ data class TripMember(
 
 @Serializable
 enum class MemberStatus(val value: String) {
-    PENDING("PENDING"),
-    ACCEPTED("ACCEPTED"),
-    OWNER("OWNER");
+    PENDING("PENDING"), ACCEPTED("ACCEPTED"), OWNER("OWNER");
 
     companion object {
         fun fromString(value: String): MemberStatus {
-            return entries.find { it.value == value } ?: PENDING
+            return entries.find { it.value == value }
+                ?: throw IllegalArgumentException("Unknown MemberStatus: $value")
         }
     }
 }

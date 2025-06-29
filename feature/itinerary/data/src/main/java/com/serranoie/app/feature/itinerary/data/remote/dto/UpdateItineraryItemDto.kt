@@ -15,11 +15,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateItineraryItemDto(
-    val title: String,
+    val name: String,
     val description: String,
     val date: String,
     val time: String,
     val location: String,
-    val category: String,
-    val notes: String
+    val isCompleted: Boolean,
 )

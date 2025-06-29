@@ -21,7 +21,7 @@ import com.serranoie.itinero.core.data.local.entity.ItineraryItemEntity
 import com.serranoie.itinero.core.data.local.entity.TripEntity
 
 @Database(
-    entities = [TripEntity::class, ItineraryItemEntity::class], version = 2, exportSchema = false
+    entities = [TripEntity::class, ItineraryItemEntity::class], version = 3, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao

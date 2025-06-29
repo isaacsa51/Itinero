@@ -11,16 +11,22 @@ import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.itinerary.CreateEventScreen
 import com.serranoie.app.feature.itinerary.ItineraryScreen
 import com.serranoie.app.feature.itinerary.ItineraryViewModel
+import com.serranoie.app.feature.itinerary.domain.model.CreateItineraryItem
+import com.serranoie.app.feature.itinerary.domain.model.UpdateItineraryItem
 import com.serranoie.itinero.core.domain.model.Trip
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import com.serranoie.app.feature.itinerary.ItineraryItem as ScreenItineraryItem
 import com.serranoie.app.feature.itinerary.domain.model.ItineraryItem as DomainItineraryItem
 
 fun NavGraphBuilder.itineraryGraph(
-    navController: NavController, tripId: String, tripData: Trip? = null
+    navController: NavController,
+    tripId: String,
+    tripData: Trip? = null
 ) {
     composable(Route.Itinerary.route) {
         val groupCode = tripData?.groupCode ?: tripId
@@ -43,61 +49,146 @@ fun NavGraphBuilder.itineraryGraph(
                 viewModel.fetchItinerary(groupCode, forceRefresh = true)
             },
             onToggleCompletion = { itemId ->
-                viewModel.toggleActivityCompletion(itemId)
+                viewModel.toggleActivityCompletion(groupCode, itemId)
             },
             onSwiped = {
                 Log.d("ITINERO - ITNavGraph", "=== SWIPE ACTION ===")
                 viewModel.refreshData()
+            },
+            onActivityClick = { item: ScreenItineraryItem ->
+                if (!item.id.isNullOrEmpty()) {
+                    val editRoute = Route.EditItinerary.createRoute(item.id)
+                    navController.navigate(editRoute)
+                }
             })
     }
 
     composable(Route.AddItinerary.route) {
         val groupCode = tripData?.groupCode ?: tripId
         val viewModel = koinViewModel<ItineraryViewModel> { parametersOf(groupCode) }
+        val itineraryData by viewModel.itineraryData.collectAsState()
 
         CreateEventScreen(
             navController = navController,
-            existingItem = null, // For creating new items
-            onCreateActivity = { name, time, location, summary ->
-                Log.d("ItineraryNavGraph", "=== CREATE ACTIVITY ===")
-                Log.d("ItineraryNavGraph", "Name: $name, Time: $time, Location: $location")
+            existingItem = null,
+            onCreateActivity = { name, dateTime, location, description ->
+                val (date, time) = parseDateTimeFromCreateEventScreen(dateTime)
+                val createRequest = CreateItineraryItem(
+                    name = name,
+                    description = description,
+                    date = date,
+                    time = time,
+                    location = location
+                )
+                viewModel.createActivity(groupCode, createRequest)
+            },
+            onUpdateActivity = { id, name, dateTime, location, description ->
+                Log.d("ItineraryNavGraph", "=== UPDATE ACTIVITY ===")
+                Log.d("ItineraryNavGraph", "ID: $id, Name: $name")
+                Log.d("ItineraryNavGraph", "Raw dateTime from CreateEventScreen: '$dateTime'")
 
-                // Create the CreateItineraryItem request
-                val createRequest =
-                    com.serranoie.app.feature.itinerary.domain.model.CreateItineraryItem(
-                        name = name,
-                        dateTime = time, // Note: You might want to convert this to proper ISO format
-                        location = location,
-                        summary = summary
+                val (date, time) = parseDateTimeFromCreateEventScreen(dateTime)
+
+                val updateRequest = UpdateItineraryItem(
+                    name = name,
+                    description = description,
+                    date = date,
+                    time = time,
+                    location = location
+                )
+                Log.d("ItineraryNavGraph", "Update request: $updateRequest")
+
+                viewModel.updateActivity(groupCode, id, updateRequest)
+            },
+            onSaveComplete = {
+                navController.popBackStack()
+            })
+    }
+
+    composable(Route.EditItinerary.route) { backStackEntry ->
+        val itemId = Route.EditItinerary.itemIdFromRoute(backStackEntry)
+        val groupCode = tripData?.groupCode ?: tripId
+        val viewModel = koinViewModel<ItineraryViewModel> {
+            parametersOf(groupCode)
+        }
+        val itineraryData by viewModel.itineraryData.collectAsState()
+
+        LaunchedEffect(groupCode) {
+            if (itineraryData.isEmpty()) {
+                Log.d("ItineraryNavGraph", "Fetching itinerary data...")
+                viewModel.fetchItinerary(groupCode)
+            }
+        }
+
+        val getExistingItem = { id: String? ->
+            if (!id.isNullOrEmpty()) {
+                Log.d("ItineraryNavGraph", "Looking for item with ID: $id")
+                val foundItem = itineraryData.find { it.id.toString() == id }
+                Log.d("ItineraryNavGraph", "Found item: ${foundItem?.name}")
+                foundItem?.let { domainItem ->
+                    ScreenItineraryItem(
+                        id = domainItem.id.toString(),
+                        name = domainItem.name,
+                        date = domainItem.date,
+                        time = domainItem.time,
+                        location = domainItem.location,
+                        description = domainItem.description,
+                        isCompleted = domainItem.isCompleted
                     )
+                }
+            } else {
+                Log.w("ItineraryNavGraph", "Item ID is null or empty")
+                null
+            }
+        }
+
+        val existingItem = getExistingItem(itemId)
+
+        LaunchedEffect(itemId, itineraryData) {
+            if (!itemId.isNullOrEmpty() && itineraryData.isNotEmpty() && existingItem == null) {
+                navController.popBackStack()
+            }
+        }
+
+        CreateEventScreen(
+            navController = navController,
+            existingItem = existingItem,
+            onCreateActivity = { name, dateTime, location, description ->
+                val (date, time) = parseDateTimeFromCreateEventScreen(dateTime)
+                val createRequest = CreateItineraryItem(
+                    name = name,
+                    date = date,
+                    time = time,
+                    location = location,
+                    description = description
+                )
 
                 viewModel.createActivity(groupCode, createRequest)
             },
-            onUpdateActivity = { id, name, time, location, summary ->
+            onUpdateActivity = { id, name, dateTime, location, description ->
                 Log.d("ItineraryNavGraph", "=== UPDATE ACTIVITY ===")
                 Log.d("ItineraryNavGraph", "ID: $id, Name: $name")
+                Log.d("ItineraryNavGraph", "Raw dateTime from CreateEventScreen: '$dateTime'")
 
-                // Create the UpdateItineraryItem request
-                val updateRequest =
-                    com.serranoie.app.feature.itinerary.domain.model.UpdateItineraryItem(
-                        name = name,
-                        dateTime = time, // Note: You might want to convert this to proper ISO format
-                        location = location,
-                        summary = summary
-                    )
+                val (date, time) = parseDateTimeFromCreateEventScreen(dateTime)
 
-                viewModel.updateActivity(id, updateRequest)
+                val updateRequest = UpdateItineraryItem(
+                    name = name,
+                    date = date,
+                    time = time,
+                    location = location,
+                    description = description
+                )
+                Log.d("ItineraryNavGraph", "Update request: $updateRequest")
+
+                viewModel.updateActivity(groupCode, id, updateRequest)
             },
             onSaveComplete = {
-                Log.d("ItineraryNavGraph", "=== SAVE COMPLETE ===")
-                // Navigate back to itinerary screen
                 navController.popBackStack()
-            }
-        )
+            })
     }
 }
 
-// Convert domain model to screen model
 private fun convertDomainToScreenModel(
     domainItems: List<DomainItineraryItem>
 ): Map<LocalDate, List<ScreenItineraryItem>> {
@@ -106,19 +197,16 @@ private fun convertDomainToScreenModel(
     }
 
     val result = domainItems.groupBy { item ->
-        try {
-            LocalDate.parse(item.dateTime.split("T")[0], DateTimeFormatter.ISO_LOCAL_DATE)
-        } catch (e: Exception) {
-            LocalDate.now()
-        }
-    }.mapValues { (date, items) ->
+        parseDateFromDateTime(item.date)
+    }.mapValues { (_, items) ->
         items.map { domainItem ->
             ScreenItineraryItem(
                 id = domainItem.id.toString(),
-                title = domainItem.name,
-                time = extractTime(domainItem.dateTime),
+                name = domainItem.name,
+                date = domainItem.date,
+                time = domainItem.time,
                 location = domainItem.location,
-                description = domainItem.summary,
+                description = domainItem.description,
                 isCompleted = domainItem.isCompleted
             )
         }
@@ -126,20 +214,79 @@ private fun convertDomainToScreenModel(
     return result
 }
 
-private fun extractTime(dateTime: String): String {
+private fun parseDateFromDateTime(datePart: String): LocalDate {
     return try {
-        val timePart = dateTime.split("T").getOrNull(1)?.split(":")
-        if (timePart != null && timePart.size >= 2) {
-            val hour = timePart[0].toInt()
-            val minute = timePart[1]
-            val amPm = if (hour >= 12) "PM" else "AM"
-            val displayHour = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
-            "$displayHour:$minute $amPm"
-        } else {
-            "TBD"
-        }
+        // Handle format "28 June 2025" from the date field
+        LocalDate.parse(
+            datePart,
+            DateTimeFormatter.ofPattern("dd MMMM yyyy")
+        )
     } catch (e: Exception) {
-        Log.w("ITINERO - ITNavGraph", "Time extraction failed for $dateTime")
-        "TBD"
+        Log.e("ITINERO - ITNavGraph", "Failed to parse date: $datePart, using current date", e)
+        LocalDate.now()
+    }
+}
+
+private fun parseDateTimeFromCreateEventScreen(dateTime: String): Pair<String, String> {
+    Log.d("ItineraryNavGraph", "Parsing dateTime: '$dateTime'")
+
+    return when {
+        // Handle raw Date object format: "Tue Jul 01 12:00:00 CST 2025"
+        dateTime.matches(Regex("\\w{3} \\w{3} \\d{2} \\d{2}:\\d{2}:\\d{2} \\w{3} \\d{4}")) -> {
+            try {
+                val sdf = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.getDefault())
+                val date = sdf.parse(dateTime)
+                if (date != null) {
+                    val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+                    val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    val parsedDate = dateFormat.format(date)
+                    val parsedTime = timeFormat.format(date)
+                    Log.d(
+                        "ItineraryNavGraph",
+                        "Parsed Date format - Date: '$parsedDate', Time: '$parsedTime'"
+                    )
+                    Pair(parsedDate, parsedTime)
+                } else {
+                    Log.w("ItineraryNavGraph", "Failed to parse Date format: $dateTime")
+                    Pair(dateTime.trim(), "TBD")
+                }
+            } catch (e: Exception) {
+                Log.w("ItineraryNavGraph", "Error parsing Date format: $dateTime", e)
+                Pair(dateTime.trim(), "TBD")
+            }
+        }
+
+        // Handle format: "28 June 2025, 12:00 PM"
+        dateTime.contains(", ") && (dateTime.contains(" AM") || dateTime.contains(" PM")) -> {
+            val parts = dateTime.split(", ")
+            val date = parts[0].trim()
+            val time = parts[1].trim()
+            Log.d("ItineraryNavGraph", "Parsed comma format - Date: '$date', Time: '$time'")
+            Pair(date, time)
+        }
+
+        // Handle format: "28 June 2025 at 12:00 PM"
+        dateTime.contains(" at ") -> {
+            val parts = dateTime.split(" at ")
+            val date = parts[0].trim()
+            val time = parts[1].trim()
+            Log.d("ItineraryNavGraph", "Parsed 'at' format - Date: '$date', Time: '$time'")
+            Pair(date, time)
+        }
+
+        // Handle ISO format: "2025-06-28T12:00:00"
+        dateTime.contains("T") -> {
+            val parts = dateTime.split("T")
+            val date = parts[0].trim()
+            val time = if (parts.size > 1) parts[1].trim() else "TBD"
+            Log.d("ItineraryNavGraph", "Parsed ISO format - Date: '$date', Time: '$time'")
+            Pair(date, time)
+        }
+
+        // Handle date only format
+        else -> {
+            Log.d("ItineraryNavGraph", "Using as date only - Date: '$dateTime', Time: 'TBD'")
+            Pair(dateTime.trim(), "TBD")
+        }
     }
 }

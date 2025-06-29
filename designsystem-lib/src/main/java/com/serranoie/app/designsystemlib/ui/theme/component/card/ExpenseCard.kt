@@ -64,33 +64,35 @@ fun ExpenseCard(
 ) {
     ICard(
         modifier = modifier,
-        borderColor = borderColor,
+        tonalElevation = 2.dp,
         color = CardDefaults.cardColors(containerColor = cardBackgroundColor).containerColor,
-        tonalElevation = 2.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            ExpenseInfo(
-                expenseName = expenseName,
-                membersCount = membersCount,
-                icon = icon,
-                iconBackgroundColor = iconBackgroundColor,
-                modifier = Modifier.weight(0.70f)
-            )
-            
-            ExpenseAmount(
-                isCompleted = isCompleted,
-                isYours = isYours,
-                amountOwed = amountOwed,
-                modifier = Modifier.weight(0.30f)
-            )
-        }
-    }
+        borderColor = borderColor,
+        content = {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                ExpenseInfo(
+                    expenseName = expenseName,
+                    membersCount = membersCount,
+                    icon = icon,
+                    iconBackgroundColor = iconBackgroundColor,
+                    modifier = Modifier.weight(0.70f)
+                )
+
+                ExpenseAmount(
+                    isCompleted = isCompleted,
+                    isYours = isYours,
+                    amountOwed = amountOwed,
+                    modifier = Modifier.weight(0.30f)
+                )
+            }
+        },
+        onClick = { }
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

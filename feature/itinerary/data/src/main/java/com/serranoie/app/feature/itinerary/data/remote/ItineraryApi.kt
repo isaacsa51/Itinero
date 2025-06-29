@@ -21,11 +21,11 @@ interface ItineraryApi {
         groupCode: String, request: CreateItineraryItemDto
     ): ItineraryItemDto
 
-    suspend fun getItineraryItem(itemId: String): ItineraryItemDto
+    suspend fun getItineraryItem(groupCode: String, itemId: String): ItineraryItemDto
     suspend fun updateItineraryItem(
-        itemId: String, request: UpdateItineraryItemDto
+        groupCode: String, itemId: String, request: UpdateItineraryItemDto
     ): ItineraryItemDto
 
-    suspend fun deleteItineraryItem(itemId: String)
-    suspend fun toggleItineraryItemCompletion(itemId: String)
+    suspend fun deleteItineraryItem(groupCode: String, itemId: String)
+    suspend fun toggleItineraryItemCompletion(groupCode: String, itemId: String)
 }

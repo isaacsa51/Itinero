@@ -106,9 +106,7 @@ fun Modifier.shimmerable(
 
 @Composable
 fun Modifier.AIShimmer(
-    shape: Shape = RoundedCornerShape(8.dp),
-    durationMillis: Int = 1500,
-    gradientWidth: Float = 500f
+    shape: Shape = RoundedCornerShape(8.dp), durationMillis: Int = 1500, gradientWidth: Float = 500f
 ): Modifier {
     val shimmerState = LocalShimmerState.current
     val isLoading = shimmerState.isLoading
@@ -133,7 +131,7 @@ fun Modifier.AIShimmer(
         Color(0xAD4A8DD8),
         Color(0xADD84A93),
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-        )
+    )
 
     return this
         .background(
@@ -156,9 +154,7 @@ fun Modifier.AIShimmer(
 private fun ExampleCard(
     title: String, subtitle: String, description: String
 ) {
-    ICard(
-        swipeable = false, isCompleted = false, modifier = Modifier.fillMaxWidth()
-    ) {
+    ICard(modifier = Modifier.fillMaxWidth(), isCompleted = false, swipeable = false, content = {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
@@ -181,7 +177,7 @@ private fun ExampleCard(
                 modifier = Modifier.shimmerable()
             )
         }
-    }
+    }, onClick = { })
 }
 
 @ComponentPreview
@@ -215,19 +211,22 @@ private fun InteractiveShimmerPreview() {
             )
             ShimmerProvider(isLoading = true) {
                 ICard(
-                    swipeable = false, isCompleted = false, modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Primary to Secondary shimmer",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .shimmerable(
-                                startColor = MaterialTheme.colorScheme.onPrimary,
-                                endColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth(),
+                    isCompleted = false,
+                    swipeable = false,
+                    content = {
+                        Text(
+                            text = "Primary to Secondary shimmer",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .shimmerable(
+                                    startColor = MaterialTheme.colorScheme.onPrimary,
+                                    endColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                        )
+                    },
+                    onClick = { })
             }
 
             Text(
@@ -235,19 +234,22 @@ private fun InteractiveShimmerPreview() {
             )
             ShimmerProvider(isLoading = true) {
                 ICard(
-                    swipeable = false, isCompleted = false, modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Tertiary to Surface shimmer",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .shimmerable(
-                                startColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                endColor = MaterialTheme.colorScheme.surface
-                            )
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth(),
+                    isCompleted = false,
+                    swipeable = false,
+                    content = {
+                        Text(
+                            text = "Tertiary to Surface shimmer",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .shimmerable(
+                                    startColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    endColor = MaterialTheme.colorScheme.surface
+                                )
+                        )
+                    },
+                    onClick = { })
             }
 
             Text(
@@ -255,35 +257,41 @@ private fun InteractiveShimmerPreview() {
             )
             ShimmerProvider(isLoading = true) {
                 ICard(
-                    swipeable = false, isCompleted = false, modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Subtle outline-based shimmer effect",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .shimmerable(
-                                startColor = MaterialTheme.colorScheme.surface,
-                                endColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                            )
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth(),
+                    isCompleted = false,
+                    swipeable = false,
+                    content = {
+                        Text(
+                            text = "Subtle outline-based shimmer effect",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .shimmerable(
+                                    startColor = MaterialTheme.colorScheme.surface,
+                                    endColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                )
+                        )
+                    },
+                    onClick = { })
             }
 
             Text(text = "AI suggestion/loader shimmer", style = MaterialTheme.typography.bodyLarge)
 
             ShimmerProvider(isLoading = true) {
                 ICard(
-                    swipeable = false, isCompleted = false, modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Subtle outline-based shimmer effect",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .AIShimmer()
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth(),
+                    isCompleted = false,
+                    swipeable = false,
+                    content = {
+                        Text(
+                            text = "Subtle outline-based shimmer effect",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .AIShimmer()
+                        )
+                    },
+                    onClick = { })
             }
         }
     }

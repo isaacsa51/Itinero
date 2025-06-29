@@ -58,7 +58,6 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 }
 
                 is Result.Error -> {
-                    Log.e("ITINERO - Itinerary ViewModel", "Error: ${result.exception.message}")
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Unknown error"
                     )
@@ -67,21 +66,17 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
-    fun getActivityById(itemId: String, forceRefresh: Boolean = false) {
+    fun getActivityById(groupCode: String, itemId: String, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
-            when (val result = itineraryUseCase.getActivityByIdUseCase(itemId, forceRefresh)) {
+            when (val result =
+                itineraryUseCase.getActivityByIdUseCase(groupCode, itemId, forceRefresh)) {
                 is Result.Success -> {
                     _selectedItem.value = result.data
                     _uiState.value = ItineraryUiState.Success(result.data)
                 }
 
                 is Result.Error -> {
-                    Log.e(
-                        "ITINERO - Itinerary ViewModel",
-                        "Failed to fetch activity with id: $itemId",
-                        result.exception
-                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Unknown error"
                     )
@@ -96,11 +91,13 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
             when (val result = itineraryUseCase.createActivityUseCase(groupCode, request)) {
                 is Result.Success -> {
                     _uiState.value = ItineraryUiState.Success(result.data)
-                    // Refresh the list to show the new item
                     fetchItinerary(groupCode, forceRefresh = true)
                 }
 
                 is Result.Error -> {
+
+                    Log.e("ITINERO - Itinerary ViewModel", "Failed to create activity, request: $request")
+
                     Log.e(
                         "ITINERO - Itinerary ViewModel",
                         "Failed to create activity",
@@ -114,25 +111,20 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
-    fun updateActivity(itemId: String, request: UpdateItineraryItem) {
+    fun updateActivity(groupCode: String, itemId: String, request: UpdateItineraryItem) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
-            when (val result = itineraryUseCase.updateActivityInfoUseCase(itemId, request)) {
+            when (val result =
+                itineraryUseCase.updateActivityInfoUseCase(groupCode, itemId, request)) {
                 is Result.Success -> {
                     _selectedItem.value = result.data
                     _uiState.value = ItineraryUiState.Success(result.data)
-                    // Refresh the list to show updated data
                     if (currentGroupCode.isNotEmpty()) {
                         fetchItinerary(currentGroupCode, forceRefresh = true)
                     }
                 }
 
                 is Result.Error -> {
-                    Log.e(
-                        "ITINERO - Itinerary ViewModel",
-                        "Failed to update activity with id: $itemId",
-                        result.exception
-                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Failed to update activity"
                     )
@@ -141,13 +133,12 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
-    fun deleteActivity(itemId: String) {
+    fun deleteActivity(groupCode: String, itemId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ItineraryUiState.Loading
-            when (val result = itineraryUseCase.deleteActivityByIdUseCase(itemId)) {
+            when (val result = itineraryUseCase.deleteActivityByIdUseCase(groupCode, itemId)) {
                 is Result.Success -> {
                     _uiState.value = ItineraryUiState.Success(Unit)
-                    // Remove the item from local state
                     _itineraryData.value =
                         _itineraryData.value.filter { it.id.toString() != itemId }
                     if (_selectedItem.value?.id.toString() == itemId) {
@@ -159,11 +150,6 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 }
 
                 is Result.Error -> {
-                    Log.e(
-                        "ITINERO - Itinerary ViewModel",
-                        "Failed to delete activity with id: $itemId",
-                        result.exception
-                    )
                     _uiState.value = ItineraryUiState.Error(
                         result.exception.message ?: "Failed to delete activity"
                     )
@@ -172,9 +158,9 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
         }
     }
 
-    fun toggleActivityCompletion(itemId: String) {
+    fun toggleActivityCompletion(groupCode: String, itemId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            when (val result = itineraryUseCase.toggleActivityCompletionUseCase(itemId)) {
+            when (val result = itineraryUseCase.toggleActivityCompletionUseCase(groupCode, itemId)) {
                 is Result.Success -> {
                     _itineraryData.value = _itineraryData.value.map { item ->
                         if (item.id.toString() == itemId) {

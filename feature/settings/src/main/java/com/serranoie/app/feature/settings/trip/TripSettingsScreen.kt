@@ -182,67 +182,67 @@ fun TripSettingsScreen(
 @Composable
 private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
     ICard(
-        swipeable = false, isCompleted = false, modifier = Modifier.padding(16.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLargeEmphasized
-            )
+        modifier = Modifier.padding(16.dp), isCompleted = false, swipeable = false, content = {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLargeEmphasized
+                )
 
-            OtpDisplayField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                otpText = formattedCode
-            )
-
-            qrBitmap?.let { bitmap ->
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(
+                OtpDisplayField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
-                        .shimmerable(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Group QR Code",
+                        .padding(vertical = 16.dp),
+                    otpText = formattedCode
+                )
+
+                qrBitmap?.let { bitmap ->
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Box(
                         modifier = Modifier
-                            .size(200.dp)
-                            .background(
-                                color = Color.White, shape = RoundedCornerShape(8.dp)
-                            )
+                            .fillMaxWidth()
                             .padding(8.dp)
-                    )
+                            .shimmerable(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Group QR Code",
+                            modifier = Modifier
+                                .size(200.dp)
+                                .background(
+                                    color = Color.White, shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(8.dp)
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "What's this code/QR for?",
+                    style = MaterialTheme.typography.bodyLargeEmphasized,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                Text(
+                    text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Text(
+                    text = "They can only use this code within the app to join your group.\n",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Text(
+                    text = "Only the trip creator can manage group members.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "What's this code/QR for?",
-                style = MaterialTheme.typography.bodyLargeEmphasized,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            Text(
-                text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Text(
-                text = "They can only use this code within the app to join your group.\n",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Text(
-                text = "Only the trip creator can manage group members.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
+        }, onClick = { }
+    )
 }
 
 @Composable

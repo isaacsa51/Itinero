@@ -276,55 +276,61 @@ fun DesignSystemShowcase(modifier: Modifier = Modifier) {
 
         // Basic card without header
         ICard(
+            isCompleted = false,
             swipeable = false,
-            isCompleted = false
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Basic Card",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "This is a simple card without header",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+            content = {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Basic Card",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "This is a simple card without header",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            onClick = { }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         // Card with colorful header
         ICard(
-            swipeable = false,
             isCompleted = false,
+            swipeable = false,
             headerTitle = "Card with Header",
             headerColor = MaterialTheme.colorScheme.primaryContainer,
-            headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "This card has a colorful header",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+            headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            content = {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "This card has a colorful header",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            onClick = { }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         // Swipeable card with header
         ICard(
-            swipeable = true,
             isCompleted = false,
             onSwipe = { /* Handle swipe action */ },
-            headerTitle = "Swipeable Card"
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Swipe me to mark as completed",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+            swipeable = true,
+            headerTitle = "Swipeable Card",
+            content = {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Swipe me to mark as completed",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            onClick = { }
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 

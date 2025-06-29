@@ -28,8 +28,7 @@ data class ItineraryUseCase(
 
 class GetAllActivitiesUseCase(private val repository: ItineraryRepository) {
     suspend operator fun invoke(
-        groupCode: String,
-        forceRefresh: Boolean = false
+        groupCode: String, forceRefresh: Boolean = false
     ): Result<List<ItineraryItem>> {
         return repository.getAllActivities(groupCode, forceRefresh)
     }
@@ -37,26 +36,24 @@ class GetAllActivitiesUseCase(private val repository: ItineraryRepository) {
 
 class GetActivityByIdUseCase(private val repository: ItineraryRepository) {
     suspend operator fun invoke(
-        itineraryId: String,
-        forceRefresh: Boolean = false
+        groupCode: String, itineraryId: String, forceRefresh: Boolean = false
     ): Result<ItineraryItem> {
-        return repository.getActivityById(itineraryId, forceRefresh)
+        return repository.getActivityById(groupCode, itineraryId, forceRefresh)
     }
 }
 
 class CreateActivityUseCase(private val repository: ItineraryRepository) {
     suspend operator fun invoke(
-        groupCode: String,
-        request: CreateItineraryItem
+        groupCode: String, request: CreateItineraryItem
     ): Result<ItineraryItem> {
         return repository.createActivity(groupCode, request)
     }
 }
 
 class DeleteActivityByIdUseCase(private val repository: ItineraryRepository) {
-    suspend operator fun invoke(itineraryId: String): Result<Unit> {
+    suspend operator fun invoke(groupCode: String, itineraryId: String): Result<Unit> {
         return try {
-            repository.deleteActivityById(itineraryId)
+            repository.deleteActivityById(groupCode, itineraryId)
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e)
@@ -66,15 +63,14 @@ class DeleteActivityByIdUseCase(private val repository: ItineraryRepository) {
 
 class UpdateActivityInfoUseCase(private val repository: ItineraryRepository) {
     suspend operator fun invoke(
-        itineraryId: String,
-        request: UpdateItineraryItem
+        groupCode: String, itineraryId: String, request: UpdateItineraryItem
     ): Result<ItineraryItem> {
-        return repository.updateActivityInfo(itineraryId, request)
+        return repository.updateActivityInfo(groupCode, itineraryId, request)
     }
 }
 
 class ToggleActivityCompletionUseCase(private val repository: ItineraryRepository) {
-    suspend operator fun invoke(itineraryId: String): Result<Unit> {
-        return repository.toggleActivityCompletion(itineraryId)
+    suspend operator fun invoke(groupCode: String, itineraryId: String): Result<Unit> {
+        return repository.toggleActivityCompletion(groupCode, itineraryId)
     }
 }

@@ -32,22 +32,23 @@ class ItineraryApiImpl(
         return post("/trips/$groupCode/itinerary", request)
     }
 
-    override suspend fun getItineraryItem(itemId: String): ItineraryItemDto {
-        return get("/itinerary/$itemId")
+    override suspend fun getItineraryItem(groupCode: String, itemId: String): ItineraryItemDto {
+        return get("/trips/$groupCode/itinerary/$itemId")
     }
 
     override suspend fun updateItineraryItem(
+        groupCode: String,
         itemId: String,
         request: UpdateItineraryItemDto
     ): ItineraryItemDto {
-        return put("/itinerary/$itemId", request)
+        return put("/trips/$groupCode/itinerary/$itemId", request)
     }
 
-    override suspend fun deleteItineraryItem(itemId: String) {
-        delete<Unit>("/itinerary/$itemId")
+    override suspend fun deleteItineraryItem(groupCode: String, itemId: String) {
+        delete<Unit>("/trips/$groupCode/itinerary/$itemId")
     }
 
-    override suspend fun toggleItineraryItemCompletion(itemId: String) {
-        patch<Unit>("/itinerary/$itemId/complete")
+    override suspend fun toggleItineraryItemCompletion(groupCode: String, itemId: String) {
+        patch<Unit>("/trips/$groupCode/itinerary/$itemId/complete")
     }
 }
