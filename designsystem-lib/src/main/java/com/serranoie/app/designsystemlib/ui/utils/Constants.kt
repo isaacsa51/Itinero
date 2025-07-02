@@ -20,6 +20,8 @@ object Constants {
     val mediumPadding = 24.dp
     val largePadding = 36.dp
 
+    val sliderHeight = 56.dp
+
     val commonCornerRadius = 4.dp
 
     val indicatorSize = 14.dp

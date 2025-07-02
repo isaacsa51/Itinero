@@ -12,6 +12,8 @@
 package com.serranoie.app.designsystemlib.ui.theme.component
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DatePicker
@@ -31,6 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.serranoie.app.designsystemlib.ui.ComponentPreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Utils.dateToString
@@ -39,7 +44,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import kotlin.text.format
 
 /**
  * A reusable date and time input component that displays a clickable card
@@ -65,10 +69,9 @@ fun DateTimeInput(
     label: String = "Date: ",
     placeholder: String? = null,
     enabled: Boolean = true,
-    shape: Shape = MaterialTheme.shapes.medium,
+    shape: Shape = MaterialTheme.shapes.small,
     color: Color = Color.Transparent,
     contentPadding: Dp = basePadding,
-    verticalPadding: Dp = basePadding
 ) {
     val currentDateTime = selectedDateTime ?: Date()
     val datePickerState = rememberDatePickerState(
@@ -84,7 +87,6 @@ fun DateTimeInput(
 
     ICard(
         modifier = modifier
-            .padding(vertical = verticalPadding)
             .fillMaxWidth()
             .then(
                 if (enabled) {
@@ -193,3 +195,53 @@ fun formatMyDate(date: Date): String {
         Locale.getDefault())
     return targetFormat.format(date)
 }
+
+@ComponentPreview
+@Composable
+private fun DateTimeInputPreview() {
+    var selectedDateTime by remember { mutableStateOf<Date?>(Date()) }
+    
+    PreviewWrapper {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Default DateTimeInput with current date
+            DateTimeInput(
+                selectedDateTime = selectedDateTime,
+                onDateTimeSelected = { selectedDateTime = it }
+            )
+            
+            // DateTimeInput with custom label
+            DateTimeInput(
+                selectedDateTime = selectedDateTime,
+                onDateTimeSelected = { selectedDateTime = it },
+                label = "Event Date: "
+            )
+            
+            // Disabled DateTimeInput
+            DateTimeInput(
+                selectedDateTime = selectedDateTime,
+                onDateTimeSelected = { selectedDateTime = it },
+                label = "Disabled: ",
+                enabled = false
+            )
+            
+            // DateTimeInput with null selected date
+            DateTimeInput(
+                selectedDateTime = null,
+                onDateTimeSelected = { selectedDateTime = it },
+                label = "Select Date: "
+            )
+            
+            // DateTimeInput with custom placeholder
+            DateTimeInput(
+                selectedDateTime = null,
+                onDateTimeSelected = { selectedDateTime = it },
+                label = "Custom: ",
+                placeholder = "No date selected"
+            )
+        }
+    }
+}
+

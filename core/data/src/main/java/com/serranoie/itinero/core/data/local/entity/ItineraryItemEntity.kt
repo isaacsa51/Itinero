@@ -24,5 +24,5 @@ data class ItineraryItemEntity(
     val time: String,
     val location: String,
     val description: String,
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean
 )

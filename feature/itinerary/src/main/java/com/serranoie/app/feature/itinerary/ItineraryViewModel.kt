@@ -96,8 +96,6 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
 
                 is Result.Error -> {
 
-                    Log.e("ITINERO - Itinerary ViewModel", "Failed to create activity, request: $request")
-
                     Log.e(
                         "ITINERO - Itinerary ViewModel",
                         "Failed to create activity",
@@ -164,6 +162,7 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
                 is Result.Success -> {
                     _itineraryData.value = _itineraryData.value.map { item ->
                         if (item.id.toString() == itemId) {
+                            Log.d("ITINERO - Itinerary ViewModel", "Updating item: ${item.isCompleted}")
                             item.copy(isCompleted = !item.isCompleted)
                         } else {
                             item
@@ -172,6 +171,7 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
 
                     _selectedItem.value?.let { selected ->
                         if (selected.id.toString() == itemId) {
+                            Log.d("ITINERO - Itinerary ViewModel", "Updating selected item: ${selected.isCompleted}")
                             _selectedItem.value = selected.copy(isCompleted = !selected.isCompleted)
                         }
                     }

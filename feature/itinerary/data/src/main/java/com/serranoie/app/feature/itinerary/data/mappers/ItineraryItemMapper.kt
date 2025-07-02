@@ -54,7 +54,7 @@ fun ItineraryItemDto.toDomain(): ItineraryItem {
         time = time,
         location = location,
         description = description,
-        isCompleted = false
+        isCompleted = isCompleted
     )
 }
 
@@ -65,7 +65,7 @@ fun CreateItineraryItem.toDto(): CreateItineraryItemDto {
         date = date,
         time = time,
         location = location,
-        isCompleted = false
+        isCompleted = isCompleted ?: false
     )
 }
 

@@ -33,11 +33,6 @@ data class TripEntity(
     val ownerId: String,
 )
 
-/**
- * Embedded accommodation data that will be flattened into the trips table
- * This matches the backend structure where accommodation is stored as columns
- * in the trip table (accommodationName, accommodationPhone, etc.)
- */
 data class EmbeddedAccommodation(
     val name: String,
     val phone: String,

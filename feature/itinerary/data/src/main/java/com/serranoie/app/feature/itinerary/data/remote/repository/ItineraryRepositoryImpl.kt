@@ -32,15 +32,25 @@ class ItineraryRepositoryImpl(
      * Toggles the completion status of an itinerary item
      */
     override suspend fun toggleActivityCompletion(groupCode: String, itemId: String): Result<Unit> {
-        return when (val result =
-            safeApiCall { api.toggleItineraryItemCompletion(groupCode, itemId) }) {
+        return when (val result = safeApiCall { api.toggleItineraryItemCompletion(groupCode, itemId) }) {
             is Result.Success -> {
+                Log.d("ITINERO - ItineraryRepository", "Toggle successful")
                 // Refresh the item data to get updated completion status
-                getActivityById(groupCode, itemId, forceRefresh = true)
+                when (val refreshResult = getActivityById(groupCode, itemId, forceRefresh = true)) {
+                    is Result.Success -> {
+                        Log.d("ITINERO - ItineraryRepository", "Item refreshed with new status: ${refreshResult.data.isCompleted}")
+                    }
+                    is Result.Error -> {
+                        Log.e("ITINERO - ItineraryRepository", "Failed to refresh item after toggle: ${refreshResult.exception.message}")
+                    }
+                }
                 result
             }
 
-            is Result.Error -> result
+            is Result.Error -> {
+                Log.e("ITINERO - ItineraryRepository", "Toggle failed: ${result.exception.message}")
+                result
+            }
         }
     }
 
