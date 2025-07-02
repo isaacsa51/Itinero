@@ -808,7 +808,7 @@ fun InfoCard(
                 MarqueeText(
                     text = value,
                     style = MaterialTheme.typography.headlineSmallEmphasized,
-                    gradientEdgeColor = MaterialTheme.colorScheme.surface
+                    gradientEdgeColor = MaterialTheme.colorScheme.surfaceContainer
                 )
                 Text(
                     text = subtitle,
