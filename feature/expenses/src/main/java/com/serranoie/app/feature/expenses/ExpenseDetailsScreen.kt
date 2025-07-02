@@ -74,7 +74,6 @@ fun ExpenseDetailsScreen(
                             text = "Expense name",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.headlineMediumEmphasized
                         )
                     }
                 },

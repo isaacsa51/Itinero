@@ -19,11 +19,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Shop
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ConfirmationNumber
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,17 +44,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
+import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
+import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.app.feature.expenses.util.generateDateRange
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<ExpenseItem>>) {
+fun ExpensesScreen(
+    navController: NavController,
+    expenses: Map<LocalDate, List<ExpenseItem>>,
+    isLoading: Boolean = false
+) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val startDate = expenses.keys.minOrNull() ?: LocalDate.now()
@@ -81,31 +84,39 @@ fun ExpensesScreen(navController: NavController, expenses: Map<LocalDate, List<E
             }, scrollBehavior = scrollBehavior
         )
     }) { paddingValues ->
-        val expenseState = remember { mutableStateOf(expenses) }
-        val currentExpense by expenseState
+        ShimmerProvider(isLoading = isLoading) {
+            if (isLoading) {
+                ExpensesScreenSkeleton(paddingValues, scrollBehavior)
+            } else {
+                val expenseState = remember { mutableStateOf(expenses) }
+                val currentExpense by expenseState
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            item {
-                BalanceCircles()
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "History of expenses",
-                    style = MaterialTheme.typography.headlineSmallEmphasized,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            items(generateDateRange(startDate, endDate)) { date ->
-                ExpensesDateSection(
-                    date = date,
-                    expenses = currentExpense[date].orEmpty(),
-                )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    item {
+                        BalanceCircles()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "History of expenses",
+                            style = MaterialTheme.typography.headlineSmallEmphasized,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .shimmerable()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    items(generateDateRange(startDate, endDate)) { date ->
+                        ExpensesDateSection(
+                            date = date,
+                            expenses = currentExpense[date].orEmpty(),
+                        )
+                    }
+                }
             }
         }
     }
@@ -140,7 +151,8 @@ fun BalanceCircles(
                     )
                     Text(
                         text = "$${String.format("%.2f", youOwe)}",
-                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface)
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface),
+                        modifier = Modifier.shimmerable()
                     )
                 }
             }
@@ -163,7 +175,8 @@ fun BalanceCircles(
                         text = "$${String.format("%.2f", youAreOwed)}",
                         style = MaterialTheme.typography.titleLargeEmphasized.copy(
                             color = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
+                        ),
+                        modifier = Modifier.shimmerable()
                     )
                 }
             }
@@ -210,6 +223,130 @@ fun ExpensesDateSection(date: LocalDate, expenses: List<ExpenseItem>) {
 
                     Spacer(modifier = Modifier.height(4.dp))
                 }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp), thickness = 1.dp
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ExpensesScreenSkeleton(
+    paddingValues: PaddingValues,
+    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentPadding = PaddingValues(bottom = 16.dp)
+    ) {
+        item {
+            BalanceCirclesSkeleton()
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "History of expenses",
+                style = MaterialTheme.typography.headlineSmallEmphasized,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        items(3) { index ->
+            ExpensesDateSectionSkeleton()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun BalanceCirclesSkeleton() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 16.dp)
+        ) {
+            // Left Circle - You owe
+            Box(
+                modifier = Modifier
+                    .size(140.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.tertiary)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "You owe",
+                        style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface)
+                    )
+                    Text(
+                        text = "$0.00",
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface),
+                        modifier = Modifier.shimmerable()
+                    )
+                }
+            }
+
+            // Right Circle - You are owed
+            Box(
+                modifier = Modifier
+                    .size(180.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "You are owed",
+                        style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    )
+                    Text(
+                        text = "$0.00",
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        ),
+                        modifier = Modifier.shimmerable()
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ExpensesDateSectionSkeleton() {
+    Row {
+        DateRangeToolbar(date = LocalDate.now())
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+        ) {
+            repeat(2) {
+                ExpenseCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .shimmerable(),
+                    expenseName = "Loading expense...",
+                    membersCount = 0,
+                    amountOwed = 0.0,
+                    isCompleted = false,
+                    isYours = false,
+                    icon = Icons.Default.Money,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
             }
 
             HorizontalDivider(
@@ -312,6 +449,18 @@ private fun ExpensesScreenPreview() {
         ExpensesScreen(
             navController = rememberNavController(),
             expenses = mockExpenses
+        )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun ExpensesScreenPreviewLoading() {
+    PreviewWrapper {
+        ExpensesScreen(
+            navController = rememberNavController(),
+            expenses = emptyMap(),
+            isLoading = true
         )
     }
 }
