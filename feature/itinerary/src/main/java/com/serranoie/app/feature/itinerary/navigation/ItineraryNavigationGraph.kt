@@ -112,10 +112,11 @@ fun NavGraphBuilder.itineraryGraph(
             if (itineraryData.isEmpty()) {
                 viewModel.fetchItinerary(groupCode)
             }
-            viewModel.clearSelectedItem()
             if (!itemId.isNullOrEmpty()) {
                 viewModel.getActivityById(groupCode, itemId, forceRefresh = true)
             }
+
+            viewModel.clearSelectedItem()
         }
 
         val getExistingItem = { id: String? ->
