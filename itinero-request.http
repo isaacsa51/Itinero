@@ -193,7 +193,7 @@ Content-Type: application/json
 }
 
 ### Get specific itinerary item
-@item_id = 1
+@item_id = 2
 GET {{base_url}}/trips/{{group_code}}/itinerary/{{item_id}}
 Authorization: Bearer {{auth_token}}
 

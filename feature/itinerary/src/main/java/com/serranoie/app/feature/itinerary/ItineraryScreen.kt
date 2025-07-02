@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -77,14 +76,6 @@ fun ItineraryScreen(
                             contentDescription = "Go back"
                         )
                     })
-                },
-                actions = {
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = "Localized description"
-                        )
-                    }
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -345,6 +336,21 @@ private fun ItineraryScreenPreview() {
                 Log.d("ITINERO - ITNavGraph", "=== ITEM CLICKED ===")
                 Log.d("ITINERO - ITNavGraph", "Item ID: ${item.id}")
             }
+        )
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun LoadingItineraryPreview() {
+    PreviewWrapper {
+        ItineraryScreen(
+            navController = rememberNavController(),
+            itinerary = emptyMap(),
+            uiState = ItineraryUiState.Loading,
+            onRefresh = {},
+            onToggleCompletion = {},
+            onSwiped = {}
         )
     }
 }

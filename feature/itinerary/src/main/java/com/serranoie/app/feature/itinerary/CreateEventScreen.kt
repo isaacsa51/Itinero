@@ -2,6 +2,7 @@ package com.serranoie.app.feature.itinerary
 
 import android.graphics.BlurMaskFilter
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -19,6 +20,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,23 +67,20 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
+import com.serranoie.app.designsystemlib.ui.theme.component.SlideToConfirm
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.formatMyDate
-import com.serranoie.app.designsystemlib.ui.utils.Utils.dateToString
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -98,31 +98,38 @@ val sampleTask = TaskInfo(
 
 @Composable
 fun CreateEventScreen(
-    navController: NavController,
     existingItem: ItineraryItem? = null,
     onCreateActivity: (name: String, time: String, location: String, description: String) -> Unit = { _, _, _, _ -> },
     onUpdateActivity: (id: String, name: String, time: String, location: String, description: String) -> Unit = { _, _, _, _, _ -> },
-    onSaveComplete: () -> Unit = {}
+    onDeleteActivity: (id: String) -> Unit = { },
+    onCompleted: (id: String) -> Unit = {},
+    onSaveComplete: () -> Unit = {},
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     var eventName by remember { mutableStateOf(existingItem?.name ?: "") }
     var eventTime by remember { mutableStateOf(existingItem?.time ?: "") }
     var eventLocation by remember { mutableStateOf(existingItem?.location ?: "") }
     var eventSummary by remember { mutableStateOf(existingItem?.description ?: "") }
+
     var showCard by remember { mutableStateOf(true) }
-    
+
     var selectedDateTime by remember {
         mutableStateOf<Date?>(existingItem?.let { item ->
             try {
                 val dateTimeString = "${item.date} ${item.time}"
                 SimpleDateFormat("dd MMMM yyyy hh:mm a", Locale.getDefault()).parse(dateTimeString)
             } catch (e: Exception) {
-                Log.e("CreateEventScreen", "Error parsing existing item date/time: ${item.date} ${item.time}", e)
+                Log.e(
+                    "CreateEventScreen",
+                    "Error parsing existing item date/time: ${item.date} ${item.time}",
+                    e
+                )
                 Date()
             }
         } ?: Date())
     }
-
-    Log.w("selectedDateTime", selectedDateTime.toString())
 
     var reminderAtEventTime by remember { mutableStateOf(false) }
     var customReminder by remember { mutableStateOf(false) }
@@ -133,7 +140,6 @@ fun CreateEventScreen(
 
     val isEditMode = existingItem != null
 
-    // FIX
     LaunchedEffect(isEditMode, existingItem) {
         if (isEditMode) {
             existingItem?.let {
@@ -219,9 +225,13 @@ fun CreateEventScreen(
                 eventTime = eventTime,
                 eventLocation = eventLocation,
                 eventSummary = eventSummary,
+                coroutineScope = coroutineScope,
+                onCompleted = onCompleted,
                 onCreateActivity = onCreateActivity,
                 onUpdateActivity = onUpdateActivity,
-                onSaveComplete = onSaveComplete
+                onDeleteActivity = onDeleteActivity,
+                onSaveComplete = onSaveComplete,
+                context = context
             )
         }
     }
@@ -255,23 +265,23 @@ private fun ActivityDetailsSection(
         )
 
         DateTimeInput(
-            selectedDateTime = selectedDateTime, 
+            selectedDateTime = selectedDateTime,
             onDateTimeSelected = onDateTimeSelected,
-            modifier = Modifier.padding(16.dp, 0.dp)
+            modifier = Modifier.padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 4.dp)
         )
 
         ITextField(
             value = eventLocation,
             onValueChange = onEventLocationChange,
             label = "Location",
-            modifier = Modifier.padding(16.dp, 0.dp)
+            modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp, bottom = 4.dp)
         )
 
         ITextField(
             value = eventSummary,
             onValueChange = onEventSummaryChange,
             label = "Description",
-            modifier = Modifier.padding(16.dp, 0.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp)
         )
     }
 }
@@ -332,7 +342,8 @@ private fun HeaderSection(
         AnimatedVisibility(
             visible = showCard,
             exit = fadeOut(animationSpec = tween(400)) + scaleOut(animationSpec = tween(400)) + slideOutVertically(
-                animationSpec = tween(400), targetOffsetY = { -it })
+                animationSpec = tween(400), targetOffsetY = { -it }
+            )
         ) {
             AnimatedBorderCard(
                 modifier = Modifier
@@ -400,7 +411,6 @@ private fun AnimatedBorderCard(
     Box(
         modifier = modifier
             .padding(16.dp)
-            .background(MaterialTheme.colorScheme.surface)
             .drawBehind {
                 val centerX = size.width / 2f
                 val centerY = size.height / 2f
@@ -709,34 +719,160 @@ private fun SaveButtonSection(
     eventTime: String,
     eventLocation: String,
     eventSummary: String,
+    coroutineScope: CoroutineScope,
+    onCompleted: (String) -> Unit,
     onCreateActivity: (String, String, String, String) -> Unit,
     onUpdateActivity: (String, String, String, String, String) -> Unit,
-    onSaveComplete: () -> Unit
+    onDeleteActivity: (String) -> Unit,
+    onSaveComplete: () -> Unit,
+    context: android.content.Context
 ) {
-    IButton(
-        modifier = Modifier
-            .padding(16.dp)
-            .padding(top = 8.dp)
-            .fillMaxWidth(), onClick = {
-        if (eventName.isNotBlank() && eventTime.isNotBlank() && eventLocation.isNotBlank() && eventSummary.isNotBlank()) {
-            if (existingItem != null) {
-                onUpdateActivity(
-                    existingItem.id ?: "", eventName, eventTime, eventLocation, eventSummary
+    val isEditMode = existingItem != null
+    val isCompleted = existingItem?.isCompleted ?: false
+    val canSave = eventName.isNotBlank() && eventTime.isNotBlank() &&
+            eventLocation.isNotBlank() && eventSummary.isNotBlank()
+
+    Column(modifier = Modifier.padding(bottom = basePadding)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isEditMode) {
+                SlideToConfirm(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .weight(1f),
+                    isLoading = isCompleted,
+                    currentStatus = isCompleted,
+                    onAcceptSwipe = {
+                        if (!isCompleted) {
+                            coroutineScope.launch {
+                                existingItem?.id?.let { onCompleted(it) }
+                            }
+                        }
+                    },
+                    onCancelPressed = {
+                        if (isCompleted) {
+                            coroutineScope.launch {
+                                existingItem?.id?.let { onCompleted(it) }
+                            }
+                        }
+                    },
                 )
-            } else {
-                onCreateActivity(
-                    eventName, eventTime, eventLocation, eventSummary
-                )
+
             }
-            onSaveComplete()
         }
-    }, text = {
-        Text(
-            text = if (existingItem != null) "Update activity" else "Save activity",
-            style = MaterialTheme.typography.labelLargeEmphasized
-        )
-    }, importance = ButtonImportance.Primary
-    )
+
+        if (isEditMode) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                IButton(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 16.dp),
+                    onClick = {
+                        if (canSave) {
+                            if (existingItem != null) {
+                                onUpdateActivity(
+                                    existingItem.id ?: "",
+                                    eventName,
+                                    eventTime,
+                                    eventLocation,
+                                    eventSummary
+                                )
+                            } else {
+                                onCreateActivity(
+                                    eventName,
+                                    eventTime,
+                                    eventLocation,
+                                    eventSummary
+                                )
+                            }
+                            onSaveComplete()
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = "Update activity",
+                            style = MaterialTheme.typography.labelLargeEmphasized
+                        )
+                    },
+                    importance = ButtonImportance.Primary
+                )
+
+                Box(
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    IButton(
+                        onClick = { /* Handled by overlay */ },
+                        text = { Text("Delete") },
+                        importance = ButtonImportance.Error
+                    )
+                    
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .combinedClickable(
+                                onClick = {
+                                    Toast.makeText(
+                                        context,
+                                        "Please hold longer to delete",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onLongClick = {
+                                    existingItem?.id?.let {
+                                        onDeleteActivity(it)
+                                    }
+                                }
+                            )
+                    )
+                }
+            }
+        } else {
+            IButton(
+                modifier = Modifier
+                    .padding(top = if (isEditMode) 8.dp else 16.dp)
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                onClick = {
+                    if (canSave) {
+                        if (existingItem != null) {
+                            onUpdateActivity(
+                                existingItem.id ?: "",
+                                eventName,
+                                eventTime,
+                                eventLocation,
+                                eventSummary
+                            )
+                        } else {
+                            onCreateActivity(
+                                eventName,
+                                eventTime,
+                                eventLocation,
+                                eventSummary
+                            )
+                        }
+                        onSaveComplete()
+                    }
+                },
+                text = {
+                    Text(
+                        text = "Save activity",
+                        style = MaterialTheme.typography.labelLargeEmphasized
+                    )
+                },
+                importance = ButtonImportance.Primary
+            )
+        }
+    }
 }
 
 @ThemePreviews
@@ -744,10 +880,11 @@ private fun SaveButtonSection(
 private fun CreateEventScreenPreview() {
     PreviewWrapper {
         CreateEventScreen(
-            navController = rememberNavController(),
             existingItem = null,
             onCreateActivity = { _, _, _, _ -> },
             onUpdateActivity = { _, _, _, _, _ -> },
-            onSaveComplete = { })
+            onDeleteActivity = {},
+            onSaveComplete = { }
+        )
     }
 }
