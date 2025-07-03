@@ -11,11 +11,12 @@
 
 package com.serranoie.app.feature.expenses.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ExpenseSummaryDto(
     val totalExpenses: Double,
     val totalOwed: Double,
     val totalPaid: Double,
     val balances: List<UserBalanceDto>
 )
-
-

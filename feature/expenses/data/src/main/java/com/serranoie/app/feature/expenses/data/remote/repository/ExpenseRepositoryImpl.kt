@@ -257,11 +257,11 @@ class ExpenseRepositoryImpl(
 
             when {
                 expensesResult is Result.Success && summaryResult is Result.Success -> {
-                    localRepository.clearExpensesForGroup(groupCode)
 
                     val expenses = expensesResult.data.map { it.toDomain() }
                     val summary = summaryResult.data.toDomain()
 
+                    localRepository.clearExpensesForGroup(groupCode)
                     localRepository.cacheExpenses(groupCode, expenses)
                     localRepository.cacheUserExpenseSummary(groupCode, summary)
 

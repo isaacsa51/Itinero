@@ -11,6 +11,9 @@
 
 package com.serranoie.app.feature.expenses.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CreateExpenseDto(
     val tripId: Int,
     val name: String,

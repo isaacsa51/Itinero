@@ -11,12 +11,16 @@
 
 package com.serranoie.app.feature.expenses.data.remote.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class UserBasicDto(
     val id: Int,
     val name: String,
     val surname: String
 )
 
+@Serializable
 data class UserBalanceDto(
     val userId: Int,
     val name: String,

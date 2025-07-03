@@ -27,9 +27,9 @@ interface LocalExpensesRepository {
     suspend fun cacheExpense(expense: Expense): Result<Unit>
     suspend fun cacheExpenses(groupCode: String, expenses: List<Expense>): Result<Unit>
     suspend fun cacheUserExpenseSummary(
-        groupCode: String,
-        summary: UserExpenseSummary
+        groupCode: String, summary: UserExpenseSummary
     ): Result<Unit>
+
     suspend fun updateExpense(expense: Expense): Result<Unit>
     suspend fun deleteExpenseById(expenseId: String): Result<Unit>
     suspend fun clearExpensesForGroup(groupCode: String): Result<Unit>
@@ -59,7 +59,9 @@ class LocalExpensesRepositoryImpl(
 
     override suspend fun getCachedExpenseById(expenseId: String): Result<Expense?> {
         return try {
-            val expenseEntity = expenseDao.getExpenseById(expenseId.toInt())
+            val id = expenseId.toIntOrNull()
+                ?: return Result.Error(IllegalArgumentException("Invalid expense ID: $expenseId"))
+            val expenseEntity = expenseDao.getExpenseById(id)
             if (expenseEntity != null) {
                 val debtors = expenseDao.getDebtorsByExpenseId(expenseEntity.id)
                 val expense = expenseEntity.toDomain(debtors)
@@ -125,8 +127,7 @@ class LocalExpensesRepositoryImpl(
     }
 
     override suspend fun cacheUserExpenseSummary(
-        groupCode: String,
-        summary: UserExpenseSummary
+        groupCode: String, summary: UserExpenseSummary
     ): Result<Unit> {
         return try {
             val summaryEntity = summary.toEntity(groupCode)
@@ -155,7 +156,9 @@ class LocalExpensesRepositoryImpl(
 
     override suspend fun deleteExpenseById(expenseId: String): Result<Unit> {
         return try {
-            expenseDao.deleteExpenseWithDebtors(expenseId.toInt())
+            val id = expenseId.toIntOrNull()
+                ?: return Result.Error(IllegalArgumentException("Invalid expense ID: $expenseId"))
+            expenseDao.deleteExpenseWithDebtors(id)
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e)
@@ -181,45 +184,42 @@ class LocalExpensesRepositoryImpl(
     }
 
     override fun getCachedExpensesFlow(groupCode: String): Flow<List<Expense>> {
-        return expenseDao.getExpensesByGroupCodeFlow(groupCode)
-            .map { expenseEntities ->
-                expenseEntities.map { expenseEntity ->
-                    val debtors = expenseDao.getDebtorsByExpenseId(expenseEntity.id)
-                    expenseEntity.toDomain(debtors)
-                }
+        return expenseDao.getExpensesByGroupCodeFlow(groupCode).map { expenseEntities ->
+            expenseEntities.map { expenseEntity ->
+                val debtors = expenseDao.getDebtorsByExpenseId(expenseEntity.id)
+                expenseEntity.toDomain(debtors)
             }
+        }
     }
 
     override fun getCachedUserExpenseSummaryFlow(groupCode: String): Flow<UserExpenseSummary?> {
-        return expenseDao.getUserExpenseSummariesByGroupCodeFlow(groupCode)
-            .map { summaryEntities ->
-                val summaryEntity = summaryEntities.firstOrNull()
-                if (summaryEntity != null) {
-                    // Get cached expenses for this group
-                    val expenseEntities = expenseDao.getExpensesByGroupCode(groupCode)
-                    val expenses = expenseEntities.map { expenseEntity ->
-                        val debtors = expenseDao.getDebtorsByExpenseId(expenseEntity.id)
-                        expenseEntity.toDomain(debtors)
-                    }
+        return expenseDao.getUserExpenseSummariesByGroupCodeFlow(groupCode).map { summaryEntities ->
+            val summaryEntity = summaryEntities.firstOrNull()
+            if (summaryEntity != null) {
+                // Get cached expenses for this group
+                val expenseEntities = expenseDao.getExpensesByGroupCode(groupCode)
+                val expenses = expenseEntities.map { expenseEntity ->
+                    val debtors = expenseDao.getDebtorsByExpenseId(expenseEntity.id)
+                    expenseEntity.toDomain(debtors)
+                }
 
-                    UserExpenseSummary(
-                        totalTripExpenses = summaryEntity.totalExpenses,
-                        userAmountOwed = summaryEntity.totalOwed,
-                        userAmountToReceive = summaryEntity.totalPaid,
-                        userBalance = summaryEntity.totalPaid - summaryEntity.totalOwed,
-                        expenses = expenses
-                    )
-                } else null
-            }
+                UserExpenseSummary(
+                    totalTripExpenses = summaryEntity.totalExpenses,
+                    userAmountOwed = summaryEntity.totalOwed,
+                    userAmountToReceive = summaryEntity.totalPaid,
+                    userBalance = summaryEntity.totalPaid - summaryEntity.totalOwed,
+                    expenses = expenses
+                )
+            } else null
+        }
     }
 
     override fun getCachedExpenseFlow(expenseId: String): Flow<Expense?> {
-        return expenseDao.getExpenseByIdFlow(expenseId.toInt())
-            .map { expenseEntity ->
-                expenseEntity?.let { entity ->
-                    val debtors = expenseDao.getDebtorsByExpenseId(entity.id)
-                    entity.toDomain(debtors)
-                }
+        return expenseDao.getExpenseByIdFlow(expenseId.toInt()).map { expenseEntity ->
+            expenseEntity?.let { entity ->
+                val debtors = expenseDao.getDebtorsByExpenseId(entity.id)
+                entity.toDomain(debtors)
             }
+        }
     }
 }
