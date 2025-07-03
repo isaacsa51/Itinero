@@ -13,6 +13,7 @@ package com.serranoie.itinero.core.data.remote.resources
 
 import android.util.Log
 import com.serranoie.itinero.core.data.BuildConfig
+import com.serranoie.itinero.core.domain.result.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.*
@@ -22,6 +23,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.flow.Flow
 
 abstract class BaseApiClient(
     protected val client: HttpClient,
