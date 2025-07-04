@@ -28,7 +28,7 @@ data class ExpensesUseCases(
 
 class GetUserExpensesUseCase(private val repository: ExpensesRepository) {
     suspend operator fun invoke(groupCode: String): Flow<List<UserExpenseSummary>> {
-        return repository.getUserExpenses(groupCode)
+        return repository.getUserExpenseSummary(groupCode)
     }
 }
 
@@ -39,19 +39,19 @@ class GetExpenseByIdUseCase(private val repository: ExpensesRepository) {
 }
 
 class UpdateExpenseUseCase(private val repository: ExpensesRepository) {
-    suspend operator fun invoke(groupCode: String, expense: Expense): Flow<Result<Expense>> {
-        return repository.updateExpense(expense)
+    suspend operator fun invoke(groupCode: String, expenseId: String, expense: CreateExpense): Result<Unit> {
+        return repository.updateExpense(groupCode, expenseId, expense)
     }
 }
 
 class DeleteExpenseUseCase(private val repository: ExpensesRepository) {
-    suspend operator fun invoke(): Result<Unit> {
-        return repository.deleteExpense()
+    suspend operator fun invoke(groupCode: String, expenseId: String): Result<Unit> {
+        return repository.deleteExpense(groupCode, expenseId)
     }
 }
 
 class AddExpenseUseCase(private val repository: ExpensesRepository) {
-    suspend operator fun invoke(expense: CreateExpense): Result<CreateExpense> {
-        return repository.addExpense(expense)
+    suspend operator fun invoke(groupCode: String, expense: CreateExpense): Result<Expense> {
+        return repository.createExpense(groupCode, expense)
     }
 }

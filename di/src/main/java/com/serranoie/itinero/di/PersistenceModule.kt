@@ -4,15 +4,15 @@ import androidx.room.Room
 import com.serranoie.app.feature.itinerary.data.local.repository.LocalItineraryRepository
 import com.serranoie.app.feature.itinerary.data.local.repository.LocalItineraryRepositoryImpl
 import com.serranoie.itinero.core.data.local.database.AppDatabase
-import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import com.serranoie.itinero.core.data.local.persistence.AuthPreferencesRepositoryImpl
 import com.serranoie.itinero.core.data.local.repository.LocalTravelRepository
 import com.serranoie.itinero.core.data.local.repository.LocalTravelRepositoryImpl
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val persistenceModule = module {
-    // Single Database
-    single {
+    single<AppDatabase> {
         Room.databaseBuilder(
             androidContext(),
             AppDatabase::class.java,
@@ -21,14 +21,12 @@ val persistenceModule = module {
             .build()
     }
 
-    // DAOs
     single { get<AppDatabase>().tripDao() }
     single { get<AppDatabase>().itineraryDao() }
+    single { get<AppDatabase>().expenseDao()}
 
-    // Preferences
-    single { AuthPreferences(androidContext()) }
+    single<AuthPreferencesRepository> { AuthPreferencesRepositoryImpl(androidContext()) }
 
-    // Local Repositories
     single<LocalTravelRepository> { LocalTravelRepositoryImpl(get()) }
     single<LocalItineraryRepository> { LocalItineraryRepositoryImpl(get()) }
 }

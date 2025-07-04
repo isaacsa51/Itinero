@@ -3,7 +3,6 @@ package com.serranoie.app.feature.auth.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.app.feature.auth.AuthConstants
-import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
 import com.serranoie.itinero.core.domain.model.RegisterRequest
 import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 
 sealed interface AuthUiState {
     data object Idle : AuthUiState
@@ -21,7 +21,7 @@ sealed interface AuthUiState {
 
 class AuthViewModel(
     private val authUseCase: AuthUseCase,
-    private val authPreferences: AuthPreferences
+    private val authPreferences: AuthPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
@@ -32,7 +32,7 @@ class AuthViewModel(
             _uiState.value = AuthUiState.Loading
             try {
                 val result = authUseCase.login(email, password)
-                Log.d("ISAAC", "Login successful, saving token: ${result.token}")
+                Log.d("ITINERO - AuthViewModel", "Login successful, saving token: ${result.token}")
                 authUseCase.saveAuthToken(result.token)
 
                 val expirationTime =
@@ -41,11 +41,11 @@ class AuthViewModel(
 
                 // Verify token was saved
                 val savedToken = authPreferences.getToken()
-                Log.d("ISAAC", "Token verification after save: $savedToken")
+                Log.d("ITINERO - AuthViewModel", "Token verification after save: $savedToken")
 
                 _uiState.value = AuthUiState.Success(result.name)
             } catch (e: Exception) {
-                Log.e("ISAAC", "Login error: ${e.message}")
+                Log.e("ITINERO - AuthViewModel", "Login error: ${e.message}")
                 _uiState.value = AuthUiState.Error(e.message ?: "Unknown error")
             }
         }

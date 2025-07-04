@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 
-class ExpenseRepositoryImpl(
+class ExpensesRepositoryImpl(
     private val api: ExpensesApi,
     private val localRepository: LocalExpensesRepositoryImpl
 ) : ExpensesRepository {
@@ -79,33 +79,39 @@ class ExpenseRepositoryImpl(
         }
     }
 
-    override suspend fun getUserExpenseSummary(groupCode: String): Result<UserExpenseSummary> {
-        return safeApiCall {
+    override suspend fun getUserExpenseSummary(groupCode: String): Flow<List<UserExpenseSummary>> =
+        flow {
             val cachedResult = localRepository.getCachedUserExpenseSummary(groupCode)
             if (cachedResult is Result.Success && cachedResult.data != null) {
-                Log.d("ITINERO - ExpRepo", "Returning cached expense summary for group: $groupCode")
-                return@safeApiCall cachedResult.data!!
+                emit(listOf(cachedResult.data!!))
             }
 
+        try {
             val result = api.getUserExpenseSummary(groupCode)
             when (result) {
                 is Result.Success -> {
                     val summary = result.data.toDomain()
                     localRepository.cacheUserExpenseSummary(groupCode, summary)
                     Log.d("ITINERO - ExpRepo", "Fetched and cached expense summary")
-                    summary
+                    emit(listOf(summary))
                 }
 
                 is Result.Error -> {
                     if (cachedResult is Result.Success && cachedResult.data != null) {
                         Log.w("ITINERO - ExpRepo", "API failed, returning cached summary")
-                        cachedResult.data!!
+                        emit(listOf(cachedResult.data!!))
                     } else {
-                        throw result.exception
+                        emit(emptyList())
                     }
                 }
             }
+        } catch (e: Exception) {
+            Log.e("ITINERO - ExpRepo", "Failed to fetch expense summary", e)
+            emit(emptyList())
         }
+    }.catch { throwable ->
+        Log.e("ITINERO - ExpRepo", "Error in getUserExpenseSummary", throwable)
+        emit(emptyList())
     }
 
     override suspend fun getExpenseById(groupCode: String, expenseId: String): Result<Expense> {
@@ -140,7 +146,7 @@ class ExpenseRepositoryImpl(
         groupCode: String,
         expenseId: String,
         expense: CreateExpense
-    ): Result<Expense> {
+    ): Result<Unit> {
         return safeApiCall {
             val expenseDto = expense.toDto()
             val result = api.updateExpense(groupCode, expenseId, expenseDto)
@@ -150,7 +156,7 @@ class ExpenseRepositoryImpl(
                     val updatedExpense = result.data.toDomain()
                     localRepository.updateExpense(updatedExpense)
                     Log.d("ITINERO - ExpRepo", "Updated and cached expense: $expenseId")
-                    updatedExpense
+                    Unit
                 }
 
                 is Result.Error -> throw result.exception
@@ -208,43 +214,10 @@ class ExpenseRepositoryImpl(
     }
 
     override fun getUserExpenseSummaryFlow(groupCode: String): Flow<UserExpenseSummary> =
-        flow<UserExpenseSummary?> {
-        val cachedResult = localRepository.getCachedUserExpenseSummary(groupCode)
-        if (cachedResult is Result.Success && cachedResult.data != null) {
-            emit(cachedResult.data!!)
-        }
-
-        try {
-            val freshResult = getUserExpenseSummary(groupCode)
-            if (freshResult is Result.Success) {
-                emit(freshResult.data)
-            }
-        } catch (e: Exception) {
-            Log.e("ITINERO - ExpRepo", "Failed to fetch fresh summary", e)
-        }
-    }.catch { throwable ->
-        Log.e("ITINERO - ExpRepo", "Error in getUserExpenseSummaryFlow", throwable)
-    }.filterNotNull()
+        localRepository.getCachedUserExpenseSummaryFlow(groupCode).filterNotNull()
 
     override fun getExpenseByIdFlow(groupCode: String, expenseId: String): Flow<Expense> =
-        flow<Expense?> {
-        val cachedResult = localRepository.getCachedExpenseById(expenseId)
-        if (cachedResult is Result.Success && cachedResult.data != null) {
-            emit(cachedResult.data!!)
-        }
-
-        try {
-            val freshResult = getExpenseById(groupCode, expenseId)
-            if (freshResult is Result.Success) {
-                emit(freshResult.data)
-            }
-        } catch (e: Exception) {
-            Log.e("ITINERO - ExpRepo", "Failed to fetch fresh expense", e)
-        }
-    }.catch { throwable ->
-        Log.e("ITINERO - ExpRepo", "Error in getExpenseByIdFlow", throwable)
-        throw throwable
-    }.filterNotNull()
+        localRepository.getCachedExpenseFlow(expenseId).filterNotNull()
 
     override suspend fun clearCache(): Result<Unit> {
         return localRepository.clearAllExpenses()

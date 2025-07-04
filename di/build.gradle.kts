@@ -38,7 +38,8 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":feature:itinerary:data"))
     implementation(project(":feature:itinerary:domain"))
-
+    implementation(project(":feature:expenses:data"))
+    implementation(project(":feature:expenses:domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -48,6 +49,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // Koin
     implementation("io.insert-koin:koin-android:4.0.3")
     implementation("io.insert-koin:koin-core:4.0.3")
     implementation("io.insert-koin:koin-androidx-compose:4.0.3")

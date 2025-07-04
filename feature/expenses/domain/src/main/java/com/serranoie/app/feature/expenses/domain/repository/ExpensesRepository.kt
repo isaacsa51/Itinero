@@ -20,13 +20,13 @@ import kotlinx.coroutines.flow.Flow
 interface ExpensesRepository {
     suspend fun createExpense(groupCode: String, expense: CreateExpense): Result<Expense>
     suspend fun getAllTripExpenses(groupCode: String): Result<List<Expense>>
-    suspend fun getUserExpenseSummary(groupCode: String): Result<UserExpenseSummary>
+    suspend fun getUserExpenseSummary(groupCode: String): Flow<List<UserExpenseSummary>>
     suspend fun getExpenseById(groupCode: String, expenseId: String): Result<Expense>
     suspend fun updateExpense(
         groupCode: String,
         expenseId: String,
         expense: CreateExpense
-    ): Result<Expense>
+    ): Result<Unit>
 
     suspend fun deleteExpense(groupCode: String, expenseId: String): Result<Unit>
     suspend fun markExpenseCompleted(groupCode: String, expenseId: String): Result<Unit>

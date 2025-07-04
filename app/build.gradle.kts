@@ -45,7 +45,6 @@ dependencies {
     // Project modules
     implementation(project(":designsystem-lib"))
     implementation(project(":core:domain"))
-    implementation(project(":core:data"))
     implementation(project(":core:navigation"))
     implementation(project(":di"))
     implementation(project(":feature:home"))
@@ -53,6 +52,7 @@ dependencies {
     implementation(project(":feature:auth"))
     implementation(project(":feature:itinerary"))
     implementation(project(":feature:expenses"))
+    implementation(project(":feature:expenses:data"))
     implementation(project(":feature:chat"))
     implementation(project(":feature:settings"))
 
@@ -87,6 +87,7 @@ dependencies {
     implementation("io.insert-koin:koin-android:4.0.3")
     implementation("io.insert-koin:koin-core:4.0.3")
     implementation("io.insert-koin:koin-androidx-compose:4.0.3")
+
     // Compose navigation
     implementation("androidx.navigation:navigation-compose:2.9.0")
 

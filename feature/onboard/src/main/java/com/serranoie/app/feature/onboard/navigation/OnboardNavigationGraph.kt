@@ -7,7 +7,7 @@ import androidx.navigation.navigation
 import com.serranoie.app.core.navigation.NavigationGraph
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.onboard.OnboardScreen
-import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import org.koin.compose.koinInject
 
 class OnboardNavigationGraph : NavigationGraph {
@@ -17,7 +17,7 @@ class OnboardNavigationGraph : NavigationGraph {
             startDestination = Route.Onboarding.route
         ) {
             composable(route = Route.Onboarding.route) {
-                val authPreferences: AuthPreferences = koinInject()
+                val authPreferences: AuthPreferencesRepository = koinInject()
                 
                 OnboardScreen(
                     onFinished = {

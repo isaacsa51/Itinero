@@ -1,5 +1,11 @@
 package com.serranoie.itinero.di
 
+import com.serranoie.app.feature.expenses.domain.usecase.AddExpenseUseCase
+import com.serranoie.app.feature.expenses.domain.usecase.DeleteExpenseUseCase
+import com.serranoie.app.feature.expenses.domain.usecase.ExpensesUseCases
+import com.serranoie.app.feature.expenses.domain.usecase.GetExpenseByIdUseCase
+import com.serranoie.app.feature.expenses.domain.usecase.GetUserExpensesUseCase
+import com.serranoie.app.feature.expenses.domain.usecase.UpdateExpenseUseCase
 import com.serranoie.app.feature.itinerary.domain.usecase.CreateActivityUseCase
 import com.serranoie.app.feature.itinerary.domain.usecase.DeleteActivityByIdUseCase
 import com.serranoie.app.feature.itinerary.domain.usecase.GetActivityByIdUseCase
@@ -37,8 +43,6 @@ val useCaseModule = module {
     factory { CreateTravelUseCase(get()) }
     factory { UpdateTripInfoUseCase(get()) }
     factory { AcceptMemberToTripUseCase(get()) }
-
-    // Additional member management use cases
     factory { GetAllMembersUseCase(get()) }
     factory { RejectMemberUseCase(get()) }
     factory { RemoveMemberUseCase(get()) }
@@ -52,6 +56,12 @@ val useCaseModule = module {
     factory { DeleteActivityByIdUseCase(get()) }
     factory { UpdateActivityInfoUseCase(get()) }
     factory { ToggleActivityCompletionUseCase(get()) }
+
+    factory { GetUserExpensesUseCase(get()) }
+    factory { GetExpenseByIdUseCase(get()) }
+    factory { AddExpenseUseCase(get()) }
+    factory { UpdateExpenseUseCase(get()) }
+    factory { DeleteExpenseUseCase(get()) }
 
     factory { LoginUseCase(get()) }
     factory { RegisterUseCase(get()) }
@@ -68,7 +78,6 @@ val useCaseModule = module {
             createTravel = get(),
             updateTripInfo = get(),
             acceptMemberToTrip = get(),
-            // Additional member management use cases
             getAllMembers = get(),
             rejectMember = get(),
             removeMember = get(),
@@ -96,6 +105,16 @@ val useCaseModule = module {
             getAuthToken = get(),
             saveAuthToken = get(),
             logout = get()
+        )
+    }
+
+    factory {
+        ExpensesUseCases(
+            getUserExpensesUseCase = get(),
+            getExpenseByIdUseCase = get(),
+            addExpenseUseCase = get(),
+            updateExpenseUseCase = get(),
+            deleteExpenseUseCase = get()
         )
     }
 }
