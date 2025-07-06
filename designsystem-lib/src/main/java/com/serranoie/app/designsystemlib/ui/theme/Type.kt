@@ -159,7 +159,7 @@ val bodyMediumFontFamily = FontFamily(
 val bodySmallFontFamily = FontFamily(
     Font(
         R.font.chivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.width(600f),
+            FontVariation.width(300f),
         )
     )
 )

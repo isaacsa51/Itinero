@@ -17,10 +17,6 @@ import com.serranoie.app.feature.expenses.data.remote.dto.UserExpenseSummaryDto
 import com.serranoie.itinero.core.data.remote.resources.BaseApiClient
 import com.serranoie.itinero.core.domain.result.Result
 import io.ktor.client.HttpClient
-import io.ktor.client.request.put
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 
 interface ExpensesApi {
     // 1. Create Expense
@@ -55,23 +51,48 @@ class ExpensesApiImpl(client: HttpClient) : BaseApiClient(client), ExpensesApi {
         groupCode: String,
         expense: CreateExpenseDto
     ): Result<ExpenseDto> {
-        return post("/trips/$groupCode/expenses", expense)
+        return try {
+            val response: ExpenseDto = post("/trips/$groupCode/expenses", expense)
+            Result.Success(response)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override suspend fun getAllTripExpenses(groupCode: String): Result<List<ExpenseDto>> {
-        return get("/trips/$groupCode/expenses")
+        return try {
+            val response: List<ExpenseDto> = get("/trips/$groupCode/expenses")
+            Result.Success(response)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override suspend fun getUserExpenseSummary(groupCode: String): Result<UserExpenseSummaryDto> {
-        return get("/trips/$groupCode/expenses/summary")
+        return try {
+            val response: UserExpenseSummaryDto = get("/trips/$groupCode/expenses/summary")
+            Result.Success(response)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override suspend fun getExpenseById(groupCode: String, expenseId: String): Result<ExpenseDto> {
-        return get("/trips/$groupCode/expenses/$expenseId")
+        return try {
+            val response: ExpenseDto = get("/trips/$groupCode/expenses/$expenseId")
+            Result.Success(response)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override suspend fun markExpenseCompleted(groupCode: String, expenseId: String): Result<Unit> {
-        return patch("/trips/$groupCode/expenses/$expenseId/complete")
+        return try {
+            patch<Unit>("/trips/$groupCode/expenses/$expenseId/complete")
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override suspend fun updateExpense(
@@ -80,17 +101,19 @@ class ExpensesApiImpl(client: HttpClient) : BaseApiClient(client), ExpensesApi {
         expense: CreateExpenseDto
     ): Result<ExpenseDto> {
         return try {
-            val response = client.put("$baseUrl/trips/$groupCode/expenses/$expenseId") {
-                contentType(ContentType.Application.Json)
-                setBody(expense)
-            }
-            Result.Success(handleResponse<ExpenseDto>(response))
+            val response: ExpenseDto = put("/trips/$groupCode/expenses/$expenseId", expense)
+            Result.Success(response)
         } catch (e: Exception) {
             Result.Error(e)
         }
     }
 
     override suspend fun deleteExpense(groupCode: String, expenseId: String): Result<Unit> {
-        return delete("/trips/$groupCode/expenses/$expenseId")
+        return try {
+            delete<Unit>("/trips/$groupCode/expenses/$expenseId")
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 }

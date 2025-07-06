@@ -4,6 +4,7 @@ import android.app.Application
 import com.serranoie.app.feature.auth.di.authViewModelModule
 import com.serranoie.app.feature.di.homeViewModelModule
 import com.serranoie.app.feature.di.welcomeViewModelModule
+import com.serranoie.app.feature.expenses.di.expensesViewModelModule
 import com.serranoie.app.feature.itinerary.di.itineraryViewModelModule
 import com.serranoie.app.feature.settings.di.tripSettingsViewModelModule
 import com.serranoie.itinero.di.appModule
@@ -28,7 +29,8 @@ class ItineroApplication : Application() {
                 welcomeViewModelModule,
                 homeViewModelModule,
                 itineraryViewModelModule,
-                tripSettingsViewModelModule
+                tripSettingsViewModelModule,
+                expensesViewModelModule
             )
         }
     }

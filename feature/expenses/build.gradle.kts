@@ -38,6 +38,7 @@ android {
 dependencies {
 
     implementation(project(":designsystem-lib"))
+    implementation(project(":feature:expenses:domain"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
     implementation(project(":di"))

@@ -1,6 +1,8 @@
 package com.serranoie.itinero.di
 
 import androidx.room.Room
+import com.serranoie.app.feature.expenses.data.local.repository.LocalExpensesRepository
+import com.serranoie.app.feature.expenses.data.local.repository.LocalExpensesRepositoryImpl
 import com.serranoie.app.feature.itinerary.data.local.repository.LocalItineraryRepository
 import com.serranoie.app.feature.itinerary.data.local.repository.LocalItineraryRepositoryImpl
 import com.serranoie.itinero.core.data.local.database.AppDatabase
@@ -29,4 +31,5 @@ val persistenceModule = module {
 
     single<LocalTravelRepository> { LocalTravelRepositoryImpl(get()) }
     single<LocalItineraryRepository> { LocalItineraryRepositoryImpl(get()) }
+    single<LocalExpensesRepository> { LocalExpensesRepositoryImpl(get()) }
 }

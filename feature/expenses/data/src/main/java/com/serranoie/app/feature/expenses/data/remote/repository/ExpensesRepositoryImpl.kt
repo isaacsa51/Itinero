@@ -12,7 +12,7 @@
 package com.serranoie.app.feature.expenses.data.remote.repository
 
 import android.util.Log
-import com.serranoie.app.feature.expenses.data.local.repository.LocalExpensesRepositoryImpl
+import com.serranoie.app.feature.expenses.data.local.repository.LocalExpensesRepository
 import com.serranoie.app.feature.expenses.data.mappers.toDomain
 import com.serranoie.app.feature.expenses.data.mappers.toDto
 import com.serranoie.app.feature.expenses.data.remote.ExpensesApi
@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.flow
 
 class ExpensesRepositoryImpl(
     private val api: ExpensesApi,
-    private val localRepository: LocalExpensesRepositoryImpl
+    private val localRepository: LocalExpensesRepository
 ) : ExpensesRepository {
 
     override suspend fun createExpense(groupCode: String, expense: CreateExpense): Result<Expense> {
