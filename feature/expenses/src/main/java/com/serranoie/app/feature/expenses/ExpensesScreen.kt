@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.Money
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +41,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -142,10 +145,18 @@ fun ExpensesScreen(
                             )
                         }
                     } else {
-                        items(generateDateRange(startDate, endDate)) { date ->
+                        val dateRangeList = generateDateRange(startDate, endDate)
+                        val sectionsWithExpenses = dateRangeList.filter { date ->
+                            expensesByDate[date]?.isNotEmpty() == true
+                        }
+
+                        items(dateRangeList) { date ->
+                            val isLastSectionWithExpenses =
+                                sectionsWithExpenses.lastOrNull() == date
                             ExpensesDateSection(
                                 date = date,
                                 expenses = expensesByDate[date].orEmpty(),
+                                isLastSection = isLastSectionWithExpenses,
                                 onExpenseClick = { expenseId ->
                                     onExpenseClick()
                                 }
@@ -158,13 +169,19 @@ fun ExpensesScreen(
     }
 }
 
-// TODO: Replace with actual data
-// TODO: Depending of total value of each data, change size depending of one or another.
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BalanceCircles(
-    youOwe: Double = 50.0, youAreOwed: Double = 100.0
+    youOwe: Double = 50.0, 
+    youAreOwed: Double = 100.0
 ) {
+    val totalAmount = youOwe + youAreOwed
+    val (oweSize, owedSize) = if (totalAmount > 0) {
+        calculateCircleSizes(youOwe, youAreOwed)
+    } else {
+        140.dp to 140.dp
+    }
+    
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -173,10 +190,9 @@ fun BalanceCircles(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(vertical = 16.dp)
         ) {
-            // Left Circle - You owe
             Box(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(oweSize)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.tertiary)
                     .padding(16.dp),
@@ -195,10 +211,11 @@ fun BalanceCircles(
                 }
             }
 
-            // Right Circle - You are owed
+            Spacer(modifier = Modifier.width(16.dp))
+
             Box(
                 modifier = Modifier
-                    .size(180.dp)
+                    .size(owedSize)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.tertiaryContainer)
                     .padding(16.dp),
@@ -222,33 +239,99 @@ fun BalanceCircles(
     }
 }
 
+private fun calculateCircleSizes(youOwe: Double, youAreOwed: Double): Pair<Dp, Dp> {
+    val minSize = 120.dp
+    val maxSize = 180.dp
+    val defaultSize = 140.dp
+    
+    if (youOwe < 0.01 && youAreOwed < 0.01) {
+        return defaultSize to defaultSize
+    }
+    
+    val totalAmount = youOwe + youAreOwed
+    val difference = kotlin.math.abs(youOwe - youAreOwed)
+    
+    if (difference / totalAmount < 0.1) {
+        return defaultSize to defaultSize
+    }
+    
+    return when {
+        youOwe > youAreOwed -> {
+            val ratio = (youOwe / youAreOwed).coerceAtMost(1.5) 
+            val oweSize = (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
+            val owedSize = (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / 0.5).dp
+            oweSize to owedSize.coerceAtLeast(minSize)
+        }
+        youAreOwed > youOwe -> {
+            val ratio = (youAreOwed / youOwe).coerceAtMost(1.5) 
+            val owedSize = (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
+            val oweSize = (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / 0.5).dp
+            oweSize.coerceAtLeast(minSize) to owedSize
+        }
+        else -> defaultSize to defaultSize
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpensesDateSection(
     date: LocalDate,
     expenses: List<ExpenseDisplayItem>,
+    isLastSection: Boolean,
     onExpenseClick: (String) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         DateRangeToolbar(date = date)
 
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                    .weight (1f)
+                .padding(start = 8.dp)
         ) {
-            expenses.forEach { item ->
-                ExpenseCard(
+            if (expenses.isEmpty()) {
+                // Show centered message when no expenses for this date
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp, end = 16.dp),
-                    expenseName = item.expenseName,
-                    membersCount = item.membersCount,
-                    amountOwed = item.amountOwed,
-                    isCompleted = item.isCompleted,
-                    isYours = item.isYours,
-                    icon = item.icon
-                )
+                        .padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "NO EXPENSE FOR THIS DATE",
+                        style = MaterialTheme.typography.labelMediumEmphasized,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                expenses.forEach { item ->
+                    ExpenseCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        expenseName = item.expenseName,
+                        membersCount = item.membersCount,
+                        amountOwed = item.amountOwed,
+                        isCompleted = item.isCompleted,
+                        isYours = item.isYours,
+                        icon = item.icon
+                    )
+                }
+
+                // Add horizontal divider only at the bottom of the last item for this day
+                if (!isLastSection) {
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, top = 8.dp, end = 12.dp, bottom = 0.dp),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                }
             }
         }
     }
@@ -401,7 +484,37 @@ private fun ExpensesScreenPreview() {
                     isCompleted = false,
                     debtors = emptyList(),
                     paidBy = null
-                )
+                ),
+                Expense(
+                    id = 2,
+                    tripId = 1,
+                    name = "Hotel",
+                    amount = 100.0,
+                    date = LocalDate.now().toString(),
+                    category = "Accommodation",
+                    paidByUserId = 2,
+                    paymentMethod = "Credit Card",
+                    splitType = "Equal",
+                    notes = null,
+                    isCompleted = false,
+                    debtors = emptyList(),
+                    paidBy = null
+                ),
+                Expense(
+                    id = 3,
+                    tripId = 1,
+                    name = "Test",
+                    amount = 100.0,
+                    date = LocalDate.now().plusDays(1).toString(),
+                    category = "Accommodation",
+                    paidByUserId = 2,
+                    paymentMethod = "Credit Card",
+                    splitType = "Equal",
+                    notes = null,
+                    isCompleted = false,
+                    debtors = emptyList(),
+                    paidBy = null
+                ),
             )
         )
     )
