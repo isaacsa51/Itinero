@@ -62,6 +62,6 @@ class AuthPreferencesRepositoryImpl(context: Context) : AuthPreferencesRepositor
     }
 
     override fun clearToken() {
-        prefs.edit { clear() }
+        prefs.edit { remove("auth_token") }
     }
 }

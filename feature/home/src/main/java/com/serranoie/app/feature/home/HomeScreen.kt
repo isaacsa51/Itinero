@@ -604,13 +604,13 @@ fun HomeScreenContent(
     onRefresh: () -> Unit,
     onShowSnackbar: suspend (String) -> Unit
 ) {
-    val isRefreshing = false
-
     PullToRefreshBox(
-        isRefreshing = !isRefreshing, onRefresh = {
+        isRefreshing = false,
+        onRefresh = {
             onRefresh()
             Log.d("ITINERO", "Refreshing data...")
-        }) {
+        }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

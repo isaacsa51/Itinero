@@ -31,6 +31,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -67,14 +69,16 @@ fun ExpensesScreen(
     onSwiped: () -> Unit,
     onExpenseClick: () -> Unit,
     onAddExpenseClick: () -> Unit,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    currentUserId: Int
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val pullToRefreshState = rememberPullToRefreshState()
 
     val isLoading = uiState is ExpensesUiState.Loading
     val allExpenses = expenses.flatMap { it.expenses }
     val balanceData = calculateBalanceData(expenses)
-    val expensesByDate = groupExpensesByDate(allExpenses)
+    val expensesByDate = groupExpensesByDate(allExpenses, currentUserId)
     val dateRange = if (allExpenses.isNotEmpty()) {
         val dates = allExpenses.map { parseDate(it.date) }
         dates.minOrNull() to dates.maxOrNull()
@@ -115,52 +119,58 @@ fun ExpensesScreen(
             if (isLoading && expenses.isEmpty()) {
                 ExpensesScreenSkeleton(paddingValues, scrollBehavior)
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    contentPadding = PaddingValues(bottom = 16.dp)
+                PullToRefreshBox(
+                    isRefreshing = isLoading,
+                    onRefresh = onRefresh,
+                    state = pullToRefreshState
                 ) {
-                    item {
-                        BalanceCircles(
-                            youOwe = balanceData.first,
-                            youAreOwed = balanceData.second
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "History of expenses",
-                            style = MaterialTheme.typography.headlineSmallEmphasized,
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .shimmerable()
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    if (expensesByDate.isEmpty() && !isLoading) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
                         item {
-                            EmptyExpensesState(
-                                onAddExpenseClick = onAddExpenseClick
+                            BalanceCircles(
+                                youOwe = balanceData.first,
+                                youAreOwed = balanceData.second
                             )
-                        }
-                    } else {
-                        val dateRangeList = generateDateRange(startDate, endDate)
-                        val sectionsWithExpenses = dateRangeList.filter { date ->
-                            expensesByDate[date]?.isNotEmpty() == true
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "History of expenses",
+                                style = MaterialTheme.typography.headlineSmallEmphasized,
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .shimmerable()
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
 
-                        items(dateRangeList) { date ->
-                            val isLastSectionWithExpenses =
-                                sectionsWithExpenses.lastOrNull() == date
-                            ExpensesDateSection(
-                                date = date,
-                                expenses = expensesByDate[date].orEmpty(),
-                                isLastSection = isLastSectionWithExpenses,
-                                onExpenseClick = { expenseId ->
-                                    onExpenseClick()
-                                }
-                            )
+                        if (expensesByDate.isEmpty() && !isLoading) {
+                            item {
+                                EmptyExpensesState(
+                                    onAddExpenseClick = onAddExpenseClick
+                                )
+                            }
+                        } else {
+                            val dateRangeList = generateDateRange(startDate, endDate)
+                            val sectionsWithExpenses = dateRangeList.filter { date ->
+                                expensesByDate[date]?.isNotEmpty() == true
+                            }
+
+                            items(dateRangeList) { date ->
+                                val isLastSectionWithExpenses =
+                                    sectionsWithExpenses.lastOrNull() == date
+                                ExpensesDateSection(
+                                    date = date,
+                                    expenses = expensesByDate[date].orEmpty(),
+                                    isLastSection = isLastSectionWithExpenses,
+                                    onExpenseClick = { expenseId ->
+                                        onExpenseClick()
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -289,7 +299,7 @@ fun ExpensesDateSection(
 
         Column(
             modifier = Modifier
-                    .weight (1f)
+                .weight(1f)
                 .padding(start = 8.dp)
         ) {
             if (expenses.isEmpty()) {
@@ -421,8 +431,8 @@ private fun EmptyExpensesState(onAddExpenseClick: () -> Unit) {
 }
 
 private fun getCurrentUserId(): Int {
-    // TODO: Get current user ID from auth preferences or user session
-    return 1 // Placeholder
+    // This function is no longer needed as we pass the userId as parameter
+    return 1 // Placeholder - should not be used
 }
 
 private fun calculateBalanceData(expenses: List<UserExpenseSummary>): Pair<Double, Double> {
@@ -431,7 +441,10 @@ private fun calculateBalanceData(expenses: List<UserExpenseSummary>): Pair<Doubl
     return totalOwed to totalToReceive
 }
 
-private fun groupExpensesByDate(expenses: List<Expense>): Map<LocalDate, List<ExpenseDisplayItem>> {
+private fun groupExpensesByDate(
+    expenses: List<Expense>,
+    currentUserId: Int
+): Map<LocalDate, List<ExpenseDisplayItem>> {
     return expenses.groupBy { parseDate(it.date) }
         .mapValues { (_, expensesList) ->
             expensesList.map { expense ->
@@ -444,7 +457,7 @@ private fun groupExpensesByDate(expenses: List<Expense>): Map<LocalDate, List<Ex
                     membersCount = expense.debtors.size,
                     amountOwed = expense.amount,
                     isCompleted = expense.isCompleted,
-                    isYours = getCurrentUserId() == expense.paidByUserId,
+                    isYours = currentUserId == expense.paidByUserId,
                     icon = Icons.Filled.Money // Default icon, could be mapped from category
                 )
             }
@@ -529,7 +542,8 @@ private fun ExpensesScreenPreview() {
             onSwiped = {},
             onExpenseClick = {},
             onAddExpenseClick = {},
-            snackbarHostState = remember { SnackbarHostState() }
+            snackbarHostState = remember { SnackbarHostState() },
+            currentUserId = 1
         )
     }
 }
@@ -549,7 +563,8 @@ private fun ExpensesScreenPreviewLoading() {
             onSwiped = {},
             onExpenseClick = {},
             onAddExpenseClick = {},
-            snackbarHostState = remember { SnackbarHostState() }
+            snackbarHostState = remember { SnackbarHostState() },
+            currentUserId = 1
         )
     }
 }

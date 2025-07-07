@@ -56,6 +56,7 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
             onAddExpenseClick = {
                 navController.navigate(Route.AddExpense.route)
             },
+            currentUserId = viewmodel.getCurrentUserId()
         )
     }
 

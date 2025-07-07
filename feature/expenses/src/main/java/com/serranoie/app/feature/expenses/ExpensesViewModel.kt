@@ -17,6 +17,7 @@ import com.serranoie.app.feature.expenses.domain.model.CreateExpense
 import com.serranoie.app.feature.expenses.domain.model.Expense
 import com.serranoie.app.feature.expenses.domain.model.UserExpenseSummary
 import com.serranoie.app.feature.expenses.domain.usecase.ExpensesUseCases
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.result.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,8 @@ sealed interface ExpensesUiState {
 }
 
 class ExpensesViewModel(
-    private val expensesUseCases: ExpensesUseCases
+    private val expensesUseCases: ExpensesUseCases,
+    private val authPreferencesRepository: AuthPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ExpensesUiState>(ExpensesUiState.Idle)
@@ -167,5 +169,9 @@ class ExpensesViewModel(
         if (currentGroupCode.isNotEmpty()) {
             fetchUserExpenseSummaries(currentGroupCode, forceRefresh = true)
         }
+    }
+
+    fun getCurrentUserId(): Int {
+        return authPreferencesRepository.getUserId() ?: 1
     }
 }

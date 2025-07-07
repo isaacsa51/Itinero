@@ -16,5 +16,5 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val expensesViewModelModule = module {
-    viewModel { ExpensesViewModel(get()) }
+    viewModel { ExpensesViewModel(get(), get()) }
 }
