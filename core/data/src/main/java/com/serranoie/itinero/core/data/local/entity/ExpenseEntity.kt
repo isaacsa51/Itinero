@@ -3,13 +3,13 @@
  -
  - File: ExpenseEntity.kt
  - Project: Itinero
- - Module: Itinero.feature.expenses.data.main
+ - Module: Itinero.core.data.main
  -
  - This file belongs to the project: Itinero.
- - Last edited: 02 julio 2025
+ - Last edited: 03 julio 2025
  */
 
-package com.serranoie.app.feature.expenses.data.local.entity
+package com.serranoie.itinero.core.data.local.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -48,7 +48,7 @@ data class ExpenseDebtorEntity(
 
 @Entity(tableName = "user_expense_summaries")
 data class UserExpenseSummaryEntity(
-    @PrimaryKey val id: String, // groupCode + userId combination
+    @PrimaryKey val id: String,
     val groupCode: String,
     val userId: Int,
     val totalExpenses: Double,
@@ -59,7 +59,7 @@ data class UserExpenseSummaryEntity(
 
 @Entity(tableName = "user_balances")
 data class UserBalanceEntity(
-    @PrimaryKey val id: String, // summaryId + userId combination
+    @PrimaryKey val id: String,
     val summaryId: String,
     val userId: Int,
     val name: String,

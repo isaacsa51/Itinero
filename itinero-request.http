@@ -12,10 +12,10 @@ POST {{base_url}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "User invited",
+  "name": "user2",
   "surname": "Test",
   "phone": "1234567890",
-  "email": "admin",
+  "email": "user2",
   "password": "root"
 }
 
@@ -24,7 +24,7 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin",
+  "email": "user2",
   "password": "root"
 }
 
@@ -219,3 +219,230 @@ Authorization: Bearer {{auth_token}}
 ### Toggle completion status of itinerary item
 PATCH {{base_url}}/trips/{{group_code}}/itinerary/{{item_id}}/complete
 Authorization: Bearer {{auth_token}}
+
+### ========================================
+### EXPENSE MANAGEMENT ENDPOINTS
+### ========================================
+
+### Create new expense
+POST {{base_url}}/trips/{{group_code}}/expenses
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "name": "Test usuarios",
+  "amount": 300.00,
+  "date": "2025-01-15",
+  "category": "Food",
+  "paidByUserId": 1,
+  "paymentMethod": "Cash",
+  "splitType": "EQUAL",
+  "notes": "Test notas",
+  "debtors": [
+    {
+      "userId": 1,
+      "splitValue": 0.0
+    },
+    {
+      "userId": 2,
+      "splitValue": 0.0
+    },
+    {
+      "userId": 3,
+      "splitValue": 0.0
+    }
+  ]
+}
+
+### Get all expenses for a trip
+GET {{base_url}}/trips/{{group_code}}/expenses
+Authorization: Bearer {{auth_token}}
+
+### Get current user's expense summary
+GET {{base_url}}/trips/{{group_code}}/expenses/summary
+Authorization: Bearer {{auth_token}}
+
+### Get expense summary for all trip members
+GET {{base_url}}/trips/{{group_code}}/expenses/summary/all
+Authorization: Bearer {{auth_token}}
+
+### Get specific expense by ID
+@expense_id = 1
+GET {{base_url}}/trips/{{group_code}}/expenses/{{expense_id}}
+Authorization: Bearer {{auth_token}}
+
+### Update existing expense
+PUT {{base_url}}/trips/{{group_code}}/expenses/{{expense_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Dinner at Restaurant",
+  "amount": 150.75,
+  "category": "Food",
+  "paymentMethod": "Cash",
+  "splitType": "Equal",
+  "notes": "Updated: Group dinner with dessert",
+  "debtors": [
+    {
+      "userId": 1,
+      "amount": 37.69
+    },
+    {
+      "userId": 2,
+      "amount": 37.69
+    },
+    {
+      "userId": 3,
+      "amount": 37.69
+    },
+    {
+      "userId": 4,
+      "amount": 37.68
+    }
+  ]
+}
+
+### Mark expense as completed (only payer can do this)
+PATCH {{base_url}}/trips/{{group_code}}/expenses/{{expense_id}}/complete
+Authorization: Bearer {{auth_token}}
+
+### Delete expense (only payer or trip owner can do this)
+DELETE {{base_url}}/trips/{{group_code}}/expenses/{{expense_id}}
+Authorization: Bearer {{auth_token}}
+
+### ========================================
+### EXAMPLE EXPENSE MANAGEMENT WORKFLOW
+### ========================================
+
+### 1. Create a hotel booking expense
+POST {{base_url}}/trips/{{group_code}}/expenses
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "name": "Hotel Booking - 3 nights",
+  "amount": 450.00,
+  "category": "Accommodation",
+  "paymentMethod": "Credit Card",
+  "splitType": "Equal",
+  "notes": "Hilton Hotel booking for the group",
+  "debtors": [
+    {
+      "userId": 1,
+      "amount": 150.00
+    },
+    {
+      "userId": 2,
+      "amount": 150.00
+    },
+    {
+      "userId": 3,
+      "amount": 150.00
+    }
+  ]
+}
+
+### 2. Create a transportation expense
+POST {{base_url}}/trips/{{group_code}}/expenses
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "name": "Taxi to Airport",
+  "amount": 45.30,
+  "category": "Transportation",
+  "paymentMethod": "Cash",
+  "splitType": "Equal",
+  "notes": "Shared taxi ride to the airport",
+  "debtors": [
+    {
+      "userId": 1,
+      "amount": 15.10
+    },
+    {
+      "userId": 2,
+      "amount": 15.10
+    },
+    {
+      "userId": 3,
+      "amount": 15.10
+    }
+  ]
+}
+
+### 3. Create an activity expense with custom split
+POST {{base_url}}/trips/{{group_code}}/expenses
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "name": "Museum Tickets",
+  "amount": 80.00,
+  "category": "Entertainment",
+  "paymentMethod": "Debit Card",
+  "splitType": "Custom",
+  "notes": "Art museum entrance tickets - some members got discounts",
+  "debtors": [
+    {
+      "userId": 1,
+      "amount": 25.00
+    },
+    {
+      "userId": 2,
+      "amount": 20.00
+    },
+    {
+      "userId": 3,
+      "amount": 15.00
+    },
+    {
+      "userId": 4,
+      "amount": 20.00
+    }
+  ]
+}
+
+### 4. Get current user's expense summary to check balances
+GET {{base_url}}/trips/{{group_code}}/expenses/summary
+Authorization: Bearer {{auth_token}}
+
+### 5. Get all trip expenses to review
+GET {{base_url}}/trips/{{group_code}}/expenses
+Authorization: Bearer {{auth_token}}
+
+### 6. Mark an expense as completed when paid
+PATCH {{base_url}}/trips/{{group_code}}/expenses/1/complete
+Authorization: Bearer {{auth_token}}
+
+### 7. Update an expense if details change
+PUT {{base_url}}/trips/{{group_code}}/expenses/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Hotel Booking - 4 nights",
+  "amount": 600.00,
+  "category": "Accommodation",
+  "paymentMethod": "Credit Card",
+  "splitType": "Equal",
+  "notes": "Extended stay by one night",
+  "debtors": [
+    {
+      "userId": 1,
+      "amount": 200.00
+    },
+    {
+      "userId": 2,
+      "amount": 200.00
+    },
+    {
+      "userId": 3,
+      "amount": 200.00
+    }
+  ]
+}
+
+### 8. Delete an expense if created by mistake
+# DELETE {{base_url}}/trips/{{group_code}}/expenses/1
+# Authorization: Bearer {{auth_token}}

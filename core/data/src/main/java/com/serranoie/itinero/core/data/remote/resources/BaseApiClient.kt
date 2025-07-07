@@ -13,6 +13,7 @@ package com.serranoie.itinero.core.data.remote.resources
 
 import android.util.Log
 import com.serranoie.itinero.core.data.BuildConfig
+import com.serranoie.itinero.core.domain.exception.UnauthorizedException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -122,8 +123,3 @@ abstract class BaseApiClient(
         return response.body()
     }
 }
-
-/**
- * Exception thrown when a 401 Unauthorized response is received
- */
-class UnauthorizedException(message: String) : Exception(message)

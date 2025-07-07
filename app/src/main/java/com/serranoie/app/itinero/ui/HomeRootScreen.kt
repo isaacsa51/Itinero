@@ -40,13 +40,13 @@ import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.feature.chat.ChatScreen
 import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
-import com.serranoie.app.feature.home.HomeViewModel
 import com.serranoie.app.feature.home.HomeUiState
+import com.serranoie.app.feature.home.HomeViewModel
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
-import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
@@ -64,7 +64,6 @@ fun HomeRootScreen(
     val tripInfo by homeViewModel.trip.collectAsState()
     val uiState by homeViewModel.uiState.collectAsState()
 
-    // Create scroll behavior for the floating toolbar
     val floatingToolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
         exitDirection = FloatingToolbarExitDirection.Bottom
     )
@@ -130,10 +129,10 @@ fun HomeRootScreen(
                     val qrBitmap by tripSettingsViewModel.qrBitmap.collectAsState()
                     val membersUiState by tripSettingsViewModel.membersUiState.collectAsState()
                     val currentUserMember by tripSettingsViewModel.currentUserMember.collectAsState()
-                    val authPreferences = koinInject<AuthPreferences>()
+                    val authPreferencesRepository = koinInject<AuthPreferencesRepository>()
 
                     LaunchedEffect(routeTripId) {
-                        val userId = authPreferences.getUserId()
+                        val userId = authPreferencesRepository.getUserId()
                         userId?.let {
                             tripSettingsViewModel.fetchCurrentUserMembershipStatus(
                                 groupCode = routeTripId,
@@ -279,7 +278,6 @@ fun HomeRootScreen(
                         }
                     },
                     content = {
-                        // Home
                         IconButton(
                             onClick = {
                                 if (currentRoute != Route.Home.route) {
@@ -297,7 +295,6 @@ fun HomeRootScreen(
                             )
                         }
 
-                        // Itinerary
                         IconButton(
                             onClick = {
                                 if (currentRoute != Route.Itinerary.route) {
@@ -315,7 +312,6 @@ fun HomeRootScreen(
                             )
                         }
 
-                        // Expenses
                         IconButton(
                             onClick = {
                                 if (currentRoute != Route.Expenses.route) {
@@ -333,7 +329,6 @@ fun HomeRootScreen(
                             )
                         }
 
-                        // Chat
                         IconButton(
                             onClick = {
                                 if (currentRoute != Route.Chat.route) {

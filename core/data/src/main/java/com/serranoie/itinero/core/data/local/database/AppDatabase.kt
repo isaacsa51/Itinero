@@ -11,21 +11,34 @@
 
 package com.serranoie.itinero.core.data.local.database
 
+import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import android.content.Context
+import com.serranoie.itinero.core.data.local.dao.ExpenseDao
 import com.serranoie.itinero.core.data.local.dao.ItineraryDao
 import com.serranoie.itinero.core.data.local.dao.TripDao
+import com.serranoie.itinero.core.data.local.entity.ExpenseDebtorEntity
+import com.serranoie.itinero.core.data.local.entity.ExpenseEntity
 import com.serranoie.itinero.core.data.local.entity.ItineraryItemEntity
 import com.serranoie.itinero.core.data.local.entity.TripEntity
+import com.serranoie.itinero.core.data.local.entity.UserBalanceEntity
+import com.serranoie.itinero.core.data.local.entity.UserExpenseSummaryEntity
 
 @Database(
-    entities = [TripEntity::class, ItineraryItemEntity::class], version = 3, exportSchema = false
+    entities = [
+        TripEntity::class,
+        ItineraryItemEntity::class,
+        ExpenseEntity::class,
+        ExpenseDebtorEntity::class,
+        UserExpenseSummaryEntity::class,
+        UserBalanceEntity::class,
+    ], version = 4, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
     abstract fun itineraryDao(): ItineraryDao
+    abstract fun expenseDao(): ExpenseDao
 
     companion object {
         @Volatile
@@ -35,7 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext, AppDatabase::class.java, "itinero_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

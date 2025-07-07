@@ -34,26 +34,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.itinero.navigation.NavGraph
-import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
-import com.serranoie.itinero.core.data.remote.resources.UnauthorizedException
-import com.serranoie.itinero.core.data.remote.resources.UnauthorizedHandler
+import com.serranoie.itinero.core.domain.exception.UnauthorizedException
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
-    private val authPreferences: AuthPreferences by inject()
+    private val authPreferences: AuthPreferencesRepository by inject()
     private val authRepository: AuthRepository by inject()
     private val travelUseCase: TravelUseCase by inject()
 
@@ -63,13 +60,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        UnauthorizedHandler.setAuthTokenClearer {
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    authRepository.logout()
-                }
-            }
-        }
 
         setContent {
             KoinAndroidContext {
@@ -89,13 +79,6 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         startDestination = determineStartDestination()
                         isReady = true
-
-                        UnauthorizedHandler.logoutEvents.collect {
-                            navController.navigate(Route.AuthNavigation.route) {
-                                popUpTo(0) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
                     }
 
                     Surface(

@@ -1,6 +1,6 @@
 package com.serranoie.itinero.di
 
-import com.serranoie.itinero.core.data.local.persistence.AuthPreferences
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.DefaultRequest
@@ -15,16 +15,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val networkModule = module {
-    single {
-        AuthPreferences(androidContext())
-    }
-
     factory {
-        val authPreferences = get<AuthPreferences>()
+        val authPreferencesRepository = get<AuthPreferencesRepository>()
 
         HttpClient(Android) {
             install(ContentNegotiation) {
@@ -42,7 +37,7 @@ val networkModule = module {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        val token = authPreferences.getToken()
+                        val token = authPreferencesRepository.getToken()
                         if (!token.isNullOrBlank()) {
                             BearerTokens(accessToken = token, refreshToken = null)
                         } else {

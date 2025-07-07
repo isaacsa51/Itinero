@@ -11,7 +11,7 @@
 
 package com.serranoie.app.feature.expenses.data.local.repository
 
-import com.serranoie.app.feature.expenses.data.local.dao.ExpenseDao
+import com.serranoie.itinero.core.data.local.dao.ExpenseDao
 import com.serranoie.app.feature.expenses.data.mappers.toDomain
 import com.serranoie.app.feature.expenses.data.mappers.toEntity
 import com.serranoie.app.feature.expenses.domain.model.Expense

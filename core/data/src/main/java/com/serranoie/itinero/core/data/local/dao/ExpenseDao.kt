@@ -3,13 +3,13 @@
  -
  - File: ExpenseDao.kt
  - Project: Itinero
- - Module: Itinero.feature.expenses.data.main
+ - Module: Itinero.core.data.main
  -
  - This file belongs to the project: Itinero.
- - Last edited: 02 julio 2025
+ - Last edited: 03 julio 2025
  */
 
-package com.serranoie.app.feature.expenses.data.local.dao
+package com.serranoie.itinero.core.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -18,16 +18,14 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.serranoie.app.feature.expenses.data.local.entity.ExpenseDebtorEntity
-import com.serranoie.app.feature.expenses.data.local.entity.ExpenseEntity
-import com.serranoie.app.feature.expenses.data.local.entity.UserBalanceEntity
-import com.serranoie.app.feature.expenses.data.local.entity.UserExpenseSummaryEntity
+import com.serranoie.itinero.core.data.local.entity.ExpenseDebtorEntity
+import com.serranoie.itinero.core.data.local.entity.ExpenseEntity
+import com.serranoie.itinero.core.data.local.entity.UserBalanceEntity
+import com.serranoie.itinero.core.data.local.entity.UserExpenseSummaryEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExpenseDao {
-
-    // Expense operations
     @Query("SELECT * FROM expenses WHERE groupCode = :groupCode ORDER BY date DESC")
     suspend fun getExpensesByGroupCode(groupCode: String): List<ExpenseEntity>
 
@@ -49,9 +47,6 @@ interface ExpenseDao {
     @Update
     suspend fun updateExpense(expense: ExpenseEntity)
 
-    @Delete
-    suspend fun deleteExpense(expense: ExpenseEntity)
-
     @Query("DELETE FROM expenses WHERE id = :expenseId")
     suspend fun deleteExpenseById(expenseId: Int)
 
@@ -61,7 +56,6 @@ interface ExpenseDao {
     @Query("DELETE FROM expenses")
     suspend fun deleteAllExpenses()
 
-    // Expense Debtor operations
     @Query("SELECT * FROM expense_debtors WHERE expenseId = :expenseId")
     suspend fun getDebtorsByExpenseId(expenseId: Int): List<ExpenseDebtorEntity>
 
@@ -89,7 +83,6 @@ interface ExpenseDao {
     @Query("DELETE FROM expense_debtors")
     suspend fun deleteAllDebtors()
 
-    // User Expense Summary operations
     @Query("SELECT * FROM user_expense_summaries WHERE groupCode = :groupCode")
     suspend fun getUserExpenseSummariesByGroupCode(groupCode: String): List<UserExpenseSummaryEntity>
 
@@ -117,7 +110,6 @@ interface ExpenseDao {
     @Query("DELETE FROM user_expense_summaries")
     suspend fun deleteAllUserExpenseSummaries()
 
-    // User Balance operations
     @Query("SELECT * FROM user_balances WHERE summaryId = :summaryId")
     suspend fun getUserBalancesBySummaryId(summaryId: String): List<UserBalanceEntity>
 
@@ -142,7 +134,6 @@ interface ExpenseDao {
     @Query("DELETE FROM user_balances")
     suspend fun deleteAllUserBalances()
 
-    // Transaction operations to maintain data consistency
     @Transaction
     suspend fun insertExpenseWithDebtors(
         expense: ExpenseEntity,
