@@ -11,10 +11,12 @@ import androidx.navigation.compose.composable
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.feature.expenses.AddExpenseScreen
 import com.serranoie.app.feature.expenses.ExpenseDetailsScreen
+import com.serranoie.app.feature.expenses.ExpenseDetailsViewModel
 import com.serranoie.app.feature.expenses.ExpensesScreen
 import com.serranoie.app.feature.expenses.ExpensesUiState
 import com.serranoie.app.feature.expenses.ExpensesViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) {
     composable(Route.Expenses.route) {
@@ -61,14 +63,78 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
     }
 
     composable(Route.AddExpense.route) {
+        val viewModel: ExpenseDetailsViewModel = koinViewModel { parametersOf(tripId) }
+
+        val expenseState by viewModel.expenseState.collectAsState()
+        val formUiState by viewModel.formUiState.collectAsState()
+        val splitType by viewModel.splitType.collectAsState()
+        val groupMembers by viewModel.groupMembers.collectAsState()
+
         AddExpenseScreen(
             navController = navController,
+            expenseState = expenseState,
+            formUiState = formUiState,
+            splitType = splitType,
+            groupMembers = groupMembers,
+            persons = viewModel.persons,
+            onExpenseNameChange = viewModel::updateExpenseName,
+            onAmountChange = viewModel::updateAmount,
+            onShowDatePicker = { show -> viewModel.toggleDatePicker(show) },
+            onCategoryChange = viewModel::updateCategory,
+            onShowCategoryDropdownChange = viewModel::toggleCategoryDropdown,
+            onPaidByChange = viewModel::updatePaidBy,
+            onPaymentMethodChange = viewModel::updatePaymentMethod,
+            onSplitTypeChange = viewModel::updateSplitType,
+            onToggleMemberIncluded = viewModel::toggleMemberIncluded,
+            onUpdateMemberPercentage = viewModel::updateMemberPercentage,
+            onUpdateMemberAmount = viewModel::updateMemberAmount,
+            onAddMember = viewModel::addMember,
+            onNotesChange = viewModel::updateNotes,
+            onSaveExpense = viewModel::saveExpense,
+            onClearErrorMessage = viewModel::clearErrorMessage,
+            onDateSelected = viewModel::updateDate,
+            isPercentageValid = viewModel.isPercentageValid(),
+            isManualAmountValid = viewModel.isManualAmountValid()
         )
     }
 
     composable(Route.ExpenseDetails.route) {
+        val viewModel: ExpenseDetailsViewModel = koinViewModel { parametersOf(tripId) }
+
+        val expenseState by viewModel.expenseState.collectAsState()
+        val formUiState by viewModel.formUiState.collectAsState()
+        val splitType by viewModel.splitType.collectAsState()
+        val groupMembers by viewModel.groupMembers.collectAsState()
+
         ExpenseDetailsScreen(
             navController = navController,
+            expenseState = expenseState,
+            formUiState = formUiState,
+            splitType = splitType,
+            groupMembers = groupMembers,
+            persons = viewModel.persons,
+            paymentMethods = viewModel.paymentMethods,
+            onExpenseNameChange = viewModel::updateExpenseName,
+            onAmountChange = viewModel::updateAmount,
+            onDateChange = viewModel::updateDate,
+            onShowDatePicker = { show -> viewModel.toggleDatePicker(show) },
+            onCategoryChange = viewModel::updateCategory,
+            onShowCategoryDropdownChange = viewModel::toggleCategoryDropdown,
+            onPaidByChange = viewModel::updatePaidBy,
+            onShowPersonsDropdownChange = viewModel::togglePersonsDropdown,
+            onPaymentMethodChange = viewModel::updatePaymentMethod,
+            onShowPaymentMethodDropdownChange = viewModel::togglePaymentMethodDropdown,
+            onSplitTypeChange = viewModel::updateSplitType,
+            onToggleMemberIncluded = viewModel::toggleMemberIncluded,
+            onUpdateMemberPercentage = viewModel::updateMemberPercentage,
+            onUpdateMemberAmount = viewModel::updateMemberAmount,
+            onAddMember = viewModel::addMember,
+            onNotesChange = viewModel::updateNotes,
+            onSaveExpense = viewModel::saveExpense,
+            onClearErrorMessage = viewModel::clearErrorMessage,
+            onDateSelected = viewModel::updateDate,
+            isPercentageValid = viewModel.isPercentageValid(),
+            isManualAmountValid = viewModel.isManualAmountValid()
         )
     }
 }

@@ -59,7 +59,9 @@ fun ExpenseCard(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.ConfirmationNumber,
     iconBackgroundColor: Color = MaterialTheme.colorScheme.background,
-    cardBackgroundColor: Color = if (isCompleted) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.75f) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+    cardBackgroundColor: Color = if (isCompleted) MaterialTheme.colorScheme.secondaryContainer.copy(
+        alpha = 0.75f
+    ) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
     borderColor: Color = MaterialTheme.colorScheme.onSecondaryContainer.copy(0.25f),
 ) {
     ICard(
@@ -91,8 +93,7 @@ fun ExpenseCard(
                 )
             }
         },
-        onClick = { }
-    )
+        onClick = { })
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -105,15 +106,18 @@ private fun ExpenseInfo(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier, verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(iconBackgroundColor),
-            contentAlignment = Alignment.Center
+                .background(iconBackgroundColor)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.33f),
+                    shape = RoundedCornerShape(8.dp)
+                ), contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
@@ -128,17 +132,13 @@ private fun ExpenseInfo(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = expenseName,
-                style = MaterialTheme.typography.titleMediumEmphasized.copy(
+                text = expenseName, style = MaterialTheme.typography.titleMediumEmphasized.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                ), maxLines = 1, overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "$membersCount members",
-                style = MaterialTheme.typography.bodyMedium.copy(
+                text = "$membersCount members", style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.secondary
                 )
             )
@@ -149,24 +149,19 @@ private fun ExpenseInfo(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ExpenseAmount(
-    isCompleted: Boolean,
-    isYours: Boolean,
-    amountOwed: Double,
-    modifier: Modifier = Modifier
+    isCompleted: Boolean, isYours: Boolean, amountOwed: Double, modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.End
+        modifier = modifier, horizontalAlignment = Alignment.End
     ) {
         val secondaryTextColor = MaterialTheme.colorScheme.secondary.copy(0.75f)
-        
+
         Text(
             text = when {
                 isCompleted -> "Settled!"
                 isYours -> "They owe you"
                 else -> "You owe"
-            },
-            style = MaterialTheme.typography.bodySmallEmphasized.copy(
+            }, style = MaterialTheme.typography.bodySmallEmphasized.copy(
                 color = secondaryTextColor,
                 fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal
             )
@@ -189,16 +184,14 @@ private fun CompletedIndicator() {
     Box(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(8.dp)
+                color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp)
             )
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(8.dp)
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 8.dp, vertical = 4.dp), contentAlignment = Alignment.Center
     ) {
         Icon(
             modifier = Modifier.size(14.dp),
@@ -214,8 +207,7 @@ private fun AmountIndicator(amountOwed: Double) {
     Box(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = RoundedCornerShape(8.dp)
+                color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(8.dp)
             )
             .border(
                 width = 1.dp,
@@ -227,8 +219,7 @@ private fun AmountIndicator(amountOwed: Double) {
         Text(
             text = "$${String.format(Locale.US, "%.2f", amountOwed)}",
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onErrorContainer
+                fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer
             )
         )
     }

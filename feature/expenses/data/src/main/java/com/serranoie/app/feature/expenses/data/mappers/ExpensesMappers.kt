@@ -11,11 +11,6 @@
 
 package com.serranoie.app.feature.expenses.data.mappers
 
-import com.serranoie.itinero.core.data.local.entity.EmbeddedUserBasic
-import com.serranoie.itinero.core.data.local.entity.ExpenseDebtorEntity
-import com.serranoie.itinero.core.data.local.entity.ExpenseEntity
-import com.serranoie.itinero.core.data.local.entity.UserBalanceEntity
-import com.serranoie.itinero.core.data.local.entity.UserExpenseSummaryEntity
 import com.serranoie.app.feature.expenses.data.remote.dto.CreateDebtorDto
 import com.serranoie.app.feature.expenses.data.remote.dto.CreateExpenseDto
 import com.serranoie.app.feature.expenses.data.remote.dto.ExpenseDebtorDto
@@ -30,6 +25,11 @@ import com.serranoie.app.feature.expenses.domain.model.ExpenseDebtor
 import com.serranoie.app.feature.expenses.domain.model.UserBalance
 import com.serranoie.app.feature.expenses.domain.model.UserBasic
 import com.serranoie.app.feature.expenses.domain.model.UserExpenseSummary
+import com.serranoie.itinero.core.data.local.entity.EmbeddedUserBasic
+import com.serranoie.itinero.core.data.local.entity.ExpenseDebtorEntity
+import com.serranoie.itinero.core.data.local.entity.ExpenseEntity
+import com.serranoie.itinero.core.data.local.entity.UserBalanceEntity
+import com.serranoie.itinero.core.data.local.entity.UserExpenseSummaryEntity
 
 // DTO to Domain mappings
 fun UserExpenseSummaryDto.toDomain(): UserExpenseSummary {

@@ -41,6 +41,7 @@ fun SelectField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     titleHeader: Boolean? = true,
+    containerColor: Color? = MaterialTheme.colorScheme.surfaceContainer,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
@@ -60,7 +61,7 @@ fun SelectField(
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, borderColor),
             tonalElevation = 4.dp,
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color = containerColor ?: Color.Transparent,
             modifier = Modifier.clickable(
                 enabled = enabled,
                 indication = null,

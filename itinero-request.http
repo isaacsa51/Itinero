@@ -12,10 +12,10 @@ POST {{base_url}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "user2",
+  "name": "admin",
   "surname": "Test",
   "phone": "1234567890",
-  "email": "user2",
+  "email": "admin",
   "password": "root"
 }
 
@@ -24,7 +24,7 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "user2",
+  "email": "admin",
   "password": "root"
 }
 

@@ -21,7 +21,16 @@ enum class ExpenseCategory(val displayName: String) {
     SHOPPING("Shopping"),
     FUN("Fun"),
     HEALTH("Health"),
-    MISC("Other")
+    MISC("Other");
+
+    companion object {
+        fun fromCategoryName(categoryName: String): ExpenseCategory {
+            return entries.find {
+                it.name.equals(categoryName, ignoreCase = true) ||
+                        it.displayName.equals(categoryName, ignoreCase = true)
+            } ?: MISC
+        }
+    }
 }
 
 fun ExpenseCategory.icon(): ImageVector {

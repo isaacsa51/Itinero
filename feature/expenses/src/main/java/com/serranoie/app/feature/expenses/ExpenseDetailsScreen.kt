@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,37 +28,64 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.feature.expenses.util.ExpenseCategory
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseDetailsScreen(
+    navController: NavController,
+    expenseState: ExpenseDetailsViewModel.ExpenseState,
+    formUiState: ExpenseDetailsViewModel.UIState,
+    splitType: SplitType,
+    groupMembers: List<GroupMember>,
+    persons: List<String>,
+    paymentMethods: List<String>,
+    onExpenseNameChange: (String) -> Unit,
+    onAmountChange: (String) -> Unit,
+    onDateChange: (String) -> Unit,
+    onShowDatePicker: (Boolean) -> Unit,
+    onCategoryChange: (ExpenseCategory) -> Unit,
+    onShowCategoryDropdownChange: (Boolean) -> Unit,
+    onPaidByChange: (String?) -> Unit,
+    onShowPersonsDropdownChange: (Boolean) -> Unit,
+    onPaymentMethodChange: (String) -> Unit,
+    onShowPaymentMethodDropdownChange: (Boolean) -> Unit,
+    onSplitTypeChange: (SplitType) -> Unit,
+    onToggleMemberIncluded: (Int, Boolean) -> Unit,
+    onUpdateMemberPercentage: (Int, Int) -> Unit,
+    onUpdateMemberAmount: (Int, Double) -> Unit,
+    onAddMember: (String) -> Unit,
+    onNotesChange: (String) -> Unit,
+    onSaveExpense: () -> Unit,
+    onClearErrorMessage: () -> Unit,
+    onDateSelected: (String) -> Unit,
+    isPercentageValid: Boolean,
+    isManualAmountValid: Boolean
+) {
+    // For now, we'll use the existing static UI
+    // In the future, this can be replaced with the actual expense details editing UI
+    // that uses the ViewModel parameters
+    ExpenseDetailsScreenStatic(navController)
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun ExpenseDetailsScreenStatic(
     navController: NavController,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -248,7 +274,7 @@ fun OwesItem(
 fun CutoutTicketDivider(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    circleRadius: Dp = 28.dp,
+    circleRadius: Dp = 14.dp,
     rectWidth: Dp = 10.dp,
     rectHeight: Dp = 6.dp,
     cornerRadius: Dp = 3.dp,
@@ -311,6 +337,35 @@ fun CutoutTicketDivider(
 @Composable
 private fun ExpenseDetailsScreenPreview() {
     PreviewWrapper {
-        ExpenseDetailsScreen(navController = rememberNavController())
+        ExpenseDetailsScreen(
+            navController = rememberNavController(),
+            expenseState = ExpenseDetailsViewModel.ExpenseState(),
+            formUiState = ExpenseDetailsViewModel.UIState(),
+            splitType = SplitType.EQUAL,
+            groupMembers = listOf(),
+            persons = listOf(),
+            paymentMethods = listOf(),
+            onExpenseNameChange = {},
+            onAmountChange = {},
+            onDateChange = {},
+            onShowDatePicker = {},
+            onCategoryChange = {},
+            onShowCategoryDropdownChange = {},
+            onPaidByChange = {},
+            onShowPersonsDropdownChange = {},
+            onPaymentMethodChange = {},
+            onShowPaymentMethodDropdownChange = {},
+            onSplitTypeChange = {},
+            onToggleMemberIncluded = { _, _ -> },
+            onUpdateMemberPercentage = { _, _ -> },
+            onUpdateMemberAmount = { _, _ -> },
+            onAddMember = {},
+            onNotesChange = {},
+            onSaveExpense = {},
+            onClearErrorMessage = {},
+            onDateSelected = {},
+            isPercentageValid = true,
+            isManualAmountValid = true
+        )
     }
 }
