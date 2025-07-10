@@ -74,7 +74,7 @@ fun ExpenseDebtorDto.toDomain(): ExpenseDebtor {
         userId = userId,
         amount = amount,
         splitValue = splitValue,
-        user = user.toDomain()
+        user = user?.toDomain()
     )
 }
 
@@ -138,7 +138,6 @@ fun ExpenseDebtor.toDto(): CreateDebtorDto {
     )
 }
 
-// Helper extension for CreateExpense to Expense conversion
 fun CreateExpense.toDomain(): Expense {
     return Expense(
         id = 0, // Will be set by the server
@@ -171,7 +170,6 @@ fun CreateDebtor.toDomain(user: UserBasic? = null): ExpenseDebtor {
     )
 }
 
-// Entity to Domain mappings
 fun ExpenseEntity.toDomain(debtors: List<ExpenseDebtorEntity>): Expense {
     return Expense(
         id = id,

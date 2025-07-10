@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Percent
@@ -49,6 +48,7 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
@@ -80,7 +80,6 @@ import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroug
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IFilledSmallerTextField
-import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.LargeDropdownMenu
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
@@ -101,6 +100,7 @@ fun AddExpenseScreen(
     splitType: SplitType,
     groupMembers: List<GroupMember>,
     persons: List<String>,
+    snackbarHostState: SnackbarHostState,
     onExpenseNameChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
     onShowDatePicker: (Boolean) -> Unit,
@@ -112,10 +112,10 @@ fun AddExpenseScreen(
     onToggleMemberIncluded: (Int, Boolean) -> Unit,
     onUpdateMemberPercentage: (Int, Int) -> Unit,
     onUpdateMemberAmount: (Int, Double) -> Unit,
-    onAddMember: (String) -> Unit,
     onNotesChange: (String) -> Unit,
     onSaveExpense: () -> Unit,
     onClearErrorMessage: () -> Unit,
+    onClearSuccessMessage: () -> Unit,
     onDateSelected: (String) -> Unit,
     isPercentageValid: Boolean,
     isManualAmountValid: Boolean
@@ -124,7 +124,11 @@ fun AddExpenseScreen(
 
     if (formUiState.showSuccessMessage) {
         LaunchedEffect(Unit) {
-            // Navigate or show snackbar
+            onClearSuccessMessage()
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.set("expense_saved_message", "Expense saved successfully!")
+            navController.popBackStack()
         }
     }
 
@@ -247,7 +251,6 @@ fun AddExpenseScreen(
                     onToggleMemberIncluded = onToggleMemberIncluded,
                     onUpdateMemberPercentage = onUpdateMemberPercentage,
                     onUpdateMemberAmount = onUpdateMemberAmount,
-                    onAddMember = onAddMember,
                     amount = expenseState.amount,
                     paidBy = expenseState.paidBy ?: "",
                     isPercentageValid = isPercentageValid,
@@ -499,7 +502,6 @@ fun SplitDetailsSection(
     onToggleMemberIncluded: (Int, Boolean) -> Unit,
     onUpdateMemberPercentage: (Int, Int) -> Unit,
     onUpdateMemberAmount: (Int, Double) -> Unit,
-    onAddMember: (String) -> Unit,
     amount: String,
     paidBy: String,
     isPercentageValid: Boolean,
@@ -555,27 +557,6 @@ fun SplitDetailsSection(
                     amount = amount,
                     isPercentageValid = isPercentageValid,
                     isManualAmountValid = isManualAmountValid
-                )
-
-                IOutlineButton(
-                    onClick = { onAddMember("New Member") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(36.dp),
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.PersonAdd,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Add Member")
-                        }
-                    },
-                    importance = ButtonImportance.Tertiary
                 )
             }
         }
@@ -842,11 +823,7 @@ fun SplitValidation(
             val isValid = abs(totalManual - expenseAmount) < 0.01
 
             Text(
-                text = "Expense: $ ${
-                    String.format(
-                        "%.2f", expenseAmount
-                    )
-                }, Allocated: $ ${String.format("%.2f", totalManual)}",
+                text = "Expense: $ ${String.format("%.2f", expenseAmount)}, Allocated: $ ${String.format("%.2f", totalManual)}",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
@@ -952,6 +929,7 @@ private fun AddExpenseScreenPreview() {
             splitType = SplitType.EQUAL,
             groupMembers = listOf(),
             persons = listOf(),
+            snackbarHostState = remember { SnackbarHostState() },
             onExpenseNameChange = {},
             onAmountChange = {},
             onShowDatePicker = {},
@@ -963,10 +941,10 @@ private fun AddExpenseScreenPreview() {
             onToggleMemberIncluded = { _, _ -> },
             onUpdateMemberPercentage = { _, _ -> },
             onUpdateMemberAmount = { _, _ -> },
-            onAddMember = {},
             onNotesChange = {},
             onSaveExpense = {},
             onClearErrorMessage = {},
+            onClearSuccessMessage = {},
             onDateSelected = {},
             isPercentageValid = false,
             isManualAmountValid = false

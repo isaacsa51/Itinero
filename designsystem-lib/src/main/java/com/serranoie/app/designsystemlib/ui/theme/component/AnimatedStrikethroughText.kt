@@ -37,7 +37,7 @@ fun AnimatedStrikethroughText(
     modifier: Modifier = Modifier,
     isVisible: Boolean = true,
     animateOnHide: Boolean = true,
-    spec: AnimationSpec<Int> = tween(text.length * 30, easing = FastOutLinearInEasing),
+    spec: AnimationSpec<Int> = tween(minOf(text.length * 30, 1000), easing = FastOutLinearInEasing),
     strikethroughStyle: SpanStyle = SpanStyle(),
     textStyle: TextStyle = LocalTextStyle.current
 ) {
