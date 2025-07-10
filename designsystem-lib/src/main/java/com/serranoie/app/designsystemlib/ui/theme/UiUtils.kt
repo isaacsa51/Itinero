@@ -8,4 +8,8 @@ object UiUtils {
     val MediumPadding3 = 40.dp
 
     val IndicatorSize = 14.dp
+
+    const val ALPHA_DISABLED = 0.3f
+    const val ALPHA_FULL = 1f
+    const val ALPHA_CONTENT = 0.87f
 }

@@ -11,14 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Money
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -39,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,7 +52,10 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
 import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.app.feature.expenses.domain.model.Expense
 import com.serranoie.app.feature.expenses.domain.model.UserExpenseSummary
+import com.serranoie.app.feature.expenses.util.ExpenseCategory
+import com.serranoie.app.feature.expenses.util.ExpenseDisplayItem
 import com.serranoie.app.feature.expenses.util.generateDateRange
+import com.serranoie.app.feature.expenses.util.icon
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -92,10 +92,6 @@ fun ExpensesScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             MediumTopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.inverseOnSurface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                ), 
                 title = {
                     Text(
                         "Expenses", 
@@ -149,9 +145,7 @@ fun ExpensesScreen(
 
                         if (expensesByDate.isEmpty() && !isLoading) {
                             item {
-                                EmptyExpensesState(
-                                    onAddExpenseClick = onAddExpenseClick
-                                )
+                                EmptyExpensesState()
                             }
                         } else {
                             val dateRangeList = generateDateRange(startDate, endDate)
@@ -220,8 +214,6 @@ fun BalanceCircles(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
 
             Box(
                 modifier = Modifier
@@ -303,7 +295,6 @@ fun ExpensesDateSection(
                 .padding(start = 8.dp)
         ) {
             if (expenses.isEmpty()) {
-                // Show centered message when no expenses for this date
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -332,7 +323,6 @@ fun ExpensesDateSection(
                     )
                 }
 
-                // Add horizontal divider only at the bottom of the last item for this day
                 if (!isLastSection) {
                     HorizontalDivider(
                         modifier = Modifier
@@ -403,8 +393,10 @@ private fun ExpensesScreenSkeleton(
     }
 }
 
+// TODO: Implement vector images for empty state
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun EmptyExpensesState(onAddExpenseClick: () -> Unit) {
+private fun EmptyExpensesState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -413,26 +405,17 @@ private fun EmptyExpensesState(onAddExpenseClick: () -> Unit) {
     ) {
         Text(
             text = "No expenses yet",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMediumEmphasized,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Start tracking your trip expenses",
+            text = "Start tracking your group expenses by creating a new one.",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onAddExpenseClick) {
-            Text("Add Expense")
-        }
     }
-}
-
-private fun getCurrentUserId(): Int {
-    // This function is no longer needed as we pass the userId as parameter
-    return 1 // Placeholder - should not be used
 }
 
 private fun calculateBalanceData(expenses: List<UserExpenseSummary>): Pair<Double, Double> {
@@ -448,17 +431,18 @@ private fun groupExpensesByDate(
     return expenses.groupBy { parseDate(it.date) }
         .mapValues { (_, expensesList) ->
             expensesList.map { expense ->
+                val categoryEnum = ExpenseCategory.fromCategoryName(expense.category)
                 ExpenseDisplayItem(
                     id = expense.id,
                     expenseDate = parseDate(expense.date),
-                    expenseType = "", // Not available in current Expense model
+                    expenseType = "",
                     expenseCategory = expense.category,
                     expenseName = expense.name,
                     membersCount = expense.debtors.size,
                     amountOwed = expense.amount,
                     isCompleted = expense.isCompleted,
                     isYours = currentUserId == expense.paidByUserId,
-                    icon = Icons.Filled.Money // Default icon, could be mapped from category
+                    icon = categoryEnum.icon()
                 )
             }
         }
@@ -568,16 +552,3 @@ private fun ExpensesScreenPreviewLoading() {
         )
     }
 }
-
-data class ExpenseDisplayItem(
-    val id: Int,
-    val expenseDate: LocalDate,
-    val expenseType: String,
-    val expenseCategory: String,
-    val expenseName: String,
-    val membersCount: Int,
-    val amountOwed: Double,
-    val isCompleted: Boolean,
-    val isYours: Boolean,
-    val icon: ImageVector
-)

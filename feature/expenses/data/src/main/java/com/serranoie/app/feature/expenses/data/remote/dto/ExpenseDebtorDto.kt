@@ -19,5 +19,5 @@ data class ExpenseDebtorDto(
     val userId: Int,
     val amount: Double,
     val splitValue: Double,
-    val user: UserBasicDto
+    val user: UserBasicDto? = null
 )

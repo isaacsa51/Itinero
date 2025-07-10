@@ -1,9 +1,20 @@
 package com.serranoie.app.feature.expenses
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serranoie.app.feature.expenses.domain.model.CreateDebtor
+import com.serranoie.app.feature.expenses.domain.model.CreateExpense
+import com.serranoie.app.feature.expenses.domain.model.Expense
+import com.serranoie.app.feature.expenses.domain.usecase.ExpensesUseCases
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
+import com.serranoie.itinero.core.domain.model.MemberStatus
+import com.serranoie.itinero.core.domain.model.TripMember
+import com.serranoie.itinero.core.domain.result.Result
+import com.serranoie.itinero.core.domain.usecase.TravelUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -11,16 +22,19 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 
-class ExpenseDetailsViewModel : ViewModel() {
 
-    // Data classes for state management
+class ExpenseDetailsViewModel(
+    private val expensesUseCase: ExpensesUseCases,
+    private val travelUseCase: TravelUseCase,
+    private val groupCode: String
+) : ViewModel() {
+
     data class ExpenseState(
         val name: String = "",
         val amount: String = "",
         val date: String = LocalDate.now().format(DateTimeFormatter.ISO_DATE),
         val category: ExpenseCategory = ExpenseCategory.FOOD,
-        val currency: String = "EUR",
-        val paidBy: String = "Me",
+        val paidBy: String? = null,
         val paymentMethod: String = "Cash",
         val notes: String = "",
         val nameError: String? = null,
@@ -30,7 +44,6 @@ class ExpenseDetailsViewModel : ViewModel() {
 
     data class UIState(
         val showCategoryDropdown: Boolean = false,
-        val showCurrencyDropdown: Boolean = false,
         val showPersonsDropdown: Boolean = false,
         val showPaymentMethodDropdown: Boolean = false,
         val showDatePicker: Boolean = false,
@@ -38,51 +51,317 @@ class ExpenseDetailsViewModel : ViewModel() {
         val errorMessage: String? = null
     )
 
-    // State flows
+    private val _uiState = MutableStateFlow<ExpensesUiState>(ExpensesUiState.Idle)
+    val uiState: StateFlow<ExpensesUiState> = _uiState.asStateFlow()
+
     private val _expenseState = MutableStateFlow(ExpenseState())
     val expenseState = _expenseState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(UIState())
-    val uiState = _uiState.asStateFlow()
+    private val _formUiState = MutableStateFlow(UIState())
+    val formUiState = _formUiState.asStateFlow()
 
     private val _splitType = MutableStateFlow(SplitType.EQUAL)
     val splitType = _splitType.asStateFlow()
 
-    private val _groupMembers = MutableStateFlow(
-        listOf(
-            GroupMember("Me", true, percentage = 20, amount = 0.0),
-            GroupMember("Alex", true, percentage = 20, amount = 0.0),
-            GroupMember("Sarah", true, percentage = 20, amount = 0.0),
-            GroupMember("John", true, percentage = 20, amount = 0.0),
-            GroupMember("Maria", true, percentage = 20, amount = 0.0)
-        )
-    )
+    private val _groupMembers = MutableStateFlow<List<GroupMember>>(emptyList())
     val groupMembers = _groupMembers.asStateFlow()
 
-    // Available options
-    val persons = listOf(
-        "Me",
-        "Alex",
-        "Sarah",
-        "John",
-        "Maria",
-        "David",
-        "Emma"
-    )
+    private val _selectedExpense = MutableStateFlow<Expense?>(null)
+    val selectedExpense: StateFlow<Expense?> = _selectedExpense.asStateFlow()
 
-    val categories = listOf(
-        "Food & Drinks",
-        "Accommodation",
-        "Transportation",
-        "Activities",
-        "Shopping",
-        "Other"
-    )
-    val currencies = listOf("EUR", "USD", "GBP", "JPY", "CAD", "AUD")
-    val paymentMethods =
-        listOf("Cash", "Credit Card", "Debit Card","Bank Transfer", "Other")
+    private val _tripMembers = MutableStateFlow<List<TripMember>>(emptyList())
+    val tripMembers = _tripMembers.asStateFlow()
 
-    // Input handlers
+    private val _currentUserId = MutableStateFlow<Int?>(null)
+    val currentUserId = _currentUserId.asStateFlow()
+
+    private var currentGroupCode: String = groupCode
+
+    val persons: List<String>
+        get() = _tripMembers.value.filter { it.status == MemberStatus.ACCEPTED || it.status == MemberStatus.OWNER }
+            .map { it.name }
+
+    val paymentMethods = listOf("Cash", "Credit Card", "Debit Card", "Bank Transfer", "Other")
+
+    init {
+        fetchTripMembers()
+    }
+
+    private fun fetchTripMembers() {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val result = travelUseCase.getAllMembers(currentGroupCode)) {
+                is Result.Success -> {
+                    _tripMembers.value = result.data
+                    initializeGroupMembers(result.data)
+                    // Set default paidBy to current user if available
+                    val currentUser = result.data.find { it.status == MemberStatus.OWNER }
+                        ?: result.data.firstOrNull { it.status == MemberStatus.ACCEPTED }
+                    currentUser?.let { user ->
+                        _currentUserId.value = user.id
+                        _expenseState.update { it.copy(paidBy = user.name) }
+                    }
+                }
+
+                is Result.Error -> {
+                    initializeDefaultMembers()
+                }
+            }
+        }
+    }
+
+    private fun initializeGroupMembers(tripMembers: List<TripMember>) {
+        val acceptedMembers = tripMembers.filter {
+            it.status == MemberStatus.ACCEPTED || it.status == MemberStatus.OWNER
+        }
+
+        if (acceptedMembers.isNotEmpty()) {
+            val equalPercentage = 100 / acceptedMembers.size
+            val remainder = 100 % acceptedMembers.size
+
+            val members = acceptedMembers.mapIndexed { index, member ->
+                GroupMember(
+                    name = member.name,
+                    included = true,
+                    percentage = equalPercentage + if (index < remainder) 1 else 0,
+                    amount = 0.0,
+                    userId = member.id
+                )
+            }
+            _groupMembers.value = members
+        } else {
+            initializeDefaultMembers()
+        }
+    }
+
+    private fun initializeDefaultMembers() {
+        _groupMembers.value = listOf(
+            GroupMember("Me", true, percentage = 100, amount = 0.0, userId = null)
+        )
+    }
+
+    fun createExpense() {
+        if (!validateExpense()) {
+            _formUiState.update { it.copy(errorMessage = "Please correct the errors before saving") }
+            return
+        }
+
+        _expenseState.update { it.copy(isSaving = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.value = ExpensesUiState.Loading
+            try {
+                val paidByMember = _tripMembers.value.find { it.name == _expenseState.value.paidBy }
+                val paidByUserId = paidByMember?.id ?: _currentUserId.value ?: 1
+
+                val request = CreateExpense(
+                    tripId = currentGroupCode.toIntOrNull() ?: 1,
+                    name = _expenseState.value.name,
+                    amount = _expenseState.value.amount.toDouble(),
+                    date = _expenseState.value.date,
+                    category = _expenseState.value.category.name,
+                    paidByUserId = paidByUserId,
+                    paymentMethod = _expenseState.value.paymentMethod,
+                    splitType = _splitType.value.name,
+                    notes = _expenseState.value.notes.ifEmpty { null },
+                    debtors = _groupMembers.value.filter { it.included }.map { member ->
+                        val splitValue = when (_splitType.value) {
+                            SplitType.PERCENTAGE -> member.percentage.toDouble()
+                            SplitType.EQUAL, SplitType.CUSTOM -> member.amount
+                        }
+                        CreateDebtor(
+                            userId = member.userId ?: _currentUserId.value ?: 1,
+                            splitValue = member.amount
+                        )
+                    }
+                )
+
+                when (val result =
+                    expensesUseCase.addExpenseUseCase(currentGroupCode, request)) {
+                    is Result.Success -> {
+                        Log.d(
+                            "ExpenseDetailsViewModel",
+                            "Expense created successfully: ${result.data}"
+                        )
+                        _uiState.value = ExpensesUiState.Success(result.data)
+                        _formUiState.update {
+                            it.copy(
+                                showSuccessMessage = true,
+                                errorMessage = null
+                            )
+                        }
+                        clearSuccessMessageAfterDelay()
+                    }
+                    is Result.Error -> {
+                        _uiState.value = ExpensesUiState.Error(
+                            result.exception.message ?: "Failed to create expense"
+                        )
+                        _formUiState.update {
+                            it.copy(
+                                errorMessage = result.exception.message
+                                    ?: "Failed to create expense"
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = ExpensesUiState.Error("Failed to save: ${e.message}")
+                _formUiState.update { it.copy(errorMessage = "Failed to save: ${e.message}") }
+            } finally {
+                _expenseState.update { it.copy(isSaving = false) }
+            }
+        }
+    }
+
+    private fun clearSuccessMessageAfterDelay() {
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(2000)
+            clearSuccessMessage()
+        }
+    }
+
+    fun updateExpense(expenseId: String) {
+        if (!validateExpense()) {
+            _formUiState.update { it.copy(errorMessage = "Please correct the errors before updating") }
+            return
+        }
+
+        _expenseState.update { it.copy(isSaving = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.value = ExpensesUiState.Loading
+            try {
+                val paidByMember = _tripMembers.value.find { it.name == _expenseState.value.paidBy }
+                val paidByUserId = paidByMember?.id ?: _currentUserId.value ?: 1
+
+                val request = CreateExpense(
+                    tripId = currentGroupCode.toIntOrNull() ?: 1,
+                    name = _expenseState.value.name,
+                    amount = _expenseState.value.amount.toDouble(),
+                    date = _expenseState.value.date,
+                    category = _expenseState.value.category.name,
+                    paidByUserId = paidByUserId,
+                    paymentMethod = _expenseState.value.paymentMethod,
+                    splitType = _splitType.value.name,
+                    notes = _expenseState.value.notes.ifEmpty { null },
+                    debtors = _groupMembers.value.filter { it.included }.map { member ->
+                        val splitValue = when (_splitType.value) {
+                            SplitType.PERCENTAGE -> member.percentage.toDouble()
+                            SplitType.EQUAL, SplitType.CUSTOM -> member.amount
+                        }
+                        CreateDebtor(
+                            userId = member.userId ?: _currentUserId.value ?: 1,
+                            splitValue = splitValue
+                        )
+                    }
+                )
+
+                when (val result =
+                    expensesUseCase.updateExpenseUseCase(currentGroupCode, expenseId, request)) {
+                    is Result.Success -> {
+                        val updatedExpense =
+                            expensesUseCase.getExpenseByIdUseCase(currentGroupCode, expenseId)
+                        if (updatedExpense is Result.Success) {
+                            _selectedExpense.value = updatedExpense.data
+                            _uiState.value = ExpensesUiState.Success(updatedExpense.data)
+                        } else {
+                            _uiState.value = ExpensesUiState.Success(Unit)
+                        }
+                        _formUiState.update {
+                            it.copy(
+                                showSuccessMessage = true,
+                                errorMessage = null
+                            )
+                        }
+                        clearSuccessMessageAfterDelay()
+                    }
+                    is Result.Error -> {
+                        _uiState.value = ExpensesUiState.Error(
+                            result.exception.message ?: "Failed to update expense"
+                        )
+                        _formUiState.update {
+                            it.copy(
+                                errorMessage = result.exception.message
+                                    ?: "Failed to update expense"
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.value = ExpensesUiState.Error("Failed to update: ${e.message}")
+                _formUiState.update { it.copy(errorMessage = "Failed to update: ${e.message}") }
+            } finally {
+                _expenseState.update { it.copy(isSaving = false) }
+            }
+        }
+    }
+
+    fun getExpenseById(expenseId: String, forceRefresh: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.value = ExpensesUiState.Loading
+            when (val result =
+                expensesUseCase.getExpenseByIdUseCase(currentGroupCode, expenseId)) {
+                is Result.Success -> {
+                    _selectedExpense.value = result.data
+                    _uiState.value = ExpensesUiState.Success(result.data)
+                    loadExpenseIntoForm(result.data)
+                }
+                is Result.Error -> {
+                    _uiState.value = ExpensesUiState.Error(
+                        result.exception.message ?: "Failed to load expense"
+                    )
+                }
+            }
+        }
+    }
+
+    fun deleteExpense(expenseId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.value = ExpensesUiState.Loading
+            when (val result = expensesUseCase.deleteExpenseUseCase(currentGroupCode, expenseId)) {
+                is Result.Success -> {
+                    _uiState.value = ExpensesUiState.Success(Unit)
+                    _selectedExpense.value = null
+                }
+                is Result.Error -> {
+                    _uiState.value = ExpensesUiState.Error(
+                        result.exception.message ?: "Failed to delete expense"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadExpenseIntoForm(expense: Expense) {
+        _expenseState.update {
+            it.copy(
+                name = expense.name,
+                amount = expense.amount.toString(),
+                date = expense.date,
+                category = ExpenseCategory.entries.find { cat -> cat.name == expense.category }
+                    ?: ExpenseCategory.FOOD,
+                paidBy = expense.paidBy?.name,
+                paymentMethod = expense.paymentMethod,
+                notes = expense.notes ?: ""
+            )
+        }
+
+        _splitType.value =
+            SplitType.entries.find { it.name == expense.splitType } ?: SplitType.EQUAL
+
+        if (expense.debtors.isNotEmpty()) {
+            val members = expense.debtors.map { debtor ->
+                GroupMember(
+                    name = debtor.user?.name ?: "Unknown",
+                    included = debtor.amount > 0,
+                    percentage = 0,
+                    amount = debtor.amount,
+                    userId = debtor.userId
+                )
+            }
+            _groupMembers.value = members
+        }
+    }
+
     fun updateExpenseName(name: String) {
         _expenseState.update {
             it.copy(
@@ -102,7 +381,6 @@ class ExpenseDetailsViewModel : ViewModel() {
 
         _expenseState.update { it.copy(amount = amount, amountError = amountError) }
 
-        // Update equal split amounts
         if (amountError == null) {
             recalculateAmounts()
         }
@@ -114,49 +392,35 @@ class ExpenseDetailsViewModel : ViewModel() {
 
     fun updateCategory(category: ExpenseCategory) {
         _expenseState.update { it.copy(category = category) }
-        _uiState.update { it.copy(showCategoryDropdown = false) }
+        _formUiState.update { it.copy(showCategoryDropdown = false) }
     }
 
-    fun updateCurrency(currency: String) {
-        _expenseState.update { it.copy(currency = currency) }
-        _uiState.update { it.copy(showCurrencyDropdown = false) }
-    }
-
-    fun updatePaidBy(paidBy: String) {
+    fun updatePaidBy(paidBy: String?) {
         _expenseState.update { it.copy(paidBy = paidBy) }
+        _formUiState.update { it.copy(showPersonsDropdown = false) }
     }
 
     fun updatePaymentMethod(method: String) {
         _expenseState.update { it.copy(paymentMethod = method) }
-        _uiState.update { it.copy(showPaymentMethodDropdown = false) }
+        _formUiState.update { it.copy(showPaymentMethodDropdown = false) }
     }
 
     fun updateNotes(notes: String) {
         _expenseState.update { it.copy(notes = notes) }
     }
 
-    // UI state handlers
     fun toggleCategoryDropdown(show: Boolean) {
-        _uiState.update { it.copy(showCategoryDropdown = show) }
-    }
-
-    fun toggleCurrencyDropdown(show: Boolean) {
-        _uiState.update { it.copy(showCurrencyDropdown = show) }
-    }
-
-    fun togglePaymentMethodDropdown(show: Boolean) {
-        _uiState.update { it.copy(showPaymentMethodDropdown = show) }
+        _formUiState.update { it.copy(showCategoryDropdown = show) }
     }
 
     fun togglePersonsDropdown(show: Boolean) {
-        _uiState.update { it.copy(showPersonsDropdown = show) }
+        _formUiState.update { it.copy(showPersonsDropdown = show) }
     }
 
     fun toggleDatePicker(show: Boolean) {
-        _uiState.update { it.copy(showDatePicker = show) }
+        _formUiState.update { it.copy(showDatePicker = show) }
     }
 
-    // Split related handlers
     fun updateSplitType(type: SplitType) {
         _splitType.value = type
         recalculateAmounts()
@@ -181,22 +445,6 @@ class ExpenseDetailsViewModel : ViewModel() {
         _groupMembers.value = updatedMembers
     }
 
-    fun addMember(name: String) {
-        val updatedMembers = _groupMembers.value.toMutableList()
-        updatedMembers.add(GroupMember(name, true, percentage = 0, amount = 0.0))
-        _groupMembers.value = updatedMembers
-        recalculateAmounts()
-    }
-
-    fun removeMember(index: Int) {
-        if (_groupMembers.value.size <= 1) return
-        val updatedMembers = _groupMembers.value.toMutableList()
-        updatedMembers.removeAt(index)
-        _groupMembers.value = updatedMembers
-        recalculateAmounts()
-    }
-
-    // Business logic
     private fun recalculateAmounts() {
         val totalAmount = _expenseState.value.amount.toDoubleOrNull() ?: 0.0
         val includedMembers = _groupMembers.value.filter { it.included }
@@ -224,7 +472,7 @@ class ExpenseDetailsViewModel : ViewModel() {
                 _groupMembers.value = updatedMembers
             }
 
-            SplitType.MANUAL -> {
+            SplitType.CUSTOM -> {
                 // Manual doesn't need recalculation, amounts are set directly
             }
         }
@@ -245,13 +493,12 @@ class ExpenseDetailsViewModel : ViewModel() {
         return abs(totalAmount - totalManual) < 0.01
     }
 
-    fun validateExpense(): Boolean {
+    private fun validateExpense(): Boolean {
         val nameValid = _expenseState.value.name.isNotBlank()
         val amountValid = _expenseState.value.amount.isNotBlank() &&
                 _expenseState.value.amount.toDoubleOrNull() != null &&
                 _expenseState.value.amount.toDoubleOrNull()!! > 0
 
-        // Update error states
         _expenseState.update {
             it.copy(
                 nameError = if (nameValid) null else "Name is required",
@@ -266,35 +513,39 @@ class ExpenseDetailsViewModel : ViewModel() {
 
         return nameValid && amountValid && when (_splitType.value) {
             SplitType.PERCENTAGE -> isPercentageValid()
-            SplitType.MANUAL -> isManualAmountValid()
+            SplitType.CUSTOM -> isManualAmountValid()
             else -> true
         }
     }
 
-    fun saveExpense() {
-        if (!validateExpense()) {
-            _uiState.update { it.copy(errorMessage = "Please correct the errors before saving") }
-            return
-        }
-
-        _expenseState.update { it.copy(isSaving = true) }
-
-        viewModelScope.launch {
-            // Simulate network request
-            try {
-                // In a real app, you would save to repository here
-                kotlinx.coroutines.delay(1000)
-                _uiState.update { it.copy(showSuccessMessage = true, errorMessage = null) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to save: ${e.message}") }
-            } finally {
-                _expenseState.update { it.copy(isSaving = false) }
-            }
-        }
+    fun clearErrorMessage() {
+        _formUiState.update { it.copy(errorMessage = null) }
+        _uiState.value = ExpensesUiState.Idle
     }
 
-    // Clear error message
-    fun clearErrorMessage() {
-        _uiState.update { it.copy(errorMessage = null) }
+    fun clearSuccessMessage() {
+        _formUiState.update { it.copy(showSuccessMessage = false) }
+    }
+
+    fun clearSelectedExpense() {
+        _selectedExpense.value = null
+    }
+
+    fun resetState() {
+        _uiState.value = ExpensesUiState.Idle
+        _formUiState.value = UIState()
+        _expenseState.value = ExpenseState()
     }
 }
+
+enum class SplitType {
+    EQUAL, PERCENTAGE, CUSTOM
+}
+
+data class GroupMember(
+    val name: String,
+    val included: Boolean,
+    val percentage: Int,
+    val amount: Double,
+    val userId: Int? = null
+)

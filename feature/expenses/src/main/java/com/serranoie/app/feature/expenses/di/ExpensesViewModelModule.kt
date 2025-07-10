@@ -11,10 +11,16 @@
 
 package com.serranoie.app.feature.expenses.di
 
+import com.serranoie.app.feature.expenses.ExpenseDetailsViewModel
 import com.serranoie.app.feature.expenses.ExpensesViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
+
 val expensesViewModelModule = module {
     viewModel { ExpensesViewModel(get(), get()) }
+}
+
+val expensesDetailsViewModel = module {
+    viewModel { (groupCode: String) -> ExpenseDetailsViewModel(get(), get(), groupCode) }
 }
