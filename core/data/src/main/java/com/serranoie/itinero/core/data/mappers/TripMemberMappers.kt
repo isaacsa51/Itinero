@@ -22,6 +22,7 @@ fun TripMemberDto.toDomain(): TripMember {
     return TripMember(
         id = this.id,
         name = this.name,
+        surname = this.surname,
         email = this.email,
         status = MemberStatus.fromString(this.status)
     )
@@ -34,6 +35,7 @@ fun TripMember.toDto(): TripMemberDto {
     return TripMemberDto(
         id = this.id,
         name = this.name,
+        surname = this.surname,
         email = this.email,
         status = this.status.value
     )

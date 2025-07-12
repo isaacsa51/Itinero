@@ -15,7 +15,7 @@ Content-Type: application/json
   "name": "admin",
   "surname": "Test",
   "phone": "1234567890",
-  "email": "admin",
+  "email": "user1",
   "password": "root"
 }
 
@@ -24,7 +24,7 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin",
+  "email": "user1",
   "password": "root"
 }
 
@@ -122,7 +122,7 @@ GET {{base_url}}/trips/{{group_code}}/members
 Authorization: Bearer {{auth_token}}
 
 ### Accept pending member (for trip owners)
-@member_id = 789
+@member_id = 2
 POST {{base_url}}/trips/{{group_code}}/members/{{member_id}}/accept
 Authorization: Bearer {{auth_token}}
 

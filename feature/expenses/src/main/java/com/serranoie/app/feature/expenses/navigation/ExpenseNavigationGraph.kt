@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.expenses.navigation
 
+import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,23 +38,21 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
                 is ExpensesUiState.Error -> {
                     snackbarHostState.showSnackbar(currentState.message)
                 }
-                else -> { /* Handle other states if needed */ }
+
+                else -> { /* Handle other states if needed */
+                }
             }
         }
 
         LaunchedEffect(navController) {
-            navController.currentBackStackEntry
-                ?.savedStateHandle
-                ?.getLiveData<String>("expense_saved_message")
+            navController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("expense_saved_message")
                 ?.observeForever { message ->
                     if (message != null) {
                         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main)
                             .launch {
-                            snackbarHostState.showSnackbar(message)
-                        }
-                        navController.currentBackStackEntry
-                            ?.savedStateHandle
-                            ?.remove<String>("expense_saved_message")
+                                snackbarHostState.showSnackbar(message)
+                            }
+                        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("expense_saved_message")
                     }
                 }
         }
@@ -70,8 +69,9 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
             onSwiped = {
                 viewmodel.refreshData()
             },
-            onExpenseClick = {
-                navController.navigate(Route.ExpenseDetails.route)
+            onExpenseClick = { expenseId ->
+                Log.d("ExpensesScreen", "onExpenseClick: $expenseId")
+                navController.navigate(Route.ExpenseDetails.createRoute(expenseId))
             },
             onAddExpenseClick = {
                 navController.navigate(Route.AddExpense.route)
@@ -119,13 +119,18 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
         )
     }
 
-    composable(Route.ExpenseDetails.route) {
+    composable(Route.ExpenseDetails.route) { backStackEntry ->
+        val expenseId = backStackEntry.arguments?.getString("expenseId") ?: return@composable
         val viewModel: ExpenseDetailsViewModel = koinViewModel { parametersOf(tripId) }
 
         val expenseState by viewModel.expenseState.collectAsState()
         val formUiState by viewModel.formUiState.collectAsState()
         val splitType by viewModel.splitType.collectAsState()
         val groupMembers by viewModel.groupMembers.collectAsState()
+
+        LaunchedEffect(expenseId) {
+            viewModel.getExpenseById(expenseId)
+        }
 
         ExpenseDetailsScreen(
             navController = navController,
@@ -135,25 +140,6 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
             groupMembers = groupMembers,
             persons = viewModel.persons,
             paymentMethods = viewModel.paymentMethods,
-            onExpenseNameChange = viewModel::updateExpenseName,
-            onAmountChange = viewModel::updateAmount,
-            onDateChange = viewModel::updateDate,
-            onShowDatePicker = { show -> viewModel.toggleDatePicker(show) },
-            onCategoryChange = viewModel::updateCategory,
-            onShowCategoryDropdownChange = viewModel::toggleCategoryDropdown,
-            onPaidByChange = viewModel::updatePaidBy,
-            onShowPersonsDropdownChange = viewModel::togglePersonsDropdown,
-            onPaymentMethodChange = viewModel::updatePaymentMethod,
-            onSplitTypeChange = viewModel::updateSplitType,
-            onToggleMemberIncluded = viewModel::toggleMemberIncluded,
-            onUpdateMemberPercentage = viewModel::updateMemberPercentage,
-            onUpdateMemberAmount = viewModel::updateMemberAmount,
-            onNotesChange = viewModel::updateNotes,
-            onSaveExpense = viewModel::createExpense,
-            onClearErrorMessage = viewModel::clearErrorMessage,
-            onDateSelected = viewModel::updateDate,
-            isPercentageValid = viewModel.isPercentageValid(),
-            isManualAmountValid = viewModel.isManualAmountValid()
         )
     }
 }

@@ -10,6 +10,9 @@ import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.rounded.CompareArrows
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Percent
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class ExpenseCategory(val displayName: String) {
@@ -33,6 +36,23 @@ enum class ExpenseCategory(val displayName: String) {
     }
 }
 
+enum class ExpenseSplitType(val displayName: String) {
+    EQUAL("Equal"),
+    PERCENTAGE("Percentage"),
+    MANUAL("Manual");
+
+    companion object {
+        fun fromSplitTypeName(splitTypeName: String): ExpenseSplitType {
+            return when (splitTypeName.uppercase()) {
+                "EQUAL" -> EQUAL
+                "PERCENTAGE" -> PERCENTAGE
+                "CUSTOM", "MANUAL" -> MANUAL
+                else -> EQUAL
+            }
+        }
+    }
+}
+
 fun ExpenseCategory.icon(): ImageVector {
     return when (this) {
         ExpenseCategory.FOOD -> Icons.Default.Restaurant
@@ -44,5 +64,13 @@ fun ExpenseCategory.icon(): ImageVector {
         ExpenseCategory.FUN -> Icons.Default.Celebration
         ExpenseCategory.HEALTH -> Icons.Default.MedicalServices
         ExpenseCategory.MISC -> Icons.Default.HelpOutline
+    }
+}
+
+fun ExpenseSplitType.icon(): ImageVector {
+    return when (this) {
+        ExpenseSplitType.EQUAL -> Icons.Rounded.CompareArrows
+        ExpenseSplitType.PERCENTAGE -> Icons.Rounded.Percent
+        ExpenseSplitType.MANUAL -> Icons.Rounded.Edit
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
 import java.util.Locale
 
 /**
@@ -63,6 +64,7 @@ fun ExpenseCard(
         alpha = 0.75f
     ) else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
     borderColor: Color = MaterialTheme.colorScheme.onSecondaryContainer.copy(0.25f),
+    onClick: () -> Unit = {}
 ) {
     ICard(
         modifier = modifier,
@@ -93,7 +95,8 @@ fun ExpenseCard(
                 )
             }
         },
-        onClick = { })
+        onClick = onClick
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -217,7 +220,7 @@ private fun AmountIndicator(amountOwed: Double) {
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
-            text = "$${String.format(Locale.US, "%.2f", amountOwed)}",
+            text = formatCurrency(amountOwed.toString()),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer
             )
@@ -230,7 +233,6 @@ private fun AmountIndicator(amountOwed: Double) {
 private fun OutlinedCardPreview() {
     PreviewWrapper {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Regular expense card (current user owes money)
             ExpenseCard(
                 expenseName = "Dinner at La Taquería",
                 membersCount = 4,
@@ -240,7 +242,6 @@ private fun OutlinedCardPreview() {
 
             Spacer(modifier = Modifier.padding(8.dp))
 
-            // Expense card where others owe the user
             ExpenseCard(
                 expenseName = "Movie Tickets",
                 membersCount = 3,
@@ -251,7 +252,6 @@ private fun OutlinedCardPreview() {
 
             Spacer(modifier = Modifier.padding(8.dp))
 
-            // Completed expense card
             ExpenseCard(
                 expenseName = "Groceries",
                 membersCount = 2,
@@ -262,7 +262,6 @@ private fun OutlinedCardPreview() {
 
             Spacer(modifier = Modifier.padding(8.dp))
 
-            // Completed expense card that was yours
             ExpenseCard(
                 expenseName = "Uber ride",
                 membersCount = 3,

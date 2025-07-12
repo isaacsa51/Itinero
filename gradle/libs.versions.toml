@@ -1,6 +1,6 @@
 [versions]
 agp = "8.10.1"
-kotlin = "2.0.21"
+kotlin = "2.2.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -11,7 +11,7 @@ composeBom = "2025.05.00"
 appcompat = "1.7.0"
 material = "1.12.0"
 material3 = "1.4.0-alpha14"
-jetbrainsKotlinJvm = "2.0.21"
+jetbrainsKotlinJvm = "2.2.0"
 uiTextGoogleFonts = "1.7.8"
 camerax = "1.5.0-beta01"
 accompanist = "0.37.2"
@@ -48,7 +48,7 @@ ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "k
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-materialKolor = "com.materialkolor:material-kolor:3.0.0-beta01"
+materialKolor = "com.materialkolor:material-kolor:3.0.0"
 
 # Contains the basic camera functionality such as SurfaceRequest
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
