@@ -259,9 +259,11 @@ fun AddExpenseScreen(
             }
 
             item {
-                NotesSection(
-                    notes = expenseState.notes, onNotesChange = onNotesChange
-                )
+                expenseState.notes?.let {
+                    NotesSection(
+                        notes = it, onNotesChange = onNotesChange
+                    )
+                }
             }
         }
     }
@@ -924,7 +926,9 @@ private fun AddExpenseScreenPreview() {
     PreviewWrapper {
         AddExpenseScreen(
             navController = rememberNavController(),
-            expenseState = ExpenseDetailsViewModel.ExpenseState(),
+            expenseState = ExpenseDetailsViewModel.ExpenseState(
+                notes = null
+            ),
             formUiState = ExpenseDetailsViewModel.UIState(),
             splitType = SplitType.EQUAL,
             groupMembers = listOf(),

@@ -15,11 +15,11 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import androidx.core.net.toUri
 
 object Utils {
     /**
@@ -35,6 +35,16 @@ object Utils {
             context.startActivity(intent)
         } catch (exc: ActivityNotFoundException) {
             exc.printStackTrace()
+        }
+    }
+
+    fun formatCurrency(price: String): String {
+        val format = java.text.NumberFormat.getCurrencyInstance(Locale.getDefault())
+        return try {
+            val numericPrice = price.toDoubleOrNull() ?: 0.0
+            format.format(numericPrice)
+        } catch (e: Exception) {
+            "$ $price" // Fallback to simple dollar formatting
         }
     }
 

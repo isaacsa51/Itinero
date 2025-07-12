@@ -16,9 +16,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonDefaults.textButtonColors
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,12 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp as dp
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ProvideTextStyle
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
@@ -50,11 +48,12 @@ fun IButton(
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
     importance: ButtonImportance = ButtonImportance.Primary,
+    height: Dp = 48.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(height),
         enabled = enabled,
         contentPadding = contentPadding,
         shape = shape,
@@ -71,7 +70,8 @@ fun IButton(
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
-    importance: ButtonImportance = ButtonImportance.Primary
+    importance: ButtonImportance = ButtonImportance.Primary,
+    height: Dp = 48.dp
 ) {
     IButton(
         onClick = onClick,
@@ -83,7 +83,8 @@ fun IButton(
             ButtonDefaults.ContentPadding
         },
         shape = shape,
-        importance = importance
+        importance = importance,
+        height = height
     ) {
         IButtonContent(
             text = text,
@@ -124,11 +125,12 @@ fun IIconButton(
     enabled: Boolean = true,
     leadingIcon: ImageVector,
     shape: Shape = RoundedCornerShape(size = 8.dp),
-    colors: ButtonColors = ButtonDefaults.buttonColors()
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    height: Dp = 48.dp
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.height(height),
         enabled = enabled,
         shape = shape,
         colors = colors,
@@ -150,11 +152,12 @@ fun IOutlineButton(
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     importance: ButtonImportance = ButtonImportance.Primary,
     backgroundColor: Color = MaterialTheme.colorScheme.background,
+    height: Dp = 48.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(height),
         enabled = enabled,
         border = BorderStroke(
             width = IButtonDefaults.OutlinedButtonBorderWidth,
@@ -175,7 +178,8 @@ fun IOutlineButton(
     text: @Composable () -> Unit,
     leadingIcon: @Composable() (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
-    importance: ButtonImportance = ButtonImportance.Primary // Default importance
+    importance: ButtonImportance = ButtonImportance.Primary,
+    height: Dp = 48.dp
 ) {
     IOutlineButton(
         onClick = onClick,
@@ -187,7 +191,8 @@ fun IOutlineButton(
         } else {
             ButtonDefaults.ContentPadding
         },
-        importance = importance // Pass importance
+        importance = importance,
+        height = height
     ) {
         IButtonContent(
             text = text,
@@ -238,6 +243,7 @@ fun ITextButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable() (() -> Unit)? = null,
+    height: Dp = 48.dp
 ) {
     val ITextButtonColors = textButtonColors(
         contentColor = MaterialTheme.colorScheme.primary,
@@ -246,7 +252,7 @@ fun ITextButton(
 
     TextButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.height(height),
         enabled = enabled,
         colors = ITextButtonColors,
         shape = RoundedCornerShape(size = 8.dp),
@@ -292,20 +298,22 @@ fun TravelerButtonPreview() {
         Column {
             IButton(
                 onClick = {},
-                text = { Text("Test Button") },
+                text = { Text("Standard Button") },
                 importance = ButtonImportance.Primary
             )
 
             IButton(
                 onClick = {},
-                text = { Text("Test Button") },
-                importance = ButtonImportance.Secondary
+                text = { Text("Small Button") },
+                importance = ButtonImportance.Secondary,
+                height = 32.dp
             )
 
             IButton(
                 onClick = {},
-                text = { Text("Test Button") },
-                importance = ButtonImportance.Tertiary
+                text = { Text("Large Button") },
+                importance = ButtonImportance.Tertiary,
+                height = 56.dp
             )
 
             IButton(
@@ -324,25 +332,27 @@ fun TravelerOutlineButtonPreview() {
         Column {
             IOutlineButton(
                 onClick = {},
-                text = { Text("Test Button") },
+                text = { Text("Standard Outline") },
                 importance = ButtonImportance.Primary
             )
 
             IOutlineButton(
                 onClick = {},
-                text = { Text("Test Button") },
-                importance = ButtonImportance.Secondary
+                text = { Text("Small Outline") },
+                importance = ButtonImportance.Secondary,
+                height = 36.dp
             )
 
             IOutlineButton(
                 onClick = {},
-                text = { Text("Test Button") },
-                importance = ButtonImportance.Tertiary
+                text = { Text("Large Outline") },
+                importance = ButtonImportance.Tertiary,
+                height = 52.dp
             )
 
             IOutlineButton(
                 onClick = {},
-                text = { Text("Error Button") },
+                text = { Text("Error Outline") },
                 importance = ButtonImportance.Error
             )
         }

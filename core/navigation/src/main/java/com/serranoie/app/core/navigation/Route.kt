@@ -1,5 +1,7 @@
 package com.serranoie.app.core.navigation
 
+import androidx.navigation.NavBackStackEntry
+
 sealed class Route(val route: String) {
 
     data object AppStartNavigation : Route("appStartNavigation")
@@ -14,13 +16,18 @@ sealed class Route(val route: String) {
     data object AddItinerary : Route(Screen.ADD_ITINERARY.name)
     data object EditItinerary : Route("EDIT_ITINERARY/{itemId}") {
         fun createRoute(itemId: String) = "EDIT_ITINERARY/$itemId"
-        fun itemIdFromRoute(backStackEntry: androidx.navigation.NavBackStackEntry): String? {
+        fun itemIdFromRoute(backStackEntry: NavBackStackEntry): String? {
             return backStackEntry.arguments?.getString("itemId")
         }
     }
     data object Expenses : Route(Screen.EXPENSES.name)
     data object AddExpense : Route(Screen.ADD_EXPENSE.name)
-    data object ExpenseDetails : Route(Screen.EXPENSE_DETAILS.name)
+    data object ExpenseDetails : Route("EXPENSE_DETAILS/{expenseId}") {
+        fun createRoute(expenseId: String) = "EXPENSE_DETAILS/$expenseId"
+        fun expenseIdFromRoute(backStackEntry: NavBackStackEntry): String? {
+            return backStackEntry.arguments?.getString("expenseId")
+        }
+    }
     data object Chat : Route(Screen.CHAT.name)
 
     data object TripSettings : Route("TRIP_SETTINGS/{tripId}") {

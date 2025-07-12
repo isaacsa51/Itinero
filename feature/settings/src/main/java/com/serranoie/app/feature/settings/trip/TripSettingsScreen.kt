@@ -118,15 +118,15 @@ fun TripSettingsScreen(
     Scaffold(topBar = {
         MediumTopAppBar(
             title = {
-            Text("Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }, navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Go back"
-                )
-            }
-        }, scrollBehavior = scrollBehavior
+                Text("Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }, navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Go back"
+                    )
+                }
+            }, scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         LazyColumn(
@@ -181,68 +181,67 @@ fun TripSettingsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
-    ICard(
-        modifier = Modifier.padding(16.dp), isCompleted = false, swipeable = false, content = {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "ITINERO GROUP CODE", style = MaterialTheme.typography.labelLargeEmphasized
-                )
+    ICard(modifier = Modifier.padding(16.dp), isCompleted = false, swipeable = false, content = {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "ITINERO GROUP CODE",
+                style = MaterialTheme.typography.labelLargeEmphasized
+            )
 
-                OtpDisplayField(
+            OtpDisplayField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                otpText = formattedCode
+            )
+
+            qrBitmap?.let { bitmap ->
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    otpText = formattedCode
-                )
-
-                qrBitmap?.let { bitmap ->
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
+                        .padding(8.dp)
+                        .shimmerable(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Group QR Code",
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .size(200.dp)
+                            .background(
+                                color = Color.White, shape = RoundedCornerShape(8.dp)
+                            )
                             .padding(8.dp)
-                            .shimmerable(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Group QR Code",
-                            modifier = Modifier
-                                .size(200.dp)
-                                .background(
-                                    color = Color.White, shape = RoundedCornerShape(8.dp)
-                                )
-                                .padding(8.dp)
-                        )
-                    }
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "What's this code/QR for?",
-                    style = MaterialTheme.typography.bodyLargeEmphasized,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                Text(
-                    text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Text(
-                    text = "They can only use this code within the app to join your group.\n",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Text(
-                    text = "Only the trip creator can manage group members.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
-        }, onClick = { }
-    )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "What's this code/QR for?",
+                style = MaterialTheme.typography.bodyLargeEmphasized,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "This code is your trip's unique & invitation code identifier. Share it only with people you want to invite to your Itinero planning group.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "They can only use this code within the app to join your group.\n",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = "Only the trip creator can manage group members.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }, onClick = { })
 }
 
 @Composable
@@ -502,11 +501,12 @@ private fun MembersListContent(
                         ShimmerProvider {
                             MemberItemCard(
                                 member = TripMember(
-                                id = index,
-                                name = "Loading Member",
-                                email = "loading@example.com",
-                                status = MemberStatus.PENDING
-                            ), onAccept = {}, onReject = {}, onRemove = {})
+                                    id = index,
+                                    name = "Loading Member",
+                                    surname = "Loading Surname",
+                                    email = "loading@example.com",
+                                    status = MemberStatus.PENDING
+                                ), onAccept = {}, onReject = {}, onRemove = {})
                         }
                     }
                 }
@@ -693,7 +693,11 @@ private fun TripSettingsScreenPreview() {
             qrBitmap = null,
             membersUiState = TripMembersUiState.Idle,
             currentUserMember = TripMember(
-                id = 2, name = "Test User", email = "test@example.com", status = MemberStatus.OWNER
+                id = 2,
+                name = "Test User",
+                surname = "Surname",
+                email = "test@example.com",
+                status = MemberStatus.OWNER
             ),
             onGenerateQrCode = {},
             onFetchMembers = {},

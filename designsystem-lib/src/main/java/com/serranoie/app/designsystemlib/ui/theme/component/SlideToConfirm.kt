@@ -81,6 +81,7 @@ fun SlideToConfirm(
     modifier: Modifier = Modifier,
     currentStatus: Boolean,
     onCancelPressed: () -> Unit,
+    hint: String = "Swipe to confirm",
 ): Boolean {
     val hapticFeedback = LocalHapticFeedback.current
     val swipeState = rememberSwipeableState(
@@ -111,7 +112,7 @@ fun SlideToConfirm(
         modifier = modifier,
     ) {
         Hint(
-            text = "Swipe to confirm",
+            text = hint,
             swipeFraction = swipeFraction,
             isLoading = isLoading,
             onCancelPressed = onCancelPressed,

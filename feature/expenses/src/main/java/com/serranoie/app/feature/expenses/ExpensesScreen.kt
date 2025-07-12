@@ -50,6 +50,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
 import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
 import com.serranoie.app.feature.expenses.domain.model.Expense
 import com.serranoie.app.feature.expenses.domain.model.UserExpenseSummary
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
@@ -67,7 +68,7 @@ fun ExpensesScreen(
     expenses: List<UserExpenseSummary>,
     onRefresh: () -> Unit,
     onSwiped: () -> Unit,
-    onExpenseClick: () -> Unit,
+    onExpenseClick: (String) -> Unit,
     onAddExpenseClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     currentUserId: Int
@@ -161,7 +162,7 @@ fun ExpensesScreen(
                                     expenses = expensesByDate[date].orEmpty(),
                                     isLastSection = isLastSectionWithExpenses,
                                     onExpenseClick = { expenseId ->
-                                        onExpenseClick()
+                                        onExpenseClick(expenseId)
                                     }
                                 )
                             }
@@ -208,7 +209,7 @@ fun BalanceCircles(
                         style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface)
                     )
                     Text(
-                        text = "$${String.format("%.2f", youOwe)}",
+                        text = formatCurrency(youOwe.toString()),
                         style = MaterialTheme.typography.titleLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.shimmerable()
                     )
@@ -229,7 +230,7 @@ fun BalanceCircles(
                         style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.onTertiaryContainer)
                     )
                     Text(
-                        text = "$${String.format("%.2f", youAreOwed)}",
+                        text = formatCurrency(youAreOwed.toString()),
                         style = MaterialTheme.typography.titleLargeEmphasized.copy(
                             color = MaterialTheme.colorScheme.onTertiaryContainer
                         ),
@@ -320,7 +321,9 @@ fun ExpensesDateSection(
                         isCompleted = item.isCompleted,
                         isYours = item.isYours,
                         icon = item.icon
-                    )
+                    ) {
+                        onExpenseClick(item.id.toString())
+                    }
                 }
 
                 if (!isLastSection) {
@@ -382,7 +385,7 @@ private fun ExpensesScreenSkeleton(
                             isCompleted = false,
                             isYours = false,
                             icon = Icons.Filled.Money
-                        )
+                        ) {}
 
                         Spacer(modifier = Modifier.height(4.dp))
                     }
@@ -524,7 +527,7 @@ private fun ExpensesScreenPreview() {
             expenses = mockExpenses,
             onRefresh = {},
             onSwiped = {},
-            onExpenseClick = {},
+            onExpenseClick = { _ -> },
             onAddExpenseClick = {},
             snackbarHostState = remember { SnackbarHostState() },
             currentUserId = 1
@@ -545,7 +548,7 @@ private fun ExpensesScreenPreviewLoading() {
             expenses = emptyList(),
             onRefresh = {},
             onSwiped = {},
-            onExpenseClick = {},
+            onExpenseClick = { _ -> },
             onAddExpenseClick = {},
             snackbarHostState = remember { SnackbarHostState() },
             currentUserId = 1
