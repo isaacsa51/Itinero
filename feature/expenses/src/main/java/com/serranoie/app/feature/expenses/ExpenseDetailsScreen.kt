@@ -531,7 +531,7 @@ private fun CollapsedExpenseHeader(
                         style = MaterialTheme.typography.titleLargeEmphasized
                     )
                     Text(
-                        text = "$ ${formatCurrency(expenseState.amount)}",
+                        text = formatCurrency(expenseState.amount),
                         style = MaterialTheme.typography.labelLargeEmphasized,
                     )
                 }
