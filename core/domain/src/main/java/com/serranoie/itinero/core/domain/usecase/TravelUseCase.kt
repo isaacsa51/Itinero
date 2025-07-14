@@ -1,6 +1,7 @@
 package com.serranoie.itinero.core.domain.usecase
 
 import com.serranoie.itinero.core.domain.model.CreateTrip
+import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripMember
 import com.serranoie.itinero.core.domain.model.UpdateTrip
@@ -77,8 +78,8 @@ class MakeOwnerUseCase(private val repository: TravelRepository) {
 }
 
 class GetCurrentUserMembershipStatusUseCase(private val repository: TravelRepository) {
-    suspend operator fun invoke(groupCode: String, userId: Int): Result<TripMember> =
-        repository.getCurrentUserMembershipStatus(groupCode, userId)
+    suspend operator fun invoke(groupCode: String): Result<MembershipStatus> =
+        repository.getCurrentUserMembershipStatus(groupCode)
 }
 
 class LeaveTripUseCase(private val repository: TravelRepository) {

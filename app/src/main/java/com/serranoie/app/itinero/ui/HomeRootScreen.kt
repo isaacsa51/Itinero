@@ -128,18 +128,25 @@ fun HomeRootScreen(
                     )
                     val qrBitmap by tripSettingsViewModel.qrBitmap.collectAsState()
                     val membersUiState by tripSettingsViewModel.membersUiState.collectAsState()
-                    val currentUserMember by tripSettingsViewModel.currentUserMember.collectAsState()
+                    val currentUserMembershipStatus by tripSettingsViewModel.currentUserMembershipStatus.collectAsState()
                     val authPreferencesRepository = koinInject<AuthPreferencesRepository>()
 
                     LaunchedEffect(routeTripId) {
-                        val userId = authPreferencesRepository.getUserId()
-                        userId?.let {
+                        Log.d(
+                            "ITINERO - $TAG",
+                            "Fetching current user status for tripId: $routeTripId"
+                        )
+
+                        if (routeTripId.isNotBlank()) {
                             tripSettingsViewModel.fetchCurrentUserMembershipStatus(
-                                groupCode = routeTripId,
-                                userId = it
+                                groupCode = routeTripId
+                            )
+                        } else {
+                            Log.e(
+                                "ITINERO - $TAG",
+                                "Missing tripId ($routeTripId)"
                             )
                         }
-                        Log.d("ITINERO - $TAG", "Fetching current user status, id: $userId")
                     }
 
                     TripSettingsScreen(
@@ -149,7 +156,7 @@ fun HomeRootScreen(
                         trip = tripInfo,
                         qrBitmap = qrBitmap,
                         membersUiState = membersUiState,
-                        currentUserMember = currentUserMember,
+                        currentUserMembershipStatus = currentUserMembershipStatus,
                         onGenerateQrCode = { tripId ->
                             tripSettingsViewModel.setQrText(tripId)
                             tripSettingsViewModel.generateQrCode()

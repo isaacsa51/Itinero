@@ -14,6 +14,7 @@ package com.serranoie.itinero.core.data.remote.resources
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
+import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
@@ -92,7 +93,7 @@ class ItineroApiImpl(
         post<Unit, Unit>("/trips/$groupCode/members/$idMember/make-owner")
     }
 
-    override suspend fun getCurrentUserMembershipStatus(groupCode: String): List<TripMemberDto> {
-        return get("/trips/$groupCode/members")
+    override suspend fun getCurrentUserMembershipStatus(groupCode: String): MembershipStatusDto {
+        return get("/trips/$groupCode/member/status")
     }
 }

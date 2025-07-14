@@ -17,7 +17,15 @@ import kotlinx.serialization.Serializable
 data class TripMemberDto(
     val id: Int,
     val name: String,
-    val surname: String,
+    val surname: String? = null,
     val email: String,
     val status: String
+)
+
+@Serializable
+data class MembershipStatusDto(
+    val status: String,
+    val isOwner: Boolean,
+    val isMember: Boolean,
+    val isPending: Boolean
 )

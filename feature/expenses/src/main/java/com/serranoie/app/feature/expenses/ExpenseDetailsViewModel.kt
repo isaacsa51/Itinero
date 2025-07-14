@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.serranoie.app.feature.expenses.domain.model.CreateDebtor
 import com.serranoie.app.feature.expenses.domain.model.CreateExpense
 import com.serranoie.app.feature.expenses.domain.model.Expense
+import com.serranoie.app.feature.expenses.domain.model.ExpenseDebtor
 import com.serranoie.app.feature.expenses.domain.usecase.ExpensesUseCases
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import com.serranoie.itinero.core.domain.model.MemberStatus
@@ -50,7 +51,9 @@ class ExpenseDetailsViewModel(
         val showPaymentMethodDropdown: Boolean = false,
         val showDatePicker: Boolean = false,
         val showSuccessMessage: Boolean = false,
-        val errorMessage: String? = null
+        val errorMessage: String? = null,
+        val isMarkingAsPaid: Boolean = false,
+        val currentUserDebtorStatus: Boolean = false
     )
 
     private val _uiState = MutableStateFlow<ExpensesUiState>(ExpensesUiState.Idle)
@@ -183,10 +186,6 @@ class ExpenseDetailsViewModel(
 
                 when (val result = expensesUseCase.addExpenseUseCase(currentGroupCode, request)) {
                     is Result.Success -> {
-                        Log.d(
-                            "ExpenseDetailsViewModel",
-                            "Expense created successfully: ${result.data}"
-                        )
                         _uiState.value = ExpensesUiState.Success(result.data)
                         _formUiState.update {
                             it.copy(
@@ -366,6 +365,12 @@ class ExpenseDetailsViewModel(
             }
             _groupMembers.value = members
         }
+
+        // Check current user debtor status
+        val currentUserDebtor = getCurrentUserDebtorInfo()
+        _formUiState.update {
+            it.copy(currentUserDebtorStatus = currentUserDebtor != null)
+        }
     }
 
     fun updateExpenseName(name: String) {
@@ -536,6 +541,64 @@ class ExpenseDetailsViewModel(
         _uiState.value = ExpensesUiState.Idle
         _formUiState.value = UIState()
         _expenseState.value = ExpenseState(notes = null)
+    }
+
+    fun isCurrentUserExpenseCreator(): Boolean {
+        val currentExpense = _selectedExpense.value
+        val currentUser = _currentUserId.value
+        return currentExpense?.paidByUserId == currentUser
+    }
+
+    fun getCurrentUserDebtorInfo(): ExpenseDebtor? {
+        val currentExpense = _selectedExpense.value
+        val currentUser = _currentUserId.value
+        return currentExpense?.debtors?.find { it.userId == currentUser }
+    }
+
+    fun markCurrentUserDebtorAsPaid() {
+        val currentExpense = _selectedExpense.value ?: return
+        val currentUser = _currentUserId.value ?: return
+
+        _formUiState.update { it.copy(isMarkingAsPaid = true) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // TODO: Implement actual API call to mark debtor as paid
+                // For now, simulate the API call
+                delay(1000)
+
+                // Update local state
+                _formUiState.update {
+                    it.copy(
+                        isMarkingAsPaid = false,
+                        currentUserDebtorStatus = true
+                    )
+                }
+
+                // Show success message
+                _formUiState.update {
+                    it.copy(showSuccessMessage = true)
+                }
+                clearSuccessMessageAfterDelay()
+
+            } catch (e: Exception) {
+                _formUiState.update {
+                    it.copy(
+                        isMarkingAsPaid = false,
+                        errorMessage = "Failed to mark as paid: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun cancelMarkAsPaid() {
+        _formUiState.update {
+            it.copy(
+                isMarkingAsPaid = false,
+                currentUserDebtorStatus = false
+            )
+        }
     }
 }
 

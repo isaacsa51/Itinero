@@ -10,6 +10,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.TripMember
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
@@ -38,8 +39,8 @@ class TripSettingsViewModel(
     private val _membersUiState = MutableStateFlow<TripMembersUiState>(TripMembersUiState.Idle)
     val membersUiState: StateFlow<TripMembersUiState> = _membersUiState
 
-    private val _currentUserMember = MutableStateFlow<TripMember?>(null)
-    val currentUserMember: StateFlow<TripMember?> = _currentUserMember
+    private val _currentUserMembershipStatus = MutableStateFlow<MembershipStatus?>(null)
+    val currentUserMembershipStatus: StateFlow<MembershipStatus?> = _currentUserMembershipStatus
 
     companion object {
         private const val TAG = "TripSettingsViewModel"
@@ -77,16 +78,35 @@ class TripSettingsViewModel(
         }
     }
 
-    fun fetchCurrentUserMembershipStatus(groupCode: String, userId: Int) {
+    fun fetchCurrentUserMembershipStatus(groupCode: String) {
         viewModelScope.launch {
-            when (val result = travelUseCase.getCurrentUserMembershipStatus(groupCode, userId)) {
-                is Result.Success -> {
-                    _currentUserMember.value = result.data
-                }
+            try {
+                android.util.Log.d(
+                    TAG,
+                    "Fetching user membership status for groupCode: $groupCode"
+                )
 
-                is Result.Error -> {
-                    _currentUserMember.value = null
+                when (val result =
+                    travelUseCase.getCurrentUserMembershipStatus(groupCode)) {
+                    is Result.Success -> {
+                        android.util.Log.d(
+                            TAG,
+                            "Successfully fetched user membership: ${result.data}"
+                        )
+                        _currentUserMembershipStatus.value = result.data
+                    }
+
+                    is Result.Error -> {
+                        android.util.Log.e(
+                            TAG,
+                            "Failed to fetch user membership: ${result.exception.message}"
+                        )
+                        _currentUserMembershipStatus.value = null
+                    }
                 }
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Exception in fetchCurrentUserMembershipStatus", e)
+                _currentUserMembershipStatus.value = null
             }
         }
     }
@@ -157,7 +177,6 @@ class TripSettingsViewModel(
     fun makeOwner(
         groupCode: String,
         memberId: Int,
-        currentUserId: Int,
         onSuccess: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
@@ -166,7 +185,7 @@ class TripSettingsViewModel(
                 is Result.Success -> {
                     onSuccess()
                     fetchMembers(groupCode)
-                    fetchCurrentUserMembershipStatus(groupCode, currentUserId)
+                    fetchCurrentUserMembershipStatus(groupCode)
                 }
 
                 is Result.Error -> {

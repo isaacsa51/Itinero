@@ -127,6 +127,8 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
         val formUiState by viewModel.formUiState.collectAsState()
         val splitType by viewModel.splitType.collectAsState()
         val groupMembers by viewModel.groupMembers.collectAsState()
+        val selectedExpense by viewModel.selectedExpense.collectAsState()
+        val currentUserId by viewModel.currentUserId.collectAsState()
 
         LaunchedEffect(expenseId) {
             viewModel.getExpenseById(expenseId)
@@ -140,6 +142,18 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
             groupMembers = groupMembers,
             persons = viewModel.persons,
             paymentMethods = viewModel.paymentMethods,
+            selectedExpense = selectedExpense,
+            currentUserId = currentUserId,
+            onMarkAsPaid = viewModel::markCurrentUserDebtorAsPaid,
+            onCancelMarkAsPaid = viewModel::cancelMarkAsPaid,
+            onDeleteExpense = {
+                viewModel.deleteExpense(expenseId)
+                navController.popBackStack()
+            },
+            onEditExpense = {
+                // TODO: Navigate to edit expense screen or enable edit mode
+                // For now, just show a message
+            }
         )
     }
 }

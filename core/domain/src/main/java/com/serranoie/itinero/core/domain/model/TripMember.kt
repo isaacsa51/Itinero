@@ -23,6 +23,14 @@ data class TripMember(
 )
 
 @Serializable
+data class MembershipStatus(
+    val status: String,
+    val isOwner: Boolean,
+    val isMember: Boolean,
+    val isPending: Boolean
+)
+
+@Serializable
 enum class MemberStatus(val value: String) {
     PENDING("PENDING"), ACCEPTED("ACCEPTED"), OWNER("OWNER");
 

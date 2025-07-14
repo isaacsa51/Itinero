@@ -11,8 +11,10 @@
 
 package com.serranoie.itinero.core.data.mappers
 
+import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
 import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
 import com.serranoie.itinero.core.domain.model.MemberStatus
+import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.TripMember
 
 /**
@@ -22,9 +24,21 @@ fun TripMemberDto.toDomain(): TripMember {
     return TripMember(
         id = this.id,
         name = this.name,
-        surname = this.surname,
+        surname = this.surname ?: "",
         email = this.email,
         status = MemberStatus.fromString(this.status)
+    )
+}
+
+/**
+ * Extension function to convert MembershipStatusDto to MembershipStatus domain model
+ */
+fun MembershipStatusDto.toDomain(): MembershipStatus {
+    return MembershipStatus(
+        status = this.status,
+        isOwner = this.isOwner,
+        isMember = this.isMember,
+        isPending = this.isPending
     )
 }
 
@@ -35,7 +49,7 @@ fun TripMember.toDto(): TripMemberDto {
     return TripMemberDto(
         id = this.id,
         name = this.name,
-        surname = this.surname,
+        surname = this.surname.takeIf { it.isNotBlank() },
         email = this.email,
         status = this.status.value
     )

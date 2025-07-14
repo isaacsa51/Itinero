@@ -7,6 +7,7 @@ import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.domain.model.CreateTrip
+import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripMember
 import com.serranoie.itinero.core.domain.model.UpdateTrip
@@ -272,24 +273,10 @@ class TravelRepositoryImpl(
     }
 
     override suspend fun getCurrentUserMembershipStatus(
-        groupCode: String,
-        userId: Int
-    ): Result<TripMember> {
-        return when (val result =
-            safeApiCall { api.getAllMembers(groupCode).map { it.toDomain() } }) {
-            is Result.Success -> {
-                // Find the specific user by their ID
-                val currentUserMember = result.data.find { member ->
-                    member.id == userId
-                }
-
-                if (currentUserMember != null) {
-                    Result.Success(currentUserMember)
-                } else {
-                    Result.Error(Exception("User with ID $userId not found in trip members"))
-                }
-            }
-            is Result.Error -> result
+        groupCode: String
+    ): Result<MembershipStatus> {
+        return safeApiCall {
+            api.getCurrentUserMembershipStatus(groupCode).toDomain()
         }
     }
 

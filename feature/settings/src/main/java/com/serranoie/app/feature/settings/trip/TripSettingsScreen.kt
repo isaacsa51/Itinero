@@ -1,6 +1,7 @@
 package com.serranoie.app.feature.settings.trip
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -72,10 +73,10 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.MemberStatus
+import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripMember
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +87,7 @@ fun TripSettingsScreen(
     trip: Trip?,
     qrBitmap: Bitmap?,
     membersUiState: TripMembersUiState,
-    currentUserMember: TripMember?,
+    currentUserMembershipStatus: MembershipStatus?,
     onGenerateQrCode: (String) -> Unit,
     onFetchMembers: (String) -> Unit,
     onAcceptMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
@@ -147,7 +148,11 @@ fun TripSettingsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            if (currentUserMember?.status?.value == "OWNER") {
+            Log.d(
+                "ITINERO - TripSettingsScreen",
+                "membersUiState: $membersUiState, currentUserMembershipStatus: $currentUserMembershipStatus"
+            )
+            if (currentUserMembershipStatus?.isOwner == true) {
                 item {
                     GroupManagementSection(
                         tripId = tripId,
@@ -168,7 +173,7 @@ fun TripSettingsScreen(
 
             // Danger Zone
             item {
-                DangerZoneSection(currentUserStatus = currentUserMember?.status?.value)
+                DangerZoneSection(currentUserMembershipStatus = currentUserMembershipStatus)
             }
 
             item {
@@ -420,39 +425,16 @@ private fun GroupManagementSection(
                 ) {
                     MembersListContent(
                         membersUiState = membersUiState,
-                        onAcceptMember = { memberId, index ->
-                            onAcceptMember(tripId, memberId.id, {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Member accepted")
-                                }
-                            }, { error ->
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Error: $error")
-                                }
-                            })
+                        onAcceptMember = { member, onAccept, onError ->
+                            onAcceptMember(tripId, member.id, onAccept, onError)
                         },
-                        onRejectMember = { memberId, index ->
-                            onRejectMember(tripId, memberId.id, {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Member rejected")
-                                }
-                            }, { error ->
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Error: $error")
-                                }
-                            })
+                        onRejectMember = { member, onReject, onError ->
+                            onRejectMember(tripId, member.id, onReject, onError)
                         },
-                        onRemoveMember = { memberId, index ->
-                            onRemoveMember(tripId, memberId.id, {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Member removed")
-                                }
-                            }, { error ->
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Error: $error")
-                                }
-                            })
-                        })
+                        onRemoveMember = { member, onRemove, onError ->
+                            onRemoveMember(tripId, member.id, onRemove, onError)
+                        }
+                    )
                 }
             })
 
@@ -481,9 +463,9 @@ private fun GroupManagementSection(
 @Composable
 private fun MembersListContent(
     membersUiState: TripMembersUiState,
-    onAcceptMember: (TripMember, () -> Unit) -> Unit,
-    onRejectMember: (TripMember, () -> Unit) -> Unit,
-    onRemoveMember: (TripMember, () -> Unit) -> Unit
+    onAcceptMember: (TripMember, () -> Unit, (String) -> Unit) -> Unit,
+    onRejectMember: (TripMember, () -> Unit, (String) -> Unit) -> Unit,
+    onRemoveMember: (TripMember, () -> Unit, (String) -> Unit) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -524,9 +506,9 @@ private fun MembersListContent(
                     membersUiState.members.forEach { member ->
                         MemberItemCard(
                             member = member,
-                            onAccept = { onAcceptMember(member) {} },
-                            onReject = { onRejectMember(member) {} },
-                            onRemove = { onRemoveMember(member) {} },
+                            onAccept = { onAcceptMember(member, {}, {}) },
+                            onReject = { onRejectMember(member, {}, {}) },
+                            onRemove = { onRemoveMember(member, {}, {}) },
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -622,7 +604,7 @@ private fun MemberItemCard(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun DangerZoneSection(currentUserStatus: String?) {
+private fun DangerZoneSection(currentUserMembershipStatus: MembershipStatus?) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
             text = "DANGER ZONE", style = MaterialTheme.typography.labelLargeEmphasized.copy(
@@ -645,7 +627,7 @@ private fun DangerZoneSection(currentUserStatus: String?) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (currentUserStatus == "OWNER") {
+        if (currentUserMembershipStatus?.isOwner == true) {
             IButton(
                 text = {
                     Text(
@@ -692,12 +674,11 @@ private fun TripSettingsScreenPreview() {
             ),
             qrBitmap = null,
             membersUiState = TripMembersUiState.Idle,
-            currentUserMember = TripMember(
-                id = 2,
-                name = "Test User",
-                surname = "Surname",
-                email = "test@example.com",
-                status = MemberStatus.OWNER
+            currentUserMembershipStatus = MembershipStatus(
+                status = "OWNER",
+                isOwner = true,
+                isMember = true,
+                isPending = false
             ),
             onGenerateQrCode = {},
             onFetchMembers = {},

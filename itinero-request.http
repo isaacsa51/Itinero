@@ -1,7 +1,7 @@
 ### Environment Variables
 @base_url = http://127.0.0.1:8080
 @auth_token = {{auth_token}}
-@group_code = ITN-37571
+@group_code = ITN-14025
 
 ### ========================================
 ### AUTHENTICATION ENDPOINTS
@@ -12,10 +12,10 @@ POST {{base_url}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "admin",
-  "surname": "Test",
+  "name": "Ani",
+  "surname": "Test 2",
   "phone": "1234567890",
-  "email": "user1",
+  "email": "ani",
   "password": "root"
 }
 
@@ -24,7 +24,7 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "user1",
+  "email": "admin",
   "password": "root"
 }
 
@@ -46,22 +46,22 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "destination": "Alemania",
-  "groupName": "Invite accepted test",
-  "startDate": "2025-12-12",
+  "destination": "GERMANY",
+  "groupName": "Itinero Group Test",
+  "startDate": "2025-06-15",
   "endDate": "2026-06-09",
-  "summary": "test summary",
+  "summary": "Brief summary about the current trip to Germany, this way I can test some things...",
   "accommodation": {
     "name": "Hotel Hilton",
-    "phone": "1231231231",
-    "checkIn": "2025-12-12",
-    "checkOut": "2026-06-09",
+    "phone": "12345678910",
+    "checkIn": "2025-06-15",
+    "checkOut": "2026-06-08",
     "location": "Tokyo Downtown",
     "mapUri": "https://maps.google.com/..."
   },
   "reservationCode": "1512361",
-  "extraInfo": "don't have any",
-  "additionalInfo": "free breakfast"
+  "extraInfo": "Seems like the hotel doesn't include breakfast. What a bummer. lol",
+  "additionalInfo": "Is this really necessary?"
 }
 
 ### Get specific trip by group code
@@ -140,7 +140,7 @@ POST {{base_url}}/trips/{{group_code}}/members/{{member_id_to_remove}}/make-owne
 Authorization: Bearer {{auth_token}}
 
 ### Get current user's membership status in trip
-GET {{base_url}}/trips/{{group_code}}/members/me
+GET {{base_url}}/trips/{{group_code}}/member/status
 Authorization: Bearer {{auth_token}}
 
 ### Leave trip (for members who want to leave)

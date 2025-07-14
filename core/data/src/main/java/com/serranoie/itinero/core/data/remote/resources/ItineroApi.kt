@@ -13,6 +13,7 @@ package com.serranoie.itinero.core.data.remote.resources
 
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
+import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
 import com.serranoie.itinero.core.domain.model.UpdateTrip
@@ -43,5 +44,5 @@ interface ItineroApi {
     suspend fun rejectMember(groupCode: String, idMember: Int)
     suspend fun removeMember(groupCode: String, idMember: Int)
     suspend fun makeOwner(groupCode: String, idMember: Int)
-    suspend fun getCurrentUserMembershipStatus(groupCode: String): List<TripMemberDto>
+    suspend fun getCurrentUserMembershipStatus(groupCode: String): MembershipStatusDto
 }

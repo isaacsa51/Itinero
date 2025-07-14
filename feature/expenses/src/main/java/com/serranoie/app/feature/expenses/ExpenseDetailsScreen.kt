@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.expenses
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -20,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -28,15 +30,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -57,6 +60,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
 import com.serranoie.app.designsystemlib.ui.theme.component.SlideToConfirm
 import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
@@ -65,6 +70,8 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
+import com.serranoie.app.feature.expenses.domain.model.Expense
+import com.serranoie.app.feature.expenses.domain.model.ExpenseDebtor
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import com.serranoie.app.feature.expenses.util.ExpenseSplitType
 import com.serranoie.app.feature.expenses.util.icon
@@ -78,13 +85,34 @@ fun ExpenseDetailsScreen(
     groupMembers: List<GroupMember>,
     persons: List<String>,
     paymentMethods: List<String>,
-    isLoading: Boolean = false
+    selectedExpense: Expense? = null,
+    currentUserId: Int? = null,
+    isLoading: Boolean = false,
+    onMarkAsPaid: () -> Unit = {},
+    onCancelMarkAsPaid: () -> Unit = {},
+    onDeleteExpense: () -> Unit = {},
+    onEditExpense: () -> Unit = {}
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(formUiState.showSuccessMessage) {
+        if (formUiState.showSuccessMessage) {
+            snackbarHostState.showSnackbar("Operation completed successfully!")
+        }
+    }
+
+    LaunchedEffect(formUiState.errorMessage) {
+        formUiState.errorMessage?.let { error ->
+            snackbarHostState.showSnackbar(error)
+        }
+    }
+
     if (isLoading) {
         ExpenseDetailSkeleton()
         return
     }
 
+    val isCurrentUserCreator = selectedExpense?.paidByUserId == currentUserId
     val paidByUserId = expenseState.paidByUserId
     val owesItems = groupMembers.filter { it.userId != paidByUserId }.map {
         OwesData(
@@ -94,6 +122,12 @@ fun ExpenseDetailsScreen(
 
     val expenseSplitType = ExpenseSplitType.fromSplitTypeName(splitType.name)
 
+    val currentUserDebtor = remember {
+        derivedStateOf {
+            selectedExpense?.debtors?.find { it.userId == currentUserId }
+        }
+    }
+
     ExpenseDetailsScreenWithData(
         navController = navController,
         expenseState = expenseState,
@@ -102,7 +136,15 @@ fun ExpenseDetailsScreen(
         groupMembers = groupMembers,
         persons = persons,
         paymentMethods = paymentMethods,
-        owesItems = owesItems
+        owesItems = owesItems,
+        selectedExpense = selectedExpense,
+        isCurrentUserCreator = isCurrentUserCreator,
+        currentUserDebtor = currentUserDebtor.value,
+        snackbarHostState = snackbarHostState,
+        onMarkAsPaid = onMarkAsPaid,
+        onCancelMarkAsPaid = onCancelMarkAsPaid,
+        onDeleteExpense = onDeleteExpense,
+        onEditExpense = onEditExpense
     )
 }
 
@@ -116,7 +158,15 @@ private fun ExpenseDetailsScreenWithData(
     groupMembers: List<GroupMember>,
     persons: List<String>,
     paymentMethods: List<String>,
-    owesItems: List<OwesData>
+    owesItems: List<OwesData>,
+    selectedExpense: Expense?,
+    isCurrentUserCreator: Boolean,
+    currentUserDebtor: ExpenseDebtor?,
+    snackbarHostState: SnackbarHostState,
+    onMarkAsPaid: () -> Unit,
+    onCancelMarkAsPaid: () -> Unit,
+    onDeleteExpense: () -> Unit,
+    onEditExpense: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -128,6 +178,7 @@ private fun ExpenseDetailsScreenWithData(
     val headerTranslation = (expandedAppBarHeight / 2)
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Column(
                 modifier = Modifier
@@ -138,7 +189,9 @@ private fun ExpenseDetailsScreenWithData(
                     navController = navController,
                     modifier = Modifier,
                     visible = !appBarExpanded,
-                    expenseState = expenseState
+                    expenseState = expenseState,
+                    isCurrentUserCreator = isCurrentUserCreator,
+                    onEditExpense = onEditExpense
                 )
                 TopAppBar(
                     title = {
@@ -172,47 +225,16 @@ private fun ExpenseDetailsScreenWithData(
                     owesItems = owesItems,
                     notes = expenseState.notes,
                     date = expenseState.date,
-                    paymentMethod = expenseState.paymentMethod
+                    paymentMethod = expenseState.paymentMethod,
+                    isCurrentUserCreator = isCurrentUserCreator,
+                    currentUserDebtor = currentUserDebtor,
+                    formUiState = formUiState,
+                    onMarkAsPaid = onMarkAsPaid,
+                    onCancelMarkAsPaid = onCancelMarkAsPaid,
+                    onDeleteExpense = onDeleteExpense
                 )
                 Spacer(modifier = Modifier.height(basePadding))
             }
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ExpenseInfoHeader(
-    date: String, paymentMethod: String
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier.padding(vertical = basePadding)
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                modifier = Modifier.shimmerable(),
-                text = "Expense creation:", style = MaterialTheme.typography.titleMediumEmphasized
-            )
-            Text(
-                modifier = Modifier.shimmerable(),
-                text = date, style = MaterialTheme.typography.titleMedium
-            )
-        }
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                modifier = Modifier.shimmerable(),
-                text = "Paid using:", style = MaterialTheme.typography.titleMediumEmphasized
-            )
-            Text(
-                modifier = Modifier.shimmerable(),
-                text = paymentMethod, style = MaterialTheme.typography.titleMedium
-            )
         }
     }
 }
@@ -225,15 +247,19 @@ private fun ExpenseDetailsCard(
     owesItems: List<OwesData>,
     notes: String?,
     date: String,
-    paymentMethod: String
+    paymentMethod: String,
+    isCurrentUserCreator: Boolean,
+    currentUserDebtor: ExpenseDebtor?,
+    formUiState: ExpenseDetailsViewModel.UIState,
+    onMarkAsPaid: () -> Unit,
+    onCancelMarkAsPaid: () -> Unit,
+    onDeleteExpense: () -> Unit
 ) {
-    var isLoading by remember { mutableStateOf(false) }
-
     TicketView(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            PaidBySection(paidBy = paidBy)
+            PaidBySection(paidBy = paidBy, isCurrentUserCreator = isCurrentUserCreator)
 
             HorizontalDivider(
                 modifier = Modifier.padding(
@@ -273,19 +299,85 @@ private fun ExpenseDetailsCard(
 
             Spacer(modifier = Modifier.height(basePadding))
 
-            SlideToConfirm(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = smallPadding)
-                    .padding(bottom = mediumPadding),
-                isLoading = isLoading,
-                onAcceptSwipe = {
-                    isLoading = true
-                    // TODO: Implement confirm logic
-                },
-                currentStatus = false,
-                onCancelPressed = { isLoading = false },
-                hint = "Confirm payment"
+            if (isCurrentUserCreator) {
+                IButton(
+                    onClick = onDeleteExpense,
+                    text = { Text("Delete Expense") },
+                    importance = ButtonImportance.Error,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = smallPadding)
+                        .padding(bottom = mediumPadding)
+                )
+            } else {
+                Column(
+                    modifier = Modifier.padding(horizontal = smallPadding)
+                ) {
+                    // Show user's share amount if available
+                    currentUserDebtor?.let { debtor ->
+                        Text(
+                            text = "Your share: ${formatCurrency(debtor.amount.toString())}",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    SlideToConfirm(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = mediumPadding),
+                        isLoading = formUiState.isMarkingAsPaid,
+                        currentStatus = formUiState.currentUserDebtorStatus,
+                        onAcceptSwipe = onMarkAsPaid,
+                        onCancelPressed = onCancelMarkAsPaid,
+                        hint = if (formUiState.currentUserDebtorStatus)
+                            "Already marked as paid"
+                        else
+                            "Swipe to mark as paid"
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ExpenseInfoHeader(
+    date: String, paymentMethod: String
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(vertical = basePadding)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                modifier = Modifier.shimmerable(),
+                text = "Expense creation:", style = MaterialTheme.typography.titleMediumEmphasized
+            )
+            Text(
+                modifier = Modifier.shimmerable(),
+                text = date, style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                modifier = Modifier.shimmerable(),
+                text = "Paid using:", style = MaterialTheme.typography.titleMediumEmphasized
+            )
+            Text(
+                modifier = Modifier.shimmerable(),
+                text = paymentMethod, style = MaterialTheme.typography.titleMedium
             )
         }
     }
@@ -326,7 +418,7 @@ private fun RemainingToPaySection(owesItems: List<OwesData>) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun PaidBySection(paidBy: String) {
+private fun PaidBySection(paidBy: String, isCurrentUserCreator: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -339,12 +431,18 @@ private fun PaidBySection(paidBy: String) {
             text = "Paid by",
             style = MaterialTheme.typography.headlineSmallEmphasized
         )
-        IconButton(
-            modifier = Modifier.shimmerable(), onClick = { /* Implement edit action */ }) {
-            Icon(
-                imageVector = Icons.Filled.Edit,
-                contentDescription = "Edit Paid by",
-            )
+
+        // Only show edit button if user is the creator
+        if (isCurrentUserCreator) {
+            IconButton(
+                modifier = Modifier.shimmerable(),
+                onClick = { /* Implement edit action */ }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = "Edit Paid by",
+                )
+            }
         }
     }
     Text(
@@ -500,14 +598,15 @@ fun OwesItem(
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CollapsedExpenseHeader(
     navController: NavController,
     modifier: Modifier,
     visible: Boolean,
-    expenseState: ExpenseDetailsViewModel.ExpenseState
+    expenseState: ExpenseDetailsViewModel.ExpenseState,
+    isCurrentUserCreator: Boolean,
+    onEditExpense: () -> Unit
 ) {
     TopAppBar(
         modifier = modifier,
@@ -537,6 +636,16 @@ private fun CollapsedExpenseHeader(
                 }
             }
         },
+        actions = {
+            if (isCurrentUserCreator) {
+                IconButton(onClick = onEditExpense) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit expense"
+                    )
+                }
+            }
+        }
     )
 }
 
@@ -642,13 +751,12 @@ fun CutoutTicketDivider(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ExpenseDetailSkeleton() {
+fun ExpenseDetailSkeleton() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(basePadding)
     ) {
-        // Header skeleton
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -671,12 +779,10 @@ private fun ExpenseDetailSkeleton() {
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Details card skeleton
         TicketView(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // Paid by section skeleton
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -711,7 +817,6 @@ private fun ExpenseDetailSkeleton() {
                     )
                 )
                 
-                // Expense info skeleton
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.padding(vertical = basePadding)
@@ -748,7 +853,6 @@ private fun ExpenseDetailSkeleton() {
                     }
                 }
                 
-                // Additional info skeleton
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
@@ -785,7 +889,6 @@ private fun ExpenseDetailSkeleton() {
                     )
                 )
                 
-                // Who owes skeleton
                 Text(
                     text = "Who owes",
                     style = MaterialTheme.typography.headlineSmallEmphasized,
@@ -838,7 +941,6 @@ private fun ExpenseDetailSkeleton() {
                     )
                 )
                 
-                // Remaining to pay skeleton
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -865,7 +967,6 @@ private fun ExpenseDetailSkeleton() {
                     )
                 )
                 
-                // Notes skeleton
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "Extra information",
@@ -879,13 +980,12 @@ private fun ExpenseDetailSkeleton() {
                     )
                     Spacer(modifier = Modifier.height(basePadding))
                     ITextButton(
-                        onClick = { },
+                        onClick = {},
                         height = 32.dp,
                         text = {
                             Text(
                                 "See attached receipt",
-                                style = MaterialTheme.typography.labelMediumEmphasized,
-                                modifier = Modifier.shimmerable()
+                                style = MaterialTheme.typography.labelMediumEmphasized
                             )
                         },
                     )
@@ -893,7 +993,6 @@ private fun ExpenseDetailSkeleton() {
                 
                 Spacer(modifier = Modifier.height(basePadding))
                 
-                // Slide to confirm skeleton
                 SlideToConfirm(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -968,7 +1067,8 @@ private fun ExpenseDetailsScreenPreview() {
                 )
             ),
             persons = listOf("John Smith", "Alice Jones", "Charlie Brown"),
-            paymentMethods = listOf("Cash", "Debit Card", "Credit Card")
+            paymentMethods = listOf("Cash", "Debit Card", "Credit Card"),
+            currentUserId = 2
         )
     }
 }

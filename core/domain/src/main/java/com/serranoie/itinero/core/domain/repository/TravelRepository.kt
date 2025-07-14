@@ -1,6 +1,7 @@
 package com.serranoie.itinero.core.domain.repository
 
 import com.serranoie.itinero.core.domain.model.CreateTrip
+import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripMember
 import com.serranoie.itinero.core.domain.model.UpdateTrip
@@ -20,6 +21,6 @@ interface TravelRepository {
     suspend fun rejectMember(groupCode: String, idMember: Int): Result<Unit>
     suspend fun removeMember(groupCode: String, idMember: Int): Result<Unit>
     suspend fun makeOwner(groupCode: String, idMember: Int): Result<Unit>
-    suspend fun getCurrentUserMembershipStatus(groupCode: String, userId: Int): Result<TripMember>
+    suspend fun getCurrentUserMembershipStatus(groupCode: String): Result<MembershipStatus>
     suspend fun leaveTrip(groupCode: String): Result<Unit>
 }
