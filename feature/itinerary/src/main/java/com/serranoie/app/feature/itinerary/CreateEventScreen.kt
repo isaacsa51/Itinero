@@ -35,6 +35,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
@@ -76,6 +77,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.SlideToConfirm
+import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.formatMyDate
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
@@ -741,28 +743,27 @@ private fun SaveButtonSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isEditMode) {
-                SlideToConfirm(
+                Column(
                     modifier = Modifier
                         .padding(top = 16.dp)
-                        .weight(1f),
-                    isLoading = isCompleted,
-                    currentStatus = isCompleted,
-                    onAcceptSwipe = {
-                        if (!isCompleted) {
-                            coroutineScope.launch {
-                                existingItem?.id?.let { onCompleted(it) }
+                        .weight(1f)
+                ) {
+                    SwipeButton (
+                        text = if (isCompleted) "Mark as not completed" else "Mark as completed",
+                        isComplete = isCompleted,
+                        onSwipe = {
+                            if (!isCompleted) {
+                                coroutineScope.launch {
+                                    existingItem?.id?.let { onCompleted(it) }
+                                }
+                            } else {
+                                coroutineScope.launch {
+                                    existingItem?.id?.let { onCompleted(it) }
+                                }
                             }
                         }
-                    },
-                    onCancelPressed = {
-                        if (isCompleted) {
-                            coroutineScope.launch {
-                                existingItem?.id?.let { onCompleted(it) }
-                            }
-                        }
-                    },
-                )
-
+                    )
+                }
             }
         }
 

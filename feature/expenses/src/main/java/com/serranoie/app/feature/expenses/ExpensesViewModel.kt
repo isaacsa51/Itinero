@@ -63,8 +63,15 @@ class ExpensesViewModel(
                         )
                     }
                     .collect { summaries ->
-                        _userExpenseSummaries.value = summaries
-                        _uiState.value = ExpensesUiState.Success(summaries)
+                        val processedSummaries = summaries.map { summary ->
+                            summary.copy(
+                                expenses = summary.expenses.map { expense ->
+                                    expense.copy(isCompleted = isExpenseCompleted(expense))
+                                }
+                            )
+                        }
+                        _userExpenseSummaries.value = processedSummaries
+                        _uiState.value = ExpensesUiState.Success(processedSummaries)
                     }
             } catch (e: Exception) {
                 _uiState.value = ExpensesUiState.Error(
@@ -74,13 +81,21 @@ class ExpensesViewModel(
         }
     }
 
+    private fun isExpenseCompleted(expense: Expense): Boolean {
+        return expense.debtors.isNotEmpty() && expense.debtors.all { debtor ->
+            debtor.hasPaid
+        }
+    }
+
     fun getExpenseById(groupCode: String, expenseId: String, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = ExpensesUiState.Loading
             when (val result = expensesUseCases.getExpenseByIdUseCase(groupCode, expenseId)) {
                 is Result.Success -> {
-                    _selectedExpense.value = result.data
-                    _uiState.value = ExpensesUiState.Success(result.data)
+                    val processedExpense =
+                        result.data.copy(isCompleted = isExpenseCompleted(result.data))
+                    _selectedExpense.value = processedExpense
+                    _uiState.value = ExpensesUiState.Success(processedExpense)
                 }
                 is Result.Error -> {
                     _uiState.value = ExpensesUiState.Error(
@@ -96,7 +111,9 @@ class ExpensesViewModel(
             _uiState.value = ExpensesUiState.Loading
             when (val result = expensesUseCases.addExpenseUseCase(groupCode, expense)) {
                 is Result.Success -> {
-                    _uiState.value = ExpensesUiState.Success(result.data)
+                    val processedExpense =
+                        result.data.copy(isCompleted = isExpenseCompleted(result.data))
+                    _uiState.value = ExpensesUiState.Success(processedExpense)
                     if (currentGroupCode.isNotEmpty()) {
                         fetchUserExpenseSummaries(currentGroupCode, forceRefresh = true)
                     }
@@ -139,6 +156,9 @@ class ExpensesViewModel(
                     _userExpenseSummaries.value = _userExpenseSummaries.value.map { summary ->
                         summary.copy(
                             expenses = summary.expenses.filter { it.id.toString() != expenseId }
+                                .map { expense ->
+                                    expense.copy(isCompleted = isExpenseCompleted(expense))
+                                }
                         )
                     }
                     if (_selectedExpense.value?.id.toString() == expenseId) {

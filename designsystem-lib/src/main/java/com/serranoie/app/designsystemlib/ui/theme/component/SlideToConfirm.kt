@@ -11,6 +11,13 @@
 
 package com.serranoie.app.designsystemlib.ui.theme.component
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -18,24 +25,29 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -50,15 +62,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.SwipeProgress
@@ -68,7 +83,9 @@ import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.largePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.sliderHeight
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import kotlin.math.roundToInt
@@ -76,12 +93,12 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalWearMaterialApi::class)
 @Composable
 fun SlideToConfirm(
-    isLoading: Boolean,
-    onAcceptSwipe: () -> Unit,
+    text: String,
+    isComplete: Boolean,
+    onSwipe: () -> Unit,
     modifier: Modifier = Modifier,
-    currentStatus: Boolean,
-    onCancelPressed: () -> Unit,
-    hint: String = "Swipe to confirm",
+    doneImageVector: ImageVector = Icons.Rounded.Done,
+    backgroundColor: Color = MaterialTheme.colorScheme.tertiary,
 ): Boolean {
     val hapticFeedback = LocalHapticFeedback.current
     val swipeState = rememberSwipeableState(
@@ -89,7 +106,7 @@ fun SlideToConfirm(
         confirmStateChange = { anchor ->
             if (anchor == Anchor.End) {
                 hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                onAcceptSwipe()
+                onSwipe()
                 true
             } else {
                 false
@@ -101,34 +118,67 @@ fun SlideToConfirm(
         derivedStateOf { calculateSwipeFraction(swipeState.progress) }
     }
 
-    LaunchedEffect(isLoading) {
-        swipeState.animateTo(if (isLoading) Anchor.End else Anchor.Start)
+    LaunchedEffect(isComplete) {
+        swipeState.animateTo(if (isComplete) Anchor.End else Anchor.Start)
     }
 
     Track(
         swipeState = swipeState,
         swipeFraction = swipeFraction,
-        enabled = !isLoading,
+        enabled = !isComplete,
+        backgroundColor = backgroundColor,
         modifier = modifier,
+        isComplete = isComplete,
     ) {
-        Hint(
-            text = hint,
-            swipeFraction = swipeFraction,
-            isLoading = isLoading,
-            onCancelPressed = onCancelPressed,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(PaddingValues(horizontal = Thumb.Size + smallPadding))
-                .fillMaxWidth(),
-        )
+        AnimatedVisibility(
+            visible = !isComplete,
+            exit = fadeOut()
+        ) {
+            Hint(
+                text = text,
+                swipeFraction = swipeFraction,
+                isLoading = false,
+                onCancelPressed = { },
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(PaddingValues(horizontal = Thumb.Size + smallPadding))
+                    .fillMaxWidth(),
+            )
+        }
 
-        Thumb(
-            isLoading = isLoading,
-            modifier = Modifier.offset {
-                IntOffset(swipeState.offset.value.roundToInt(), 0)
-            },
-            onCancelPressed = onCancelPressed,
-        )
+        if (!isComplete) {
+            Thumb(
+                isLoading = false,
+                modifier = Modifier.offset {
+                    IntOffset(swipeState.offset.value.roundToInt(), 0)
+                },
+                onCancelPressed = { },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = isComplete,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(sliderHeight)
+                    .background(
+                        color = backgroundColor,
+                        shape = RoundedCornerShape(percent = 10)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = doneImageVector,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.size(44.dp),
+                )
+            }
+        }
     }
 
     return swipeState.offset.value == Track.EndOfTrackPx
@@ -153,7 +203,9 @@ fun Track(
     swipeState: SwipeableState<Anchor>,
     swipeFraction: Float,
     enabled: Boolean,
+    backgroundColor: Color,
     modifier: Modifier = Modifier,
+    isComplete: Boolean = false,
     content: @Composable (BoxScope.() -> Unit),
 ) {
     val density = LocalDensity.current
@@ -175,35 +227,51 @@ fun Track(
 
     LaunchedEffect(fullWidth) {
         if (fullWidth > 0) {
-            endOfTrackPx = with(density) { fullWidth - (2 * horizontalPadding + Thumb.Size).toPx() }
+            endOfTrackPx = with(density) {
+                fullWidth - (horizontalPadding + horizontalPadding + Thumb.Size).toPx()
+            }
         }
     }
 
-    if (endOfTrackPx > 0) {
+    if (endOfTrackPx > 0 || isComplete) {
         Box(
             modifier = modifier
                 .onSizeChanged { fullWidth = it.width }
                 .height(sliderHeight)
                 .fillMaxWidth()
-                .swipeable(
-                    enabled = enabled,
-                    state = swipeState,
-                    orientation = Orientation.Horizontal,
-                    anchors = mapOf(
-                        startOfTrackPx to Anchor.Start,
-                        endOfTrackPx to Anchor.End,
-                    ),
-                    thresholds = thresholds, velocityThreshold = Track.VelocityThreshold,
+                .then(
+                    if (!isComplete) {
+                        Modifier.swipeable(
+                            enabled = enabled,
+                            state = swipeState,
+                            orientation = Orientation.Horizontal,
+                            anchors = mapOf(
+                                startOfTrackPx to Anchor.Start,
+                                endOfTrackPx to Anchor.End,
+                            ),
+                            thresholds = thresholds,
+                            velocityThreshold = Track.VelocityThreshold,
+                        )
+                    } else {
+                        Modifier
+                    }
                 )
-                .background(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    shape = RoundedCornerShape(percent = 10),
-                )
-                .padding(
-                    PaddingValues(
-                        horizontal = horizontalPadding,
-                        vertical = smallPadding,
-                    ),
+                .then(
+                    if (!isComplete) {
+                        Modifier
+                            .background(
+                                color = backgroundColor,
+                                shape = RoundedCornerShape(percent = 10),
+                            )
+                            .padding(
+                                PaddingValues(
+                                    horizontal = horizontalPadding,
+                                    vertical = smallPadding,
+                                ),
+                            )
+                    } else {
+                        Modifier
+                    }
                 ),
             content = content,
         )
@@ -285,6 +353,196 @@ private object Track {
     var EndOfTrackPx: Float = 0f
 }
 
+
+@Composable
+fun SwipeIndicator(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .aspectRatio(
+                ratio = 1.0F,
+                matchHeightConstraintsFirst = true,
+            )
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = backgroundColor,
+            modifier = Modifier.size(36.dp),
+        )
+    }
+}
+
+@OptIn(ExperimentalWearMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SwipeButton(
+    text: String,
+    isComplete: Boolean,
+    doneImageVector: ImageVector = Icons.Rounded.Done,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.tertiary,
+    onSwipe: () -> Unit,
+) {
+    var containerWidth by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+
+    val widthInPx = with(density) {
+        containerWidth.toPx()
+    }
+
+    val swipeableState = rememberSwipeableState(0)
+    val (swipeComplete, setSwipeComplete) = remember {
+        mutableStateOf(false)
+    }
+    val alpha: Float by animateFloatAsState(
+        targetValue = if (swipeComplete || isComplete) {
+            0F
+        } else {
+            1F
+        },
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = LinearEasing,
+        )
+    )
+
+    // Update anchors when width changes
+    LaunchedEffect(widthInPx) {
+        if (widthInPx > 0) {
+            swipeableState.snapTo(0)
+        }
+    }
+
+    LaunchedEffect(
+        key1 = swipeableState.currentValue,
+    ) {
+        if (swipeableState.currentValue == 1) {
+            setSwipeComplete(true)
+            onSwipe()
+        }
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .onSizeChanged { size ->
+                containerWidth = with(density) { size.width.toDp() }
+            }
+            .padding(
+                vertical = basePadding
+            )
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .animateContentSize()
+            .then(
+                if (swipeComplete || isComplete) {
+                    Modifier.fillMaxWidth()
+                } else {
+                    Modifier.fillMaxWidth()
+                }
+            )
+            .requiredHeight(64.dp),
+    ) {
+        if (widthInPx > 0 && !isComplete) {
+            val anchors = mapOf(
+                0F to 0,
+                widthInPx to 1,
+            )
+
+            SwipeIndicator(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .alpha(alpha)
+                    .offset {
+                        IntOffset(swipeableState.offset.value.roundToInt(), 0)
+                    }
+                    .swipeable(
+                        state = swipeableState,
+                        anchors = anchors,
+                        thresholds = { _, _ ->
+                            FractionalThreshold(0.3F)
+                        },
+                        orientation = Orientation.Horizontal,
+                    ),
+                backgroundColor = backgroundColor,
+            )
+        }
+
+        AnimatedVisibility(
+            visible = !isComplete,
+            exit = fadeOut()
+        ) {
+            Text(
+                text = text,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.background,
+                style = MaterialTheme.typography.labelLargeEmphasized,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(alpha)
+                    .padding(
+                        horizontal = largePadding,
+                    )
+                    .offset {
+                        IntOffset(swipeableState.offset.value.roundToInt(), 0)
+                    },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = swipeComplete && !isComplete,
+        ) {
+            LoadingIndicator(
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(4.dp),
+            )
+        }
+        AnimatedVisibility(
+            visible = isComplete,
+            enter = fadeIn(),
+            exit = fadeOut(),
+        ) {
+            Icon(
+                imageVector = doneImageVector,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(44.dp),
+            )
+        }
+    }
+}
+
+@ComponentPreview
+@Composable
+fun SwipeButtonPreview() {
+    PreviewWrapper {
+        Column {
+            SwipeButton(
+                text = "Swipe to confirm",
+                isComplete = false,
+                onSwipe = {}
+            )
+
+            SwipeButton(
+                text = "Swipe to confirm",
+                isComplete = true,
+                onSwipe = {}
+            )
+        }
+    }
+}
+
 @ComponentPreview
 @Composable
 private fun Preview() {
@@ -306,19 +564,23 @@ private fun Preview() {
                 }
 
                 SlideToConfirm(
-                    isLoading = isLoading,
-                    onAcceptSwipe = { isLoading = true },
-                    onCancelPressed = { isLoading = false },
-                    currentStatus = false,
+                    text = "Swipe to confirm",
+                    isComplete = false,
+                    onSwipe = { isLoading = true },
+                    modifier = Modifier,
+                    doneImageVector = Icons.Rounded.Done,
+                    backgroundColor = MaterialTheme.colorScheme.tertiary,
                 )
 
                 Spacer(modifier = Modifier.padding(smallPadding))
 
                 SlideToConfirm(
-                    isLoading = !isLoading,
-                    onAcceptSwipe = { isLoading = false },
-                    onCancelPressed = { isLoading = false },
-                    currentStatus = true,
+                    text = "Swipe to confirm",
+                    isComplete = !isLoading,
+                    onSwipe = { isLoading = false },
+                    modifier = Modifier,
+                    doneImageVector = Icons.Rounded.Done,
+                    backgroundColor = MaterialTheme.colorScheme.tertiary,
                 )
 
                 OutlinedButton(

@@ -2,24 +2,11 @@ package com.serranoie.app.feature.welcome.navigation
 
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -102,13 +89,17 @@ class WelcomeNavigationGraph : NavigationGraph {
 
             composable(route = Route.JoinTrip.route) {
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
+                val travelListViewModel = koinViewModel<TravelListViewModel>()
                 val joinUiState by sharedViewModel.joinUiState.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
                 LaunchedEffect(joinUiState) {
                     when (val currentState = joinUiState) {
                         is TravelUiState.Success<*> -> {
-                            Log.e("ISAAC", "Success travel join, $currentState")
+                            Log.e("ITINERO - WelcomeNav", "Success travel join, $currentState")
+
+                            // Refresh the travel list data first
+                            travelListViewModel.getAllTravels()
 
                             navController.navigate(Route.TravelList.route) {
                                 launchSingleTop = true
@@ -117,7 +108,7 @@ class WelcomeNavigationGraph : NavigationGraph {
                         }
 
                         is TravelUiState.Error -> {
-                            Log.e("ISAAC", "Error travel join, $currentState")
+                            Log.e("ITINERO - WelcomeNav", "Error travel join, $currentState")
                         }
 
                         else -> Unit
@@ -155,7 +146,7 @@ class WelcomeNavigationGraph : NavigationGraph {
                     when (val currentState = uiState) {
                         is TravelUiState.Success<*> -> {
                             if (travels.isEmpty()) {
-                                Log.d("ITINERO", "No trips found, navigating to Welcome")
+                                Log.d("ITINERO - WelcomeNav", "No trips found, navigating to Welcome")
                                 navController.navigate(Route.Welcome.route) {
                                     popUpTo(Route.TravelList.route) { inclusive = true }
                                     launchSingleTop = true
@@ -164,7 +155,7 @@ class WelcomeNavigationGraph : NavigationGraph {
                         }
 
                         is TravelUiState.Error -> {
-                            Log.e("ITINERO", "Error loading trips: ${currentState.message}")
+                            Log.e("ITINERO - WelcomeNav", "Error loading trips: ${currentState.message}")
                             navController.navigate(Route.Welcome.route) {
                                 popUpTo(Route.TravelList.route) { inclusive = true }
                                 launchSingleTop = true

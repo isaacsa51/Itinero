@@ -19,8 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.CurrencyExchange
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Person
@@ -28,6 +27,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Percent
 import androidx.compose.material.icons.outlined.SyncAlt
+import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Percent
 import androidx.compose.material.icons.rounded.SyncAlt
@@ -78,11 +78,12 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroughText
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInputType
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IFilledSmallerTextField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.LargeDropdownMenu
-import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
 import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import com.serranoie.app.feature.expenses.util.icon
@@ -113,6 +114,7 @@ fun AddExpenseScreen(
     onUpdateMemberPercentage: (Int, Int) -> Unit,
     onUpdateMemberAmount: (Int, Double) -> Unit,
     onNotesChange: (String) -> Unit,
+    onExtraInfoChange: (String) -> Unit,
     onSaveExpense: () -> Unit,
     onClearErrorMessage: () -> Unit,
     onClearSuccessMessage: () -> Unit,
@@ -226,6 +228,7 @@ fun AddExpenseScreen(
                     onAmountChange = onAmountChange,
                     date = expenseState.date,
                     onShowDatePicker = { onShowDatePicker(true) },
+                    onDateSelected = onDateSelected,
                     category = expenseState.category,
                     onCategoryChange = onCategoryChange,
                     showCategoryDropdown = formUiState.showCategoryDropdown,
@@ -239,7 +242,9 @@ fun AddExpenseScreen(
                     onPaidByChange = onPaidByChange,
                     persons = persons,
                     paymentMethod = expenseState.paymentMethod,
-                    onPaymentMethodChange = onPaymentMethodChange
+                    onPaymentMethodChange = onPaymentMethodChange,
+                    extraInfo = expenseState.extraInfo ?: "",
+                    onExtraInfoChange = onExtraInfoChange
                 )
             }
 
@@ -279,6 +284,7 @@ fun ExpenseBasicDetailsSection(
     onAmountChange: (String) -> Unit,
     date: String,
     onShowDatePicker: () -> Unit,
+    onDateSelected: (String) -> Unit,
     category: ExpenseCategory,
     onCategoryChange: (ExpenseCategory) -> Unit,
     showCategoryDropdown: Boolean,
@@ -313,7 +319,7 @@ fun ExpenseBasicDetailsSection(
             onValueChange = onAmountChange,
             label = "Amount",
             placeholder = "",
-            leadingIcon = Icons.Default.CurrencyExchange,
+            leadingIcon = Icons.Default.AttachMoney,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
         )
         amountError?.let { error ->
@@ -324,14 +330,27 @@ fun ExpenseBasicDetailsSection(
             )
         }
 
-        SelectField(
-            value = date,
-            onSelect = { onShowDatePicker() },
-            label = "Date",
-            titleHeader = false,
-            leadingIcon = Icons.Default.CalendarToday,
-            containerColor = null,
-            modifier = Modifier.fillMaxWidth()
+        DateTimeInput(
+            selectedDateTime = if (date.isNotEmpty()) {
+                try {
+                    val localDate =
+                        java.time.LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
+                    java.util.Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                } catch (e: Exception) {
+                    null
+                }
+            } else null,
+            onDateTimeSelected = { selectedDate ->
+                val dateFormat = DateTimeFormatter.ISO_LOCAL_DATE
+                val localDate = Instant.ofEpochMilli(selectedDate.time)
+                    .atZone(ZoneId.systemDefault()).toLocalDate()
+                onDateSelected(localDate.format(dateFormat))
+            },
+            label = "Date: ",
+            enabled = true,
+            inputType = DateTimeInputType.DATE,
+            modifier = Modifier.fillMaxWidth(),
+            leadingIcon = Icons.Rounded.CalendarToday,
         )
 
         val categories = ExpenseCategory.entries.sortedBy { it.displayName }
@@ -363,7 +382,6 @@ fun ExpenseBasicDetailsSection(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = item.displayName,
-                            style = MaterialTheme.typography.labelLarge,
                             color = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current
                         )
                     }
@@ -381,16 +399,17 @@ fun PaymentDetailsSection(
     onPaidByChange: (String?) -> Unit,
     persons: List<String>,
     paymentMethod: String,
-    onPaymentMethodChange: (String) -> Unit
+    onPaymentMethodChange: (String) -> Unit,
+    extraInfo: String,
+    onExtraInfoChange: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.padding(16.dp)
     ) {
         Text(
             text = "PAYMENT DETAILS",
             style = MaterialTheme.typography.labelLargeEmphasized,
             color = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.padding(bottom = 8.dp)
         )
 
         Column {
@@ -442,16 +461,18 @@ fun PaymentDetailsSection(
                     paymentOptions.indexOf(paymentMethod).takeIf { it >= 0 } ?: 0
 
                 val customShapes = ToggleButtonShapes(
-                    shape = RoundedCornerShape(5.dp),
-                    pressedShape = RoundedCornerShape(12.dp),
-                    checkedShape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    pressedShape = RoundedCornerShape(16.dp),
+                    checkedShape = RoundedCornerShape(16.dp)
                 )
 
                 paymentOptions.forEachIndexed { index, method ->
                     ToggleButton(
                         checked = selectedPaymentIndex == index,
                         onCheckedChange = { if (it) onPaymentMethodChange(method) },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
                         shapes = customShapes,
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.surface,
@@ -468,12 +489,27 @@ fun PaymentDetailsSection(
                         )
                     ) {
                         Text(
-                            text = method, style = MaterialTheme.typography.bodySmall
+                            text = method, style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ITextField(
+            value = extraInfo,
+            onValueChange = onExtraInfoChange,
+            label = "Extra information",
+            placeholder = "Enter any extra information about this expense",
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 80.dp)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         IButton(
             onClick = {/*TODO: Launch bottom modal to select media or camera */ },
@@ -923,11 +959,17 @@ fun DatePickerDialog(
 @ThemePreviews
 @Composable
 private fun AddExpenseScreenPreview() {
+    var extraInfoState by androidx.compose.runtime.remember {
+        androidx.compose.runtime.mutableStateOf(
+            ""
+        )
+    }
     PreviewWrapper {
         AddExpenseScreen(
             navController = rememberNavController(),
             expenseState = ExpenseDetailsViewModel.ExpenseState(
-                notes = null
+                notes = null,
+                extraInfo = extraInfoState
             ),
             formUiState = ExpenseDetailsViewModel.UIState(),
             splitType = SplitType.EQUAL,
@@ -946,6 +988,7 @@ private fun AddExpenseScreenPreview() {
             onUpdateMemberPercentage = { _, _ -> },
             onUpdateMemberAmount = { _, _ -> },
             onNotesChange = {},
+            onExtraInfoChange = { extraInfoState = it },
             onSaveExpense = {},
             onClearErrorMessage = {},
             onClearSuccessMessage = {},

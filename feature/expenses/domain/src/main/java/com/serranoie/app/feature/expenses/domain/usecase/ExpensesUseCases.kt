@@ -24,6 +24,8 @@ data class ExpensesUseCases(
     val updateExpenseUseCase: UpdateExpenseUseCase,
     val deleteExpenseUseCase: DeleteExpenseUseCase,
     val addExpenseUseCase: AddExpenseUseCase,
+    val markDebtorAsPaidUseCase: MarkDebtorAsPaidUseCase,
+    val markDebtorAsUnpaidUseCase: MarkDebtorAsUnpaidUseCase,
 )
 
 class GetUserExpensesUseCase(private val repository: ExpensesRepository) {
@@ -53,5 +55,17 @@ class DeleteExpenseUseCase(private val repository: ExpensesRepository) {
 class AddExpenseUseCase(private val repository: ExpensesRepository) {
     suspend operator fun invoke(groupCode: String, expense: CreateExpense): Result<Expense> {
         return repository.createExpense(groupCode, expense)
+    }
+}
+
+class MarkDebtorAsPaidUseCase(private val repository: ExpensesRepository) {
+    suspend operator fun invoke(groupCode: String, expenseId: String): Result<Unit> {
+        return repository.markDebtorAsPaid(groupCode, expenseId)
+    }
+}
+
+class MarkDebtorAsUnpaidUseCase(private val repository: ExpensesRepository) {
+    suspend operator fun invoke(groupCode: String, expenseId: String): Result<Unit> {
+        return repository.markDebtorAsUnpaid(groupCode, expenseId)
     }
 }

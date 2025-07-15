@@ -1,6 +1,5 @@
 package com.serranoie.app.feature.expenses.navigation
 
-import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -70,7 +69,6 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
                 viewmodel.refreshData()
             },
             onExpenseClick = { expenseId ->
-                Log.d("ExpensesScreen", "onExpenseClick: $expenseId")
                 navController.navigate(Route.ExpenseDetails.createRoute(expenseId))
             },
             onAddExpenseClick = {
@@ -110,6 +108,7 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
             onUpdateMemberPercentage = viewModel::updateMemberPercentage,
             onUpdateMemberAmount = viewModel::updateMemberAmount,
             onNotesChange = viewModel::updateNotes,
+            onExtraInfoChange = viewModel::updateExtraInfo,
             onSaveExpense = viewModel::createExpense,
             onClearErrorMessage = viewModel::clearErrorMessage,
             onClearSuccessMessage = viewModel::clearSuccessMessage,
@@ -129,6 +128,7 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
         val groupMembers by viewModel.groupMembers.collectAsState()
         val selectedExpense by viewModel.selectedExpense.collectAsState()
         val currentUserId by viewModel.currentUserId.collectAsState()
+        val uiState by viewModel.uiState.collectAsState()
 
         LaunchedEffect(expenseId) {
             viewModel.getExpenseById(expenseId)
@@ -144,15 +144,16 @@ fun NavGraphBuilder.expensesGraph(navController: NavController, tripId: String) 
             paymentMethods = viewModel.paymentMethods,
             selectedExpense = selectedExpense,
             currentUserId = currentUserId,
+            viewModel = viewModel,
+            isLoading = uiState is ExpensesUiState.Loading,
             onMarkAsPaid = viewModel::markCurrentUserDebtorAsPaid,
-            onCancelMarkAsPaid = viewModel::cancelMarkAsPaid,
+            onCancelMarkAsPaid = viewModel::markCurrentUserDebtorAsUnpaid,
             onDeleteExpense = {
                 viewModel.deleteExpense(expenseId)
                 navController.popBackStack()
             },
             onEditExpense = {
                 // TODO: Navigate to edit expense screen or enable edit mode
-                // For now, just show a message
             }
         )
     }

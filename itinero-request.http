@@ -13,7 +13,7 @@ Content-Type: application/json
 
 {
   "name": "Ani",
-  "surname": "Test 2",
+  "surname": "Mena",
   "phone": "1234567890",
   "email": "ani",
   "password": "root"
@@ -46,7 +46,7 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "destination": "GERMANY",
+  "destination": "Germany",
   "groupName": "Itinero Group Test",
   "startDate": "2025-06-15",
   "endDate": "2026-06-09",

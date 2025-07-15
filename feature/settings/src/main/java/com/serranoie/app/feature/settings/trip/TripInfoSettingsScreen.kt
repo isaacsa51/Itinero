@@ -183,7 +183,6 @@ fun TripInfoSettingsScreen(
                 onValueChange = { miscInfo = it },
                 label = "Miscellaneous information",
                 placeholder = "Enter any other relevant information",
-                leadingIcon = Icons.Default.LocationOn,
                 modifier = Modifier.heightIn(min = 80.dp)
             )
 
@@ -268,6 +267,7 @@ fun SectionHeader(title: String) {
         text = title,
         modifier = Modifier.padding(top = 8.dp),
         style = MaterialTheme.typography.labelLargeEmphasized,
+        color = MaterialTheme.colorScheme.outline
     )
 }
 

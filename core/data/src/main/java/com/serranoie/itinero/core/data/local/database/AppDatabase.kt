@@ -33,7 +33,7 @@ import com.serranoie.itinero.core.data.local.entity.UserExpenseSummaryEntity
         ExpenseDebtorEntity::class,
         UserExpenseSummaryEntity::class,
         UserBalanceEntity::class,
-    ], version = 4, exportSchema = false
+    ], version = 5, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao

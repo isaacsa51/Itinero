@@ -42,6 +42,7 @@ data class ExpenseDebtorEntity(
     val userId: Int,
     val amount: Double,
     val splitValue: Double,
+    val hasPaid: Boolean = false,
     @Embedded(prefix = "user_")
     val user: EmbeddedUserBasic
 )
