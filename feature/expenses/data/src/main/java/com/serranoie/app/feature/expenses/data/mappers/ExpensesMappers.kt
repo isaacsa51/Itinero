@@ -74,6 +74,7 @@ fun ExpenseDebtorDto.toDomain(): ExpenseDebtor {
         userId = userId,
         amount = amount,
         splitValue = splitValue,
+        hasPaid = hasPaid,
         user = user?.toDomain()
     )
 }
@@ -162,6 +163,7 @@ fun CreateDebtor.toDomain(user: UserBasic? = null): ExpenseDebtor {
         userId = userId,
         amount = 0.0, // Will be calculated by server based on splitValue
         splitValue = splitValue,
+        hasPaid = false, // Default to false for new debtors
         user = user ?: UserBasic(
             id = userId,
             name = "",
@@ -194,6 +196,7 @@ fun ExpenseDebtorEntity.toDomain(): ExpenseDebtor {
         userId = userId,
         amount = amount,
         splitValue = splitValue,
+        hasPaid = hasPaid,
         user = user.toDomain()
     )
 }
@@ -251,6 +254,7 @@ fun ExpenseDebtor.toEntity(expenseId: Int): ExpenseDebtorEntity {
         userId = userId,
         amount = amount,
         splitValue = splitValue,
+        hasPaid = hasPaid,
         user = user?.toEntity() ?: EmbeddedUserBasic(
             id = userId,
             name = "",

@@ -193,25 +193,62 @@ class ExpensesRepositoryImpl(
         }
     }
 
+    override suspend fun markDebtorAsPaid(groupCode: String, expenseId: String): Result<Unit> {
+        return safeApiCall {
+            val result = api.markDebtorAsPaid(groupCode, expenseId)
+            when (result) {
+                is Result.Success -> {
+                    // Refresh the expense to get the updated debtor status
+                    val expenseResult = getExpenseById(groupCode, expenseId)
+                    if (expenseResult is Result.Success) {
+                        Log.d("ITINERO - ExpRepo", "Marked debtor as paid for expense: $expenseId")
+                    }
+                }
+
+                is Result.Error -> throw result.exception
+            }
+        }
+    }
+
+    override suspend fun markDebtorAsUnpaid(groupCode: String, expenseId: String): Result<Unit> {
+        return safeApiCall {
+            val result = api.markDebtorAsUnpaid(groupCode, expenseId)
+            when (result) {
+                is Result.Success -> {
+                    // Refresh the expense to get the updated debtor status
+                    val expenseResult = getExpenseById(groupCode, expenseId)
+                    if (expenseResult is Result.Success) {
+                        Log.d(
+                            "ITINERO - ExpRepo",
+                            "Marked debtor as unpaid for expense: $expenseId"
+                        )
+                    }
+                }
+
+                is Result.Error -> throw result.exception
+            }
+        }
+    }
+
     override fun getAllTripExpensesFlow(groupCode: String): Flow<List<Expense>> =
         flow<List<Expense>> {
-        val cachedResult = localRepository.getAllCachedExpenses(groupCode)
-        if (cachedResult is Result.Success) {
-            emit(cachedResult.data)
-        }
-
-        try {
-            val freshResult = getAllTripExpenses(groupCode)
-            if (freshResult is Result.Success) {
-                emit(freshResult.data)
+            val cachedResult = localRepository.getAllCachedExpenses(groupCode)
+            if (cachedResult is Result.Success) {
+                emit(cachedResult.data)
             }
-        } catch (e: Exception) {
-            Log.e("ITINERO - ExpRepo", "Failed to fetch fresh expenses", e)
+
+            try {
+                val freshResult = getAllTripExpenses(groupCode)
+                if (freshResult is Result.Success) {
+                    emit(freshResult.data)
+                }
+            } catch (e: Exception) {
+                Log.e("ITINERO - ExpRepo", "Failed to fetch fresh expenses", e)
+            }
+        }.catch { throwable ->
+            Log.e("ITINERO - ExpRepo", "Error in getAllTripExpensesFlow", throwable)
+            emit(emptyList())
         }
-    }.catch { throwable ->
-        Log.e("ITINERO - ExpRepo", "Error in getAllTripExpensesFlow", throwable)
-        emit(emptyList())
-    }
 
     override fun getUserExpenseSummaryFlow(groupCode: String): Flow<UserExpenseSummary> =
         localRepository.getCachedUserExpenseSummaryFlow(groupCode).filterNotNull()

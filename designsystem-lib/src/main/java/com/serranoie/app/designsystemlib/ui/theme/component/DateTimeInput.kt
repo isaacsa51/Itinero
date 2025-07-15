@@ -14,11 +14,18 @@ package com.serranoie.app.designsystemlib.ui.theme.component
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,9 +36,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
@@ -46,6 +55,15 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
+ * Enum to define the type of input for DateTimeInput component
+ */
+enum class DateTimeInputType {
+    DATE,    // Only date picker
+    TIME,    // Only time picker
+    BOTH     // Both date and time pickers (default)
+}
+
+/**
  * A reusable date and time input component that displays a clickable card
  * showing the current date/time and opens date/time pickers when clicked.
  *
@@ -58,7 +76,8 @@ import java.util.TimeZone
  * @param shape The shape of the card container
  * @param color The background color of the card
  * @param contentPadding Padding applied inside the card content
- * @param verticalPadding Vertical padding around the entire component
+ * @param inputType The type of input (DATE, TIME, or BOTH)
+ * @param leadingIcon Optional icon to display at the start of the component
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,6 +91,8 @@ fun DateTimeInput(
     shape: Shape = MaterialTheme.shapes.small,
     color: Color = Color.Transparent,
     contentPadding: Dp = basePadding,
+    inputType: DateTimeInputType = DateTimeInputType.BOTH,
+    leadingIcon: ImageVector? = null,
 ) {
     val currentDateTime = selectedDateTime ?: Date()
     val datePickerState = rememberDatePickerState(
@@ -81,8 +102,29 @@ fun DateTimeInput(
     val timePickerState = rememberTimePickerState()
     var showTimePicker by remember { mutableStateOf(false) }
 
-    val displayText = remember(selectedDateTime) {
-        placeholder ?: dateToString(currentDateTime)
+    val displayText = remember(selectedDateTime, inputType) {
+        if (placeholder != null) {
+            placeholder
+        } else {
+            when (inputType) {
+                DateTimeInputType.DATE -> {
+                    // Show only date format: "23 July 2025"
+                    val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+                    dateFormat.format(currentDateTime)
+                }
+
+                DateTimeInputType.TIME -> {
+                    // Show only time format: "2:30 PM"
+                    val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    timeFormat.format(currentDateTime)
+                }
+
+                DateTimeInputType.BOTH -> {
+                    // Show both date and time: "23 July 2025, 2:30 PM"
+                    dateToString(currentDateTime)
+                }
+            }
+        }
     }
 
     ICard(
@@ -90,22 +132,52 @@ fun DateTimeInput(
             .fillMaxWidth()
             .then(
                 if (enabled) {
-                    Modifier.clickable { showDatePicker = true }
+                    Modifier.clickable {
+                        when (inputType) {
+                            DateTimeInputType.DATE -> showDatePicker = true
+                            DateTimeInputType.TIME -> showTimePicker = true
+                            DateTimeInputType.BOTH -> showDatePicker = true
+                        }
+                    }
                 } else {
                     Modifier
                 }), shape = shape, color = color, content = {
-        Text(
-            text = "$label$displayText",
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (enabled) {
-                MaterialTheme.colorScheme.outline
-            } else {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
-            },
+            Row(
             modifier = Modifier.padding(contentPadding),
-        )
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            leadingIcon?.let { icon ->
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = if (enabled) {
+                        MaterialTheme.colorScheme.outline
+                    } else {
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                    }
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+
+            Text(
+                text = "$label$displayText",
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) {
+                    MaterialTheme.colorScheme.outline
+                } else {
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                },
+            )
+        }
     }, onClick = if (enabled) {
-        { showDatePicker = true }
+            {
+                when (inputType) {
+                    DateTimeInputType.DATE -> showDatePicker = true
+                    DateTimeInputType.TIME -> showTimePicker = true
+                    DateTimeInputType.BOTH -> showDatePicker = true
+                }
+            }
     } else {
         { }
     })
@@ -138,9 +210,21 @@ fun DateTimeInput(
                                 selectedCalendar.add(Calendar.DAY_OF_YEAR, 1)
                             }
 
-                            onDateTimeSelected(selectedCalendar.time)
-                            showDatePicker = false
-                            showTimePicker = true
+                            when (inputType) {
+                                DateTimeInputType.DATE -> {
+                                    onDateTimeSelected(selectedCalendar.time)
+                                    showDatePicker = false
+                                }
+
+                                DateTimeInputType.BOTH -> {
+                                    onDateTimeSelected(selectedCalendar.time)
+                                    showDatePicker = false
+                                    showTimePicker = true
+                                }
+
+                                DateTimeInputType.TIME -> { /* Should not happen */
+                                }
+                            }
                         }
                     },
                 ) {
@@ -206,19 +290,29 @@ private fun DateTimeInputPreview() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Default DateTimeInput with current date
-            DateTimeInput(
-                selectedDateTime = selectedDateTime,
-                onDateTimeSelected = { selectedDateTime = it }
-            )
-            
-            // DateTimeInput with custom label
+            // Default DateTimeInput with both date and time (BOTH)
             DateTimeInput(
                 selectedDateTime = selectedDateTime,
                 onDateTimeSelected = { selectedDateTime = it },
-                label = "Event Date: "
+                label = "Date & Time: "
             )
-            
+
+            // DateTimeInput with only date picker
+            DateTimeInput(
+                selectedDateTime = selectedDateTime,
+                onDateTimeSelected = { selectedDateTime = it },
+                label = "Date Only: ",
+                inputType = DateTimeInputType.DATE
+            )
+
+            // DateTimeInput with only time picker
+            DateTimeInput(
+                selectedDateTime = selectedDateTime,
+                onDateTimeSelected = { selectedDateTime = it },
+                label = "Time Only: ",
+                inputType = DateTimeInputType.TIME
+            )
+
             // Disabled DateTimeInput
             DateTimeInput(
                 selectedDateTime = selectedDateTime,
@@ -240,6 +334,14 @@ private fun DateTimeInputPreview() {
                 onDateTimeSelected = { selectedDateTime = it },
                 label = "Custom: ",
                 placeholder = "No date selected"
+            )
+
+            // DateTimeInput with leading icon
+            DateTimeInput(
+                selectedDateTime = selectedDateTime,
+                onDateTimeSelected = { selectedDateTime = it },
+                label = "Icon: ",
+                leadingIcon = Icons.Filled.CalendarToday
             )
         }
     }

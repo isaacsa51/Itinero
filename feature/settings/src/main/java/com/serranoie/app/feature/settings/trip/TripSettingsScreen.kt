@@ -567,21 +567,23 @@ private fun MemberItemCard(
             MemberStatus.PENDING -> {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     IButton(
-                        text = { Text("Accept", style = MaterialTheme.typography.labelLarge) },
-                        onClick = onAccept,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(36.dp),
-                        importance = ButtonImportance.Primary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IButton(
                         text = { Text("Reject", style = MaterialTheme.typography.labelLarge) },
                         onClick = onReject,
                         modifier = Modifier
                             .weight(1f)
                             .height(36.dp),
                         importance = ButtonImportance.Error
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IButton(
+                        text = { Text("Accept", style = MaterialTheme.typography.labelLarge) },
+                        onClick = onAccept,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(36.dp),
+                        importance = ButtonImportance.Primary
                     )
                 }
             }

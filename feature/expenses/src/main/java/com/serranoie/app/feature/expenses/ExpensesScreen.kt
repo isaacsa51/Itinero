@@ -205,10 +205,12 @@ fun BalanceCircles(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
+                        textAlign = TextAlign.Center,
                         text = "You owe",
                         style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface)
                     )
                     Text(
+                        textAlign = TextAlign.Center,
                         text = formatCurrency(youOwe.toString()),
                         style = MaterialTheme.typography.titleLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface),
                         modifier = Modifier.shimmerable()
@@ -226,10 +228,12 @@ fun BalanceCircles(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
+                        textAlign = TextAlign.Center,
                         text = "You are owed",
                         style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.onTertiaryContainer)
                     )
                     Text(
+                        textAlign = TextAlign.Center,
                         text = formatCurrency(youAreOwed.toString()),
                         style = MaterialTheme.typography.titleLargeEmphasized.copy(
                             color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -309,6 +313,15 @@ fun ExpensesDateSection(
                         textAlign = TextAlign.Center
                     )
                 }
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, top = 8.dp, end = 12.dp, bottom = 0.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+
             } else {
                 expenses.forEach { item ->
                     ExpenseCard(

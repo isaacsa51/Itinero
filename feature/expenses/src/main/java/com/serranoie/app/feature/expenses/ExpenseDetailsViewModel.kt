@@ -1,6 +1,5 @@
 package com.serranoie.app.feature.expenses
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.app.feature.expenses.domain.model.CreateDebtor
@@ -11,6 +10,7 @@ import com.serranoie.app.feature.expenses.domain.usecase.ExpensesUseCases
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import com.serranoie.itinero.core.domain.model.MemberStatus
 import com.serranoie.itinero.core.domain.model.TripMember
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +28,7 @@ import kotlin.math.abs
 class ExpenseDetailsViewModel(
     private val expensesUseCase: ExpensesUseCases,
     private val travelUseCase: TravelUseCase,
+    private val authPreferencesRepository: AuthPreferencesRepository,
     private val groupCode: String
 ) : ViewModel() {
 
@@ -40,6 +41,7 @@ class ExpenseDetailsViewModel(
         val paidByUserId: Int? = null,
         val paymentMethod: String = "Cash",
         val notes: String?,
+        val extraInfo: String? = null,
         val nameError: String? = null,
         val amountError: String? = null,
         val isSaving: Boolean = false
@@ -53,7 +55,8 @@ class ExpenseDetailsViewModel(
         val showSuccessMessage: Boolean = false,
         val errorMessage: String? = null,
         val isMarkingAsPaid: Boolean = false,
-        val currentUserDebtorStatus: Boolean = false
+        val currentUserDebtorStatus: Boolean = false,
+        val shouldNavigateBack: Boolean = false
     )
 
     private val _uiState = MutableStateFlow<ExpensesUiState>(ExpensesUiState.Idle)
@@ -61,7 +64,7 @@ class ExpenseDetailsViewModel(
 
     private val _expenseState = MutableStateFlow(
         ExpenseState(
-            notes = null
+            notes = null, extraInfo = null
         )
     )
     val expenseState = _expenseState.asStateFlow()
@@ -93,6 +96,9 @@ class ExpenseDetailsViewModel(
     val paymentMethods = listOf("Cash", "Credit Card", "Debit Card", "Bank Transfer", "Other")
 
     init {
+        val userIdFromAuth = authPreferencesRepository.getUserId()
+        _currentUserId.value = userIdFromAuth
+
         fetchTripMembers()
     }
 
@@ -101,12 +107,14 @@ class ExpenseDetailsViewModel(
             when (val result = travelUseCase.getAllMembers(currentGroupCode)) {
                 is Result.Success -> {
                     _tripMembers.value = result.data
+
                     initializeGroupMembers(result.data)
                     // Set default paidBy to current user if available
-                    val currentUser = result.data.find { it.status == MemberStatus.OWNER }
+                    val currentUser = result.data.find { it.id == _currentUserId.value }
+                        ?: result.data.find { it.status == MemberStatus.OWNER }
                         ?: result.data.firstOrNull { it.status == MemberStatus.ACCEPTED }
+
                     currentUser?.let { user ->
-                        _currentUserId.value = user.id
                         _expenseState.update { it.copy(paidBy = user.name, paidByUserId = user.id) }
                     }
                 }
@@ -149,6 +157,21 @@ class ExpenseDetailsViewModel(
         )
     }
 
+    private fun combineNotesAndExtraInfo(): String? {
+        return buildString {
+            val notes = _expenseState.value.notes?.trim()
+            val extraInfo = _expenseState.value.extraInfo?.trim()
+
+            if (!notes.isNullOrEmpty()) {
+                append(notes)
+            }
+            if (!extraInfo.isNullOrEmpty()) {
+                if (isNotEmpty()) append("\n")
+                append(extraInfo)
+            }
+        }.takeIf { it.isNotEmpty() }
+    }
+
     fun createExpense() {
         if (!validateExpense()) {
             _formUiState.update { it.copy(errorMessage = "Please correct the errors before saving") }
@@ -163,6 +186,8 @@ class ExpenseDetailsViewModel(
                 val paidByMember = _tripMembers.value.find { it.name == _expenseState.value.paidBy }
                 val paidByUserId = paidByMember?.id ?: _currentUserId.value ?: 1
 
+                val finalNotes = combineNotesAndExtraInfo()
+
                 val request = CreateExpense(
                     tripId = currentGroupCode.toIntOrNull() ?: 1,
                     name = _expenseState.value.name,
@@ -172,7 +197,7 @@ class ExpenseDetailsViewModel(
                     paidByUserId = paidByUserId,
                     paymentMethod = _expenseState.value.paymentMethod,
                     splitType = _splitType.value.name,
-                    notes = _expenseState.value.notes?.ifEmpty { null },
+                    notes = finalNotes,
                     debtors = _groupMembers.value.filter { it.included }.map { member ->
                         val splitValue = when (_splitType.value) {
                             SplitType.PERCENTAGE -> member.percentage.toDouble()
@@ -180,7 +205,7 @@ class ExpenseDetailsViewModel(
                         }
                         CreateDebtor(
                             userId = member.userId ?: _currentUserId.value ?: 1,
-                            splitValue = member.amount
+                            splitValue = splitValue
                         )
                     })
 
@@ -216,13 +241,6 @@ class ExpenseDetailsViewModel(
         }
     }
 
-    private fun clearSuccessMessageAfterDelay() {
-        viewModelScope.launch {
-            delay(2000)
-            clearSuccessMessage()
-        }
-    }
-
     fun updateExpense(expenseId: String) {
         if (!validateExpense()) {
             _formUiState.update { it.copy(errorMessage = "Please correct the errors before updating") }
@@ -237,6 +255,8 @@ class ExpenseDetailsViewModel(
                 val paidByMember = _tripMembers.value.find { it.name == _expenseState.value.paidBy }
                 val paidByUserId = paidByMember?.id ?: _currentUserId.value ?: 1
 
+                val finalNotes = combineNotesAndExtraInfo()
+
                 val request = CreateExpense(
                     tripId = currentGroupCode.toIntOrNull() ?: 1,
                     name = _expenseState.value.name,
@@ -246,7 +266,7 @@ class ExpenseDetailsViewModel(
                     paidByUserId = paidByUserId,
                     paymentMethod = _expenseState.value.paymentMethod,
                     splitType = _splitType.value.name,
-                    notes = _expenseState.value.notes?.ifEmpty { null },
+                    notes = finalNotes,
                     debtors = _groupMembers.value.filter { it.included }.map { member ->
                         val splitValue = when (_splitType.value) {
                             SplitType.PERCENTAGE -> member.percentage.toDouble()
@@ -346,7 +366,9 @@ class ExpenseDetailsViewModel(
                 paidBy = expense.paidBy?.name,
                 paidByUserId = expense.paidBy?.id,
                 paymentMethod = expense.paymentMethod,
-                notes = expense.notes ?: "")
+                notes = expense.notes?.takeIf { it.isNotBlank() },
+                extraInfo = "" // Reset extraInfo since it's not stored separately
+            )
         }
 
         _splitType.value =
@@ -369,7 +391,7 @@ class ExpenseDetailsViewModel(
         // Check current user debtor status
         val currentUserDebtor = getCurrentUserDebtorInfo()
         _formUiState.update {
-            it.copy(currentUserDebtorStatus = currentUserDebtor != null)
+            it.copy(currentUserDebtorStatus = currentUserDebtor?.hasPaid == true)
         }
     }
 
@@ -419,6 +441,10 @@ class ExpenseDetailsViewModel(
 
     fun updateNotes(notes: String) {
         _expenseState.update { it.copy(notes = notes) }
+    }
+
+    fun updateExtraInfo(extraInfo: String) {
+        _expenseState.update { it.copy(extraInfo = extraInfo) }
     }
 
     fun toggleCategoryDropdown(show: Boolean) {
@@ -530,7 +556,7 @@ class ExpenseDetailsViewModel(
     }
 
     fun clearSuccessMessage() {
-        _formUiState.update { it.copy(showSuccessMessage = false) }
+        _formUiState.update { it.copy(showSuccessMessage = false, shouldNavigateBack = false) }
     }
 
     fun clearSelectedExpense() {
@@ -540,7 +566,7 @@ class ExpenseDetailsViewModel(
     fun resetState() {
         _uiState.value = ExpensesUiState.Idle
         _formUiState.value = UIState()
-        _expenseState.value = ExpenseState(notes = null)
+        _expenseState.value = ExpenseState(notes = null, extraInfo = null)
     }
 
     fun isCurrentUserExpenseCreator(): Boolean {
@@ -556,49 +582,107 @@ class ExpenseDetailsViewModel(
     }
 
     fun markCurrentUserDebtorAsPaid() {
-        val currentExpense = _selectedExpense.value ?: return
-        val currentUser = _currentUserId.value ?: return
-
-        _formUiState.update { it.copy(isMarkingAsPaid = true) }
-
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                // TODO: Implement actual API call to mark debtor as paid
-                // For now, simulate the API call
-                delay(1000)
+            _formUiState.update { it.copy(isMarkingAsPaid = true) }
 
-                // Update local state
+            val currentUserDebtor = getCurrentUserDebtorInfo()
+            val currentExpense = _selectedExpense.value
+
+            if (currentUserDebtor != null && currentExpense != null) {
+                when (val result = expensesUseCase.markDebtorAsPaidUseCase(
+                    currentGroupCode, currentExpense.id.toString()
+                )) {
+                    is Result.Success -> {
+                        _formUiState.update {
+                            it.copy(
+                                isMarkingAsPaid = false,
+                                currentUserDebtorStatus = true,
+                                showSuccessMessage = true
+                            )
+                        }
+
+                        // Refresh expense data to get updated hasPaid status
+                        getExpenseById(currentExpense.id.toString(), forceRefresh = true)
+                        clearSuccessMessageAfterDelay()
+                    }
+
+                    is Result.Error -> {
+                        _formUiState.update {
+                            it.copy(
+                                isMarkingAsPaid = false,
+                                errorMessage = result.exception.message ?: "Failed to mark as paid"
+                            )
+                        }
+                    }
+                }
+            } else {
                 _formUiState.update {
                     it.copy(
                         isMarkingAsPaid = false,
-                        currentUserDebtorStatus = true
-                    )
-                }
-
-                // Show success message
-                _formUiState.update {
-                    it.copy(showSuccessMessage = true)
-                }
-                clearSuccessMessageAfterDelay()
-
-            } catch (e: Exception) {
-                _formUiState.update {
-                    it.copy(
-                        isMarkingAsPaid = false,
-                        errorMessage = "Failed to mark as paid: ${e.message}"
+                        errorMessage = "Unable to find your debt information"
                     )
                 }
             }
         }
     }
 
-    fun cancelMarkAsPaid() {
-        _formUiState.update {
-            it.copy(
-                isMarkingAsPaid = false,
-                currentUserDebtorStatus = false
-            )
+    fun markCurrentUserDebtorAsUnpaid() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _formUiState.update { it.copy(isMarkingAsPaid = true) }
+
+            val currentUserDebtor = getCurrentUserDebtorInfo()
+            val currentExpense = _selectedExpense.value
+
+            if (currentUserDebtor != null && currentExpense != null) {
+                when (val result = expensesUseCase.markDebtorAsUnpaidUseCase(
+                    currentGroupCode, currentExpense.id.toString()
+                )) {
+                    is Result.Success -> {
+                        _formUiState.update {
+                            it.copy(
+                                isMarkingAsPaid = false,
+                                currentUserDebtorStatus = false,
+                                showSuccessMessage = true
+                            )
+                        }
+
+                        // Refresh expense data to get updated hasPaid status
+                        getExpenseById(currentExpense.id.toString(), forceRefresh = true)
+                        clearSuccessMessageAfterDelay()
+                    }
+
+                    is Result.Error -> {
+                        _formUiState.update {
+                            it.copy(
+                                isMarkingAsPaid = false,
+                                errorMessage = result.exception.message
+                                    ?: "Failed to mark as unpaid"
+                            )
+                        }
+                    }
+                }
+            } else {
+                _formUiState.update {
+                    it.copy(
+                        isMarkingAsPaid = false,
+                        errorMessage = "Unable to find your debt information"
+                    )
+                }
+            }
         }
+    }
+
+    private fun clearSuccessMessageAfterDelay() {
+        viewModelScope.launch {
+            delay(2000) // Wait 2 seconds to show success state
+            _formUiState.update { it.copy(showSuccessMessage = false) }
+            delay(500) // Small delay before navigation
+            _formUiState.update { it.copy(shouldNavigateBack = true) }
+        }
+    }
+
+    fun clearNavigationFlag() {
+        _formUiState.update { it.copy(shouldNavigateBack = false) }
     }
 }
 

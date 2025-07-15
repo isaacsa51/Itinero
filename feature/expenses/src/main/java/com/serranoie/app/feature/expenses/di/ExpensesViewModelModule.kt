@@ -22,5 +22,5 @@ val expensesViewModelModule = module {
 }
 
 val expensesDetailsViewModel = module {
-    viewModel { (groupCode: String) -> ExpenseDetailsViewModel(get(), get(), groupCode) }
+    viewModel { (groupCode: String) -> ExpenseDetailsViewModel(get(), get(), get(), groupCode) }
 }

@@ -15,6 +15,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.serranoie.itinero.core.data.local.dao.ExpenseDao
 import com.serranoie.itinero.core.data.local.dao.ItineraryDao
 import com.serranoie.itinero.core.data.local.dao.TripDao
@@ -33,7 +35,7 @@ import com.serranoie.itinero.core.data.local.entity.UserExpenseSummaryEntity
         ExpenseDebtorEntity::class,
         UserExpenseSummaryEntity::class,
         UserBalanceEntity::class,
-    ], version = 4, exportSchema = false
+    ], version = 5, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
@@ -44,11 +46,17 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE expense_debtors ADD COLUMN hasPaid INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext, AppDatabase::class.java, "itinero_database"
-                ).fallbackToDestructiveMigration().build()
+                ).addMigrations(MIGRATION_4_5).build()
                 INSTANCE = instance
                 instance
             }

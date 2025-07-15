@@ -5,6 +5,8 @@ import com.serranoie.app.feature.expenses.domain.usecase.DeleteExpenseUseCase
 import com.serranoie.app.feature.expenses.domain.usecase.ExpensesUseCases
 import com.serranoie.app.feature.expenses.domain.usecase.GetExpenseByIdUseCase
 import com.serranoie.app.feature.expenses.domain.usecase.GetUserExpensesUseCase
+import com.serranoie.app.feature.expenses.domain.usecase.MarkDebtorAsPaidUseCase
+import com.serranoie.app.feature.expenses.domain.usecase.MarkDebtorAsUnpaidUseCase
 import com.serranoie.app.feature.expenses.domain.usecase.UpdateExpenseUseCase
 import com.serranoie.app.feature.itinerary.domain.usecase.CreateActivityUseCase
 import com.serranoie.app.feature.itinerary.domain.usecase.DeleteActivityByIdUseCase
@@ -19,6 +21,7 @@ import com.serranoie.itinero.core.domain.usecase.CreateTravelUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllMembersUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllTravelsUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAuthTokenUseCase
+import com.serranoie.itinero.core.domain.usecase.GetCurrentUserMembershipStatusUseCase
 import com.serranoie.itinero.core.domain.usecase.GetTravelByIdUseCase
 import com.serranoie.itinero.core.domain.usecase.JoinTravelUseCase
 import com.serranoie.itinero.core.domain.usecase.LeaveTravelUseCase
@@ -32,7 +35,6 @@ import com.serranoie.itinero.core.domain.usecase.RemoveMemberUseCase
 import com.serranoie.itinero.core.domain.usecase.SaveAuthTokenUseCase
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import com.serranoie.itinero.core.domain.usecase.UpdateTripInfoUseCase
-import com.serranoie.itinero.core.domain.usecase.GetCurrentUserMembershipStatusUseCase
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -62,6 +64,8 @@ val useCaseModule = module {
     factory { AddExpenseUseCase(get()) }
     factory { UpdateExpenseUseCase(get()) }
     factory { DeleteExpenseUseCase(get()) }
+    factory { MarkDebtorAsPaidUseCase(get()) }
+    factory { MarkDebtorAsUnpaidUseCase(get()) }
 
     factory { LoginUseCase(get()) }
     factory { RegisterUseCase(get()) }
@@ -114,7 +118,9 @@ val useCaseModule = module {
             getExpenseByIdUseCase = get(),
             addExpenseUseCase = get(),
             updateExpenseUseCase = get(),
-            deleteExpenseUseCase = get()
+            deleteExpenseUseCase = get(),
+            markDebtorAsPaidUseCase = get(),
+            markDebtorAsUnpaidUseCase = get(),
         )
     }
 }

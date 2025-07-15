@@ -19,5 +19,6 @@ data class ExpenseDebtor(
     val userId: Int,
     val amount: Double,
     val splitValue: Double,
+    val hasPaid: Boolean = false,
     val user: UserBasic? = null
 )

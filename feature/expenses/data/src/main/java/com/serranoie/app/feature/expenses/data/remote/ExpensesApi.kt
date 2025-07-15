@@ -43,6 +43,12 @@ interface ExpensesApi {
 
     // 7. Delete Expense
     suspend fun deleteExpense(groupCode: String, expenseId: String): Result<Unit>
+
+    // 8. Mark Debtor as Paid
+    suspend fun markDebtorAsPaid(groupCode: String, expenseId: String): Result<Unit>
+
+    // 9. Mark Debtor as Unpaid
+    suspend fun markDebtorAsUnpaid(groupCode: String, expenseId: String): Result<Unit>
 }
 
 class ExpensesApiImpl(client: HttpClient) : BaseApiClient(client), ExpensesApi {
@@ -111,6 +117,24 @@ class ExpensesApiImpl(client: HttpClient) : BaseApiClient(client), ExpensesApi {
     override suspend fun deleteExpense(groupCode: String, expenseId: String): Result<Unit> {
         return try {
             delete<Unit>("/trips/$groupCode/expenses/$expenseId")
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun markDebtorAsPaid(groupCode: String, expenseId: String): Result<Unit> {
+        return try {
+            patch<Unit>("/trips/$groupCode/expenses/$expenseId/paid")
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun markDebtorAsUnpaid(groupCode: String, expenseId: String): Result<Unit> {
+        return try {
+            patch<Unit>("/trips/$groupCode/expenses/$expenseId/unpaid")
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e)

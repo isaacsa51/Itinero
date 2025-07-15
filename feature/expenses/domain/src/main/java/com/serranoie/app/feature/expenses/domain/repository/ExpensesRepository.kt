@@ -30,6 +30,8 @@ interface ExpensesRepository {
 
     suspend fun deleteExpense(groupCode: String, expenseId: String): Result<Unit>
     suspend fun markExpenseCompleted(groupCode: String, expenseId: String): Result<Unit>
+    suspend fun markDebtorAsPaid(groupCode: String, expenseId: String): Result<Unit>
+    suspend fun markDebtorAsUnpaid(groupCode: String, expenseId: String): Result<Unit>
 
     fun getAllTripExpensesFlow(groupCode: String): Flow<List<Expense>>
     fun getUserExpenseSummaryFlow(groupCode: String): Flow<UserExpenseSummary>

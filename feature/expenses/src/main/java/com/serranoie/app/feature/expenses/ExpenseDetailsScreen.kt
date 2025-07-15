@@ -1,13 +1,15 @@
 package com.serranoie.app.feature.expenses
 
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -47,8 +49,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,7 +65,7 @@ import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
-import com.serranoie.app.designsystemlib.ui.theme.component.SlideToConfirm
+import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
 import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
@@ -74,7 +76,6 @@ import com.serranoie.app.feature.expenses.domain.model.Expense
 import com.serranoie.app.feature.expenses.domain.model.ExpenseDebtor
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import com.serranoie.app.feature.expenses.util.ExpenseSplitType
-import com.serranoie.app.feature.expenses.util.icon
 
 @Composable
 fun ExpenseDetailsScreen(
@@ -87,6 +88,7 @@ fun ExpenseDetailsScreen(
     paymentMethods: List<String>,
     selectedExpense: Expense? = null,
     currentUserId: Int? = null,
+    viewModel: ExpenseDetailsViewModel? = null,
     isLoading: Boolean = false,
     onMarkAsPaid: () -> Unit = {},
     onCancelMarkAsPaid: () -> Unit = {},
@@ -107,16 +109,29 @@ fun ExpenseDetailsScreen(
         }
     }
 
-    if (isLoading) {
+    LaunchedEffect(formUiState.shouldNavigateBack) {
+        if (formUiState.shouldNavigateBack) {
+            navController.popBackStack()
+        }
+    }
+
+    if (isLoading || selectedExpense == null) {
         ExpenseDetailSkeleton()
         return
     }
 
-    val isCurrentUserCreator = selectedExpense?.paidByUserId == currentUserId
+    val isCurrentUserCreator =
+        viewModel?.isCurrentUserExpenseCreator() ?: (selectedExpense.paidByUserId == currentUserId)
     val paidByUserId = expenseState.paidByUserId
-    val owesItems = groupMembers.filter { it.userId != paidByUserId }.map {
+    val owesItems = groupMembers.map { member ->
+        val isPayer = member.userId == paidByUserId
+        val currentUserDebtor = selectedExpense.debtors.find { it.userId == member.userId }
         OwesData(
-            name = "${it.name} ${it.surname}", isOwed = it.amount > 0, amount = it.amount
+            name = "${member.name} ${member.surname}",
+            isOwed = !isPayer && member.amount > 0 && currentUserDebtor?.hasPaid != true,
+            amount = member.amount,
+            isPayer = isPayer,
+            hasPaid = currentUserDebtor?.hasPaid ?: false
         )
     }
 
@@ -124,7 +139,11 @@ fun ExpenseDetailsScreen(
 
     val currentUserDebtor = remember {
         derivedStateOf {
-            selectedExpense?.debtors?.find { it.userId == currentUserId }
+            val debtor = selectedExpense.debtors.find { it.userId == currentUserId }
+            val viewModelDebtor = viewModel?.getCurrentUserDebtorInfo()
+
+            val finalDebtor = debtor ?: viewModelDebtor
+            finalDebtor
         }
     }
 
@@ -140,6 +159,7 @@ fun ExpenseDetailsScreen(
         selectedExpense = selectedExpense,
         isCurrentUserCreator = isCurrentUserCreator,
         currentUserDebtor = currentUserDebtor.value,
+        currentUserId = currentUserId,
         snackbarHostState = snackbarHostState,
         onMarkAsPaid = onMarkAsPaid,
         onCancelMarkAsPaid = onCancelMarkAsPaid,
@@ -162,6 +182,7 @@ private fun ExpenseDetailsScreenWithData(
     selectedExpense: Expense?,
     isCurrentUserCreator: Boolean,
     currentUserDebtor: ExpenseDebtor?,
+    currentUserId: Int?,
     snackbarHostState: SnackbarHostState,
     onMarkAsPaid: () -> Unit,
     onCancelMarkAsPaid: () -> Unit,
@@ -231,7 +252,9 @@ private fun ExpenseDetailsScreenWithData(
                     formUiState = formUiState,
                     onMarkAsPaid = onMarkAsPaid,
                     onCancelMarkAsPaid = onCancelMarkAsPaid,
-                    onDeleteExpense = onDeleteExpense
+                    onDeleteExpense = onDeleteExpense,
+                    selectedExpense = selectedExpense,
+                    currentUserId = currentUserId
                 )
                 Spacer(modifier = Modifier.height(basePadding))
             }
@@ -253,7 +276,9 @@ private fun ExpenseDetailsCard(
     formUiState: ExpenseDetailsViewModel.UIState,
     onMarkAsPaid: () -> Unit,
     onCancelMarkAsPaid: () -> Unit,
-    onDeleteExpense: () -> Unit
+    onDeleteExpense: () -> Unit,
+    selectedExpense: Expense? = null,
+    currentUserId: Int? = null,
 ) {
     TicketView(
         modifier = Modifier.fillMaxWidth()
@@ -287,7 +312,7 @@ private fun ExpenseDetailsCard(
                 )
             )
 
-            RemainingToPaySection(owesItems = owesItems)
+            RemainingToPaySection(owesItems = owesItems, currentUserDebtor = currentUserDebtor)
 
             HorizontalDivider(
                 modifier = Modifier.padding(
@@ -306,8 +331,7 @@ private fun ExpenseDetailsCard(
                     importance = ButtonImportance.Error,
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null
+                            imageVector = Icons.Default.Delete, contentDescription = null
                         )
                     },
                     modifier = Modifier
@@ -319,28 +343,86 @@ private fun ExpenseDetailsCard(
                 Column(
                     modifier = Modifier.padding(horizontal = smallPadding)
                 ) {
-                    // Show user's share amount if available
-                    currentUserDebtor?.let { debtor ->
+                    val isUserInvolved = currentUserDebtor != null || (selectedExpense?.paidByUserId == currentUserId)
+
+                    if (isUserInvolved) {
+                        if (currentUserDebtor != null) {
+
+                            if (currentUserDebtor.hasPaid) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = mediumPadding)
+                                ) {
+                                    val context = LocalContext.current
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                    ) {
+                                        IButton(
+                                            onClick = { /* Handled by overlay */ },
+                                            text = { Text("Mark as unpaid") },
+                                            importance = ButtonImportance.Secondary,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        Box(
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        Toast
+                                                            .makeText(
+                                                                context,
+                                                                "Long press to mark as unpaid",
+                                                                Toast.LENGTH_SHORT
+                                                            )
+                                                            .show()
+                                                    },
+                                                    onLongClick = onCancelMarkAsPaid
+                                                )
+                                        )
+                                    }
+                                }
+                            } else {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = mediumPadding)
+                                ) {
+                                    Text(
+                                        text = "Your share: ${formatCurrency(currentUserDebtor.amount.toString())}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(bottom = 8.dp)
+                                    )
+
+                                    SwipeButton(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        text = "Swipe to mark as paid",
+                                        isComplete = formUiState.showSuccessMessage,
+                                        onSwipe = {
+                                            onMarkAsPaid()
+                                        }
+                                    )
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "You paid for this expense",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(bottom = mediumPadding)
+                            )
+                        }
+                    } else {
                         Text(
-                            text = "Your share: ${formatCurrency(debtor.amount.toString())}",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            text = "You are not involved in this expense",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = mediumPadding)
                         )
                     }
-
-                    SlideToConfirm(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = mediumPadding),
-                        isLoading = formUiState.isMarkingAsPaid,
-                        currentStatus = formUiState.currentUserDebtorStatus,
-                        onAcceptSwipe = onMarkAsPaid,
-                        onCancelPressed = onCancelMarkAsPaid,
-                        hint = if (formUiState.currentUserDebtorStatus)
-                            "Already marked as paid"
-                        else
-                            "Swipe to mark as paid"
-                    )
                 }
             }
         }
@@ -361,11 +443,13 @@ private fun ExpenseInfoHeader(
         ) {
             Text(
                 modifier = Modifier.shimmerable(),
-                text = "Expense creation:", style = MaterialTheme.typography.titleMediumEmphasized
+                text = "Expense creation:",
+                style = MaterialTheme.typography.titleMediumEmphasized
             )
             Text(
                 modifier = Modifier.shimmerable(),
-                text = date, style = MaterialTheme.typography.titleMedium
+                text = date,
+                style = MaterialTheme.typography.titleMedium
             )
         }
         Row(
@@ -373,11 +457,13 @@ private fun ExpenseInfoHeader(
         ) {
             Text(
                 modifier = Modifier.shimmerable(),
-                text = "Paid using:", style = MaterialTheme.typography.titleMediumEmphasized
+                text = "Paid using:",
+                style = MaterialTheme.typography.titleMediumEmphasized
             )
             Text(
                 modifier = Modifier.shimmerable(),
-                text = paymentMethod, style = MaterialTheme.typography.titleMedium
+                text = paymentMethod,
+                style = MaterialTheme.typography.titleMedium
             )
         }
     }
@@ -385,10 +471,11 @@ private fun ExpenseInfoHeader(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun RemainingToPaySection(owesItems: List<OwesData>) {
-    val remainingAmount = owesItems.filter { it.isOwed }.sumOf { it.amount }
+private fun RemainingToPaySection(owesItems: List<OwesData>, currentUserDebtor: ExpenseDebtor?) {
+    val remainingAmount = owesItems.filter { it.isOwed && !it.hasPaid }.sumOf { it.amount }
+    val totalDebtorAmount = owesItems.filter { !it.isPayer }.sumOf { it.amount }
 
-    if (remainingAmount > 0) {
+    if (totalDebtorAmount > 0) {
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -409,7 +496,8 @@ private fun RemainingToPaySection(owesItems: List<OwesData>) {
                     style = MaterialTheme.typography.bodyLargeEmphasized,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.shimmerable()
+                    modifier = Modifier.shimmerable(),
+                    textDecoration = if (currentUserDebtor?.hasPaid == true) TextDecoration.LineThrough else TextDecoration.None
                 )
             }
         }
@@ -432,12 +520,9 @@ private fun PaidBySection(paidBy: String, isCurrentUserCreator: Boolean) {
             style = MaterialTheme.typography.headlineSmallEmphasized
         )
 
-        // Only show edit button if user is the creator
         if (isCurrentUserCreator) {
             IconButton(
-                modifier = Modifier.shimmerable(),
-                onClick = { /* Implement edit action */ }
-            ) {
+                modifier = Modifier.shimmerable(), onClick = { /* Implement edit action */ }) {
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = "Edit Paid by",
@@ -461,15 +546,11 @@ private fun AdditionalInfo(
     ) {
         MetadataItem(
             title = "Split type",
-            icon = splitType.icon(),
             label = splitType.displayName,
-            iconTint = MaterialTheme.colorScheme.onSurface
         )
         MetadataItem(
             title = "Category",
-            icon = category.icon(),
             label = category.displayName,
-            iconTint = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -478,20 +559,20 @@ private fun AdditionalInfo(
 @Composable
 private fun MetadataItem(
     title: String,
-    icon: ImageVector,
     label: String,
-    iconTint: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             modifier = Modifier.shimmerable(),
-            text = title, style = MaterialTheme.typography.labelMediumEmphasized
+            text = title,
+            style = MaterialTheme.typography.labelMediumEmphasized
         )
         Text(
             modifier = Modifier.shimmerable(),
-            text = label, style = MaterialTheme.typography.bodyMedium
+            text = label,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -501,7 +582,8 @@ private fun MetadataItem(
 private fun OwesSection(owesItems: List<OwesData>) {
     Text(
         modifier = Modifier.shimmerable(),
-        text = "Who owes", style = MaterialTheme.typography.headlineSmallEmphasized
+        text = "Who owes",
+        style = MaterialTheme.typography.headlineSmallEmphasized
     )
     Column(
         modifier = Modifier
@@ -510,7 +592,11 @@ private fun OwesSection(owesItems: List<OwesData>) {
     ) {
         owesItems.forEach { item ->
             OwesItem(
-                payerName = item.name, isOwed = item.isOwed, amount = item.amount
+                payerName = item.name,
+                isOwed = item.isOwed,
+                amount = item.amount,
+                isPayer = item.isPayer,
+                hasPaid = item.hasPaid
             )
         }
     }
@@ -548,7 +634,7 @@ private fun NotesSection(notes: String?) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OwesItem(
-    payerName: String, isOwed: Boolean, amount: Double
+    payerName: String, isOwed: Boolean, amount: Double, isPayer: Boolean, hasPaid: Boolean
 ) {
     Column(Modifier.padding(vertical = 8.dp)) {
         Row(
@@ -559,15 +645,34 @@ fun OwesItem(
             Text(
                 text = payerName,
                 style = MaterialTheme.typography.bodyMediumEmphasized,
-                textDecoration = if (isOwed) TextDecoration.None else TextDecoration.LineThrough,
+                textDecoration = if (isOwed && !hasPaid) TextDecoration.None else TextDecoration.LineThrough,
                 modifier = Modifier
                     .weight(0.4f)
                     .shimmerable()
             )
 
-            if (isOwed) {
+            if (isOwed && !hasPaid) {
                 Text(
-                    text = "Owes",
+                    text = "OWES",
+                    style = MaterialTheme.typography.labelMediumEmphasized,
+                    modifier = Modifier
+                        .weight(0.2f)
+                        .shimmerable(),
+                    textAlign = TextAlign.Center
+                )
+            } else if (isPayer) {
+                Text(
+                    text = "PAYER",
+                    style = MaterialTheme.typography.labelMediumEmphasized,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .weight(0.2f)
+                        .shimmerable(),
+                    textAlign = TextAlign.Center
+                )
+            } else if (hasPaid) {
+                Text(
+                    text = "PAID",
                     style = MaterialTheme.typography.labelMediumEmphasized,
                     modifier = Modifier
                         .weight(0.2f)
@@ -577,7 +682,7 @@ fun OwesItem(
             } else {
                 Icon(
                     imageVector = Icons.Filled.Check,
-                    contentDescription = "Edit Paid by",
+                    contentDescription = "Paid",
                     modifier = Modifier
                         .weight(0.2f)
                         .height(18.dp)
@@ -587,12 +692,12 @@ fun OwesItem(
             Text(
                 text = formatCurrency(amount.toString()),
                 style = MaterialTheme.typography.bodyMediumEmphasized,
-                fontWeight = FontWeight.Bold,
+                fontWeight = if (isOwed && !hasPaid) FontWeight.Normal else FontWeight.Bold,
                 textAlign = TextAlign.End,
                 modifier = Modifier
                     .weight(0.25f)
                     .shimmerable(),
-                textDecoration = if (isOwed) TextDecoration.None else TextDecoration.LineThrough
+                textDecoration = if (isOwed && !hasPaid) TextDecoration.None else TextDecoration.LineThrough
             )
         }
     }
@@ -636,16 +741,6 @@ private fun CollapsedExpenseHeader(
                 }
             }
         },
-        actions = {
-            if (isCurrentUserCreator) {
-                IconButton(onClick = onEditExpense) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit expense"
-                    )
-                }
-            }
-        }
     )
 }
 
@@ -677,7 +772,7 @@ fun ExpandedHeader(
 
                     Text(
                         modifier = modifier.shimmerable(),
-                        text = "${formatCurrency(expenseState.amount)}",
+                        text = formatCurrency(expenseState.amount),
                         style = MaterialTheme.typography.displaySmallEmphasized,
                     )
                 }
@@ -768,17 +863,17 @@ fun ExpenseDetailSkeleton() {
                 modifier = Modifier.shimmerable()
             )
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Text(
             text = "$ 000.00",
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.shimmerable()
         )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         TicketView(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -796,8 +891,7 @@ fun ExpenseDetailSkeleton() {
                         modifier = Modifier.shimmerable()
                     )
                     IconButton(
-                        onClick = { },
-                        modifier = Modifier.shimmerable()
+                        onClick = { }, modifier = Modifier.shimmerable()
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Edit,
@@ -810,13 +904,13 @@ fun ExpenseDetailSkeleton() {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.shimmerable()
                 )
-                
+
                 HorizontalDivider(
                     modifier = Modifier.padding(
                         horizontal = smallPadding, vertical = basePadding
                     )
                 )
-                
+
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.padding(vertical = basePadding)
@@ -852,7 +946,7 @@ fun ExpenseDetailSkeleton() {
                         )
                     }
                 }
-                
+
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth()
@@ -882,19 +976,19 @@ fun ExpenseDetailSkeleton() {
                         )
                     }
                 }
-                
+
                 HorizontalDivider(
                     modifier = Modifier.padding(
                         horizontal = smallPadding, vertical = basePadding
                     )
                 )
-                
+
                 Text(
                     text = "Who owes",
                     style = MaterialTheme.typography.headlineSmallEmphasized,
                     modifier = Modifier.shimmerable()
                 )
-                
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -915,7 +1009,7 @@ fun ExpenseDetailSkeleton() {
                                     .shimmerable()
                             )
                             Text(
-                                text = "Owes",
+                                text = if (it == 0) "PAYER" else "OWES",
                                 style = MaterialTheme.typography.labelMediumEmphasized,
                                 modifier = Modifier
                                     .weight(0.2f)
@@ -934,13 +1028,13 @@ fun ExpenseDetailSkeleton() {
                         }
                     }
                 }
-                
+
                 HorizontalDivider(
                     modifier = Modifier.padding(
                         horizontal = smallPadding, vertical = basePadding
                     )
                 )
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -960,13 +1054,13 @@ fun ExpenseDetailSkeleton() {
                         modifier = Modifier.shimmerable()
                     )
                 }
-                
+
                 HorizontalDivider(
                     modifier = Modifier.padding(
                         horizontal = smallPadding, vertical = basePadding
                     )
                 )
-                
+
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "Extra information",
@@ -984,27 +1078,24 @@ fun ExpenseDetailSkeleton() {
                         height = 32.dp,
                         text = {
                             Text(
-                                "See attached receipt",
-                                style = MaterialTheme.typography.labelMediumEmphasized
+                                "See attached receipt", style = MaterialTheme.typography.labelMediumEmphasized
                             )
                         },
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(basePadding))
-                
-                SlideToConfirm(
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = smallPadding)
                         .padding(bottom = mediumPadding)
-                        .shimmerable(),
-                    isLoading = false,
-                    onAcceptSwipe = { },
-                    currentStatus = false,
-                    onCancelPressed = { },
-                    hint = "Loading..."
-                )
+                ) {
+                    SwipeButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Loading...",
+                        isComplete = false,
+                        onSwipe = { }
+                    )
+                }
             }
         }
     }
@@ -1022,6 +1113,28 @@ private fun SkeletonPreview() {
 @Composable
 private fun ExpenseDetailsScreenPreview() {
     PreviewWrapper {
+        val owesItems = listOf(
+            OwesData(
+                name = "John Smith",
+                isOwed = true,
+                amount = 150.00,
+                isPayer = false,
+                hasPaid = false
+            ), OwesData(
+                name = "Alice Jones",
+                isOwed = false,
+                amount = 200.00,
+                isPayer = true,
+                hasPaid = true
+            ), OwesData(
+                name = "Charlie Brown",
+                isOwed = true,
+                amount = 100.00,
+                isPayer = false,
+                hasPaid = true
+            )
+        )
+
         ExpenseDetailsScreen(
             navController = rememberNavController(),
             expenseState = ExpenseDetailsViewModel.ExpenseState(
@@ -1033,7 +1146,9 @@ private fun ExpenseDetailsScreenPreview() {
                 paymentMethod = "Debit Card",
                 notes = null
             ),
-            formUiState = ExpenseDetailsViewModel.UIState(),
+            formUiState = ExpenseDetailsViewModel.UIState(
+                currentUserDebtorStatus = false
+            ),
             splitType = SplitType.PERCENTAGE,
             groupMembers = listOf(
                 GroupMember(
@@ -1068,11 +1183,18 @@ private fun ExpenseDetailsScreenPreview() {
             ),
             persons = listOf("John Smith", "Alice Jones", "Charlie Brown"),
             paymentMethods = listOf("Cash", "Debit Card", "Credit Card"),
-            currentUserId = 2
+            currentUserId = 2,
+            selectedExpense = null,
+            isLoading = false,
+            viewModel = null,
         )
     }
 }
 
 data class OwesData(
-    val name: String, val isOwed: Boolean, val amount: Double
+    val name: String,
+    val isOwed: Boolean,
+    val amount: Double,
+    val isPayer: Boolean,
+    val hasPaid: Boolean
 )
