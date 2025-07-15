@@ -1,5 +1,6 @@
 package com.serranoie.app.feature.expenses
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -88,8 +89,10 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import com.serranoie.app.feature.expenses.util.icon
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Date
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -127,9 +130,10 @@ fun AddExpenseScreen(
     if (formUiState.showSuccessMessage) {
         LaunchedEffect(Unit) {
             onClearSuccessMessage()
-            navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.set("expense_saved_message", "Expense saved successfully!")
+            navController.previousBackStackEntry?.savedStateHandle?.set(
+                    "expense_saved_message",
+                    "Expense saved successfully!"
+                )
             navController.popBackStack()
         }
     }
@@ -333,17 +337,18 @@ fun ExpenseBasicDetailsSection(
         DateTimeInput(
             selectedDateTime = if (date.isNotEmpty()) {
                 try {
-                    val localDate =
-                        java.time.LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
-                    java.util.Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                    val localDate = LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
+                    Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
                 } catch (e: Exception) {
+                    Log.e("ITINERO - AddExpense", "Failed to parse date: $date", e)
                     null
                 }
             } else null,
             onDateTimeSelected = { selectedDate ->
                 val dateFormat = DateTimeFormatter.ISO_LOCAL_DATE
-                val localDate = Instant.ofEpochMilli(selectedDate.time)
-                    .atZone(ZoneId.systemDefault()).toLocalDate()
+                val localDate =
+                    Instant.ofEpochMilli(selectedDate.time).atZone(ZoneId.systemDefault())
+                        .toLocalDate()
                 onDateSelected(localDate.format(dateFormat))
             },
             label = "Date: ",
@@ -489,7 +494,8 @@ fun PaymentDetailsSection(
                         )
                     ) {
                         Text(
-                            text = method, style = MaterialTheme.typography.bodySmall,
+                            text = method,
+                            style = MaterialTheme.typography.bodySmall,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -861,7 +867,11 @@ fun SplitValidation(
             val isValid = abs(totalManual - expenseAmount) < 0.01
 
             Text(
-                text = "Expense: $ ${String.format("%.2f", expenseAmount)}, Allocated: $ ${String.format("%.2f", totalManual)}",
+                text = "Expense: $ ${
+                    String.format(
+                        "%.2f", expenseAmount
+                    )
+                }, Allocated: $ ${String.format("%.2f", totalManual)}",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
@@ -968,8 +978,7 @@ private fun AddExpenseScreenPreview() {
         AddExpenseScreen(
             navController = rememberNavController(),
             expenseState = ExpenseDetailsViewModel.ExpenseState(
-                notes = null,
-                extraInfo = extraInfoState
+                notes = null, extraInfo = extraInfoState
             ),
             formUiState = ExpenseDetailsViewModel.UIState(),
             splitType = SplitType.EQUAL,

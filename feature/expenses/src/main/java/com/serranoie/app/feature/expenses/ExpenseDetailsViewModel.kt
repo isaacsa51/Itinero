@@ -157,6 +157,21 @@ class ExpenseDetailsViewModel(
         )
     }
 
+    private fun combineNotesAndExtraInfo(): String? {
+        return buildString {
+            val notes = _expenseState.value.notes?.trim()
+            val extraInfo = _expenseState.value.extraInfo?.trim()
+
+            if (!notes.isNullOrEmpty()) {
+                append(notes)
+            }
+            if (!extraInfo.isNullOrEmpty()) {
+                if (isNotEmpty()) append("\n")
+                append(extraInfo)
+            }
+        }.takeIf { it.isNotEmpty() }
+    }
+
     fun createExpense() {
         if (!validateExpense()) {
             _formUiState.update { it.copy(errorMessage = "Please correct the errors before saving") }
@@ -171,18 +186,7 @@ class ExpenseDetailsViewModel(
                 val paidByMember = _tripMembers.value.find { it.name == _expenseState.value.paidBy }
                 val paidByUserId = paidByMember?.id ?: _currentUserId.value ?: 1
 
-                val finalNotes = buildString {
-                    val notes = _expenseState.value.notes?.trim()
-                    val extraInfo = _expenseState.value.extraInfo?.trim()
-
-                    if (!notes.isNullOrEmpty()) {
-                        append(notes)
-                    }
-                    if (!extraInfo.isNullOrEmpty()) {
-                        if (isNotEmpty()) append("\n")
-                        append(extraInfo)
-                    }
-                }.takeIf { it.isNotEmpty() }
+                val finalNotes = combineNotesAndExtraInfo()
 
                 val request = CreateExpense(
                     tripId = currentGroupCode.toIntOrNull() ?: 1,
@@ -251,18 +255,7 @@ class ExpenseDetailsViewModel(
                 val paidByMember = _tripMembers.value.find { it.name == _expenseState.value.paidBy }
                 val paidByUserId = paidByMember?.id ?: _currentUserId.value ?: 1
 
-                val finalNotes = buildString {
-                    val notes = _expenseState.value.notes?.trim()
-                    val extraInfo = _expenseState.value.extraInfo?.trim()
-
-                    if (!notes.isNullOrEmpty()) {
-                        append(notes)
-                    }
-                    if (!extraInfo.isNullOrEmpty()) {
-                        if (isNotEmpty()) append("\n")
-                        append(extraInfo)
-                    }
-                }.takeIf { it.isNotEmpty() }
+                val finalNotes = combineNotesAndExtraInfo()
 
                 val request = CreateExpense(
                     tripId = currentGroupCode.toIntOrNull() ?: 1,
@@ -599,7 +592,7 @@ class ExpenseDetailsViewModel(
                 when (val result = expensesUseCase.markDebtorAsPaidUseCase(
                     currentGroupCode, currentExpense.id.toString()
                 )) {
-                    is Result.Success<*> -> {
+                    is Result.Success -> {
                         _formUiState.update {
                             it.copy(
                                 isMarkingAsPaid = false,
@@ -644,7 +637,7 @@ class ExpenseDetailsViewModel(
                 when (val result = expensesUseCase.markDebtorAsUnpaidUseCase(
                     currentGroupCode, currentExpense.id.toString()
                 )) {
-                    is Result.Success<*> -> {
+                    is Result.Success -> {
                         _formUiState.update {
                             it.copy(
                                 isMarkingAsPaid = false,
