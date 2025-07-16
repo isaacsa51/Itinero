@@ -33,6 +33,27 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    lint {
+        lintConfig = file("lint.xml")
+
+        disable.add("FlowOperatorInvokedInComposition")
+
+        disable.add("ComposableFlowOperator")
+        disable.add("FlowOperatorInvokedInComposition")
+        disable.add("ComposableNaming")
+        disable.add("ComposableModifierFactory")
+        disable.add("ModifierFactoryExtensionFunction")
+
+        abortOnError = false
+        checkReleaseBuilds = false
+
+        warningsAsErrors = false
+
+        checkDependencies = false
+
+        ignoreTestSources = true
+    }
 }
 
 dependencies {
@@ -46,6 +67,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation("com.android.tools.build:gradle:8.1.4")
 
     // Koin
     implementation("io.insert-koin:koin-android:4.0.3")

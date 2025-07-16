@@ -80,8 +80,7 @@ class LocalExpensesRepositoryImpl(
                 expenseDao.getUserExpenseSummariesByGroupCode(groupCode).firstOrNull()
             if (summaryEntity != null) {
                 // Get cached expenses for this group
-                val expenses = getAllCachedExpenses(groupCode)
-                when (expenses) {
+                when (val expenses = getAllCachedExpenses(groupCode)) {
                     is Result.Success -> {
                         val summary = UserExpenseSummary(
                             totalTripExpenses = summaryEntity.totalExpenses,

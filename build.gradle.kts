@@ -6,3 +6,13 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
 }
+
+// Global configuration to handle kotlinx-metadata-jvm version compatibility
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            // Force kotlinx-metadata-jvm to version 2.0.0 to fix lint compatibility issues
+            force("org.jetbrains.kotlinx:kotlinx-metadata-jvm:2.0.0")
+        }
+    }
+}

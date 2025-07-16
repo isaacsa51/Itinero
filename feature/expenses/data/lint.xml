@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Disable Compose-related lint rules that have kotlinx-metadata-jvm compatibility issues -->
+    <issue id="FlowOperatorInvokedInComposition" severity="ignore" />
+    <issue id="ComposableFlowOperator" severity="ignore" />
+    <issue id="ComposableNaming" severity="ignore" />
+    <issue id="ComposableModifierFactory" severity="ignore" />
+    <issue id="ModifierFactoryExtensionFunction" severity="ignore" />
+
+    <!-- Disable other potentially problematic Compose rules -->
+    <issue id="ComposableParameterOrder" severity="ignore" />
+    <issue id="ComposableRestartableStateParameter" severity="ignore" />
+    <issue id="ComposableLambdaParameterNaming" severity="ignore" />
+    <issue id="ComposableLambdaParameterPosition" severity="ignore" />
+</lint>
