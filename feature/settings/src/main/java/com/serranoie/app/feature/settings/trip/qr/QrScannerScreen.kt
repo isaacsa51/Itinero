@@ -30,8 +30,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -54,10 +56,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -79,7 +79,6 @@ fun QRCodeScannerWithBottomSheet(
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Handle focus indicator visibility timeout
     LaunchedEffect(tapCoordinates) {
         if (tapCoordinates != null) {
             delay(1000)
@@ -162,7 +161,7 @@ private fun CameraPreview(
             cameraProviderFuture.addListener({
                 val cameraProvider = cameraProviderFuture.get()
                 val preview = Preview.Builder().build().apply {
-                    setSurfaceProvider(previewView.surfaceProvider)
+                    surfaceProvider = previewView.surfaceProvider
                 }
 
                 val analyzer = ImageAnalysis.Builder()
@@ -251,6 +250,7 @@ private fun QrCodeBottomSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun QrCodeScanGuide() {
     Box(
@@ -266,12 +266,10 @@ private fun QrCodeScanGuide() {
 
             val rectSize = Size(size.width, size.height)
 
-            // Draw the semi-transparent dark overlay
             drawRect(
                 color = Color.Black.copy(alpha = 0.55f), size = rectSize
             )
 
-            // Create a clear window by using the "clear" blend mode
             drawRoundRect(
                 color = Color.Transparent,
                 topLeft = Offset(
@@ -283,7 +281,6 @@ private fun QrCodeScanGuide() {
             )
         }
 
-        // Scanner guide frame (border)
         Box(
             modifier = Modifier
                 .size(250.dp)
@@ -294,7 +291,6 @@ private fun QrCodeScanGuide() {
                 )
         )
 
-        // Instruction text
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -305,8 +301,7 @@ private fun QrCodeScanGuide() {
             Text(
                 text = "Position QR code within the frame",
                 color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMediumEmphasized
             )
         }
     }

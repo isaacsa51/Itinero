@@ -100,6 +100,13 @@ dependencies {
     // Lifecycle viewmodel
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+
+    implementation("com.google.guava:guava:33.4.8-android")
+    api("com.google.guava:guava:33.4.8-android")
+
+    // Concurrent futures for compatibility
+    implementation("androidx.concurrent:concurrent-futures:1.2.0")
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
 }
 
 kapt {

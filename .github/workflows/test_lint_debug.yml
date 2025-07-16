@@ -33,8 +33,11 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Clean build cache
+        run: ./gradlew clean
+
       - name: Execute Gradle command - testDebugUnitTest
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Execute Gradle command - lintDebug
         run: ./gradlew lintDebug --continue || echo "Lint failed due to kotlinx-metadata-jvm compatibility issues"

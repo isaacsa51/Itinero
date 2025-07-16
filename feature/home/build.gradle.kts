@@ -91,12 +91,20 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
 
-    // Camera
+    implementation("com.google.guava:guava:33.4.8-android")
+    api("com.google.guava:guava:33.4.8-android")
+
+
+    // Camera - Updated to stable versions
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.compose)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.accompanist.permissions)
+
+    // Concurrent futures for compatibility
+    implementation("androidx.concurrent:concurrent-futures:1.2.0")
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
 
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
 }
