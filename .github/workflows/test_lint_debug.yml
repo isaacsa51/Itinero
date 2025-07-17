@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch full history for proper branch detection
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -26,7 +28,25 @@ jobs:
           
       - name: Set up secret variables
         run: echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" > local.properties
+
+      - name: Determine build flavor
+        id: flavor
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch: $BRANCH_NAME"
           
+          if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
+            FLAVOR="release"
+          elif [ "$BRANCH_NAME" = "develop" ]; then
+            FLAVOR="beta"
+          else
+            FLAVOR="alpha"
+          fi
+          
+          echo "Selected flavor: $FLAVOR"
+          echo "flavor=$FLAVOR" >> $GITHUB_OUTPUT
+          echo "build_variant=${FLAVOR}Debug" >> $GITHUB_OUTPUT
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
@@ -37,29 +57,11 @@ jobs:
         run: ./gradlew clean
 
       - name: Execute Gradle command - testDebugUnitTest
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew test${{ steps.flavor.outputs.flavor }}DebugUnitTest --stacktrace
 
       - name: Execute Gradle command - lintDebug
-        run: ./gradlew lintDebug --continue || echo "Lint failed due to kotlinx-metadata-jvm compatibility issues"
+        run: ./gradlew lint${{ steps.flavor.outputs.flavor }}Debug --continue || echo "Lint failed due to kotlinx-metadata-jvm compatibility issues"
         continue-on-error: true
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: |
-            **/build/test-results/testDebugUnitTest/
-            **/build/reports/tests/testDebugUnitTest/
-
-      - name: Upload lint report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lint-report
-          path: |
-            **/build/reports/lint-results-debug.html
-            **/build/reports/lint-results-debug.xml
 
   debug-apk:
     name: Generate Debug APK
@@ -70,6 +72,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch full history for proper branch detection
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -83,17 +87,38 @@ jobs:
       - name: Set up secret variables
         run: echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" > local.properties
 
+      - name: Determine build flavor
+        id: flavor
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch: $BRANCH_NAME"
+          
+          if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
+            FLAVOR="release"
+          elif [ "$BRANCH_NAME" = "develop" ]; then
+            FLAVOR="beta"
+          else
+            FLAVOR="alpha"
+          fi
+          
+          echo "Selected flavor: $FLAVOR"
+          echo "flavor=$FLAVOR" >> $GITHUB_OUTPUT
+          echo "build_variant=${FLAVOR}Debug" >> $GITHUB_OUTPUT
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Clean build cache
+        run: ./gradlew clean
+
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assemble${{ steps.flavor.outputs.flavor }}Debug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: debug-apk-${{ steps.flavor.outputs.flavor }}
+          path: app/build/outputs/apk/${{ steps.flavor.outputs.flavor }}/debug/*.apk

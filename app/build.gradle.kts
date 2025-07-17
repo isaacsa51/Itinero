@@ -1,9 +1,49 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
     id("kotlin-kapt")
+}
+
+// Function to get current Git branch
+fun getGitBranch(): String {
+    return try {
+        val process = ProcessBuilder("git", "rev-parse", "--abbrev-ref", "HEAD")
+            .directory(rootDir)
+            .start()
+        process.inputStream.bufferedReader().use { it.readText().trim() }
+    } catch (e: Exception) {
+        "unknown"
+    }
+}
+
+fun getFlavorFromBranch(): String {
+    val branch = getGitBranch()
+    return when {
+        branch == "master" || branch == "main" -> "production"
+        branch == "develop" -> "beta"
+        else -> "alpha"
+    }
+}
+
+fun getVersionSuffix(flavor: String): String {
+    return when (flavor) {
+        "alpha" -> "-alpha"
+        "beta" -> "-beta"
+        else -> ""
+    }
+}
+
+fun getLocalProperty(key: String): String? {
+    val properties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(localPropertiesFile.inputStream())
+    }
+    return properties.getProperty(key)
 }
 
 android {
@@ -14,20 +54,100 @@ android {
         applicationId = "com.serranoie.app.itinero"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 5
+        versionName = "0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-            )
+    // Define product flavors
+    flavorDimensions += "version"
+    productFlavors {
+        create("alpha") {
+            dimension = "version"
+            applicationIdSuffix = ".alpha"
+            versionNameSuffix = "-alpha"
+
+            buildConfigField("String", "ENVIRONMENT", "\"alpha\"")
+            buildConfigField("String", "BASE_URL", "\"${getLocalProperty("API_BASE_URL") ?: "https://alpha-api.itinero.com"}\"")
+
+            resValue("string", "app_name", "Itinero Testing")
+        }
+
+        create("beta") {
+            dimension = "version"
+            applicationIdSuffix = ".beta"
+            versionNameSuffix = "-beta"
+
+            buildConfigField("String", "ENVIRONMENT", "\"beta\"")
+            buildConfigField("String", "BASE_URL", "\"https://beta-api.itinero.com\"")
+
+            resValue("string", "app_name", "Itinero Beta Testing")
+        }
+
+        create("production") {
+            dimension = "version"
+
+            // TODO: Add production-specific configurations
+            buildConfigField("String", "ENVIRONMENT", "\"production\"")
+            buildConfigField("String", "BASE_URL", "\"https://api.itinero.com\"")
+
+            resValue("string", "app_name", "Itinero")
         }
     }
+
+    buildTypes {
+        debug {
+            isDebuggable = true
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+
+            buildConfigField("String", "ENVIRONMENT", "\"debug\"") // TODO: Using debug signing for now
+
+            applicationVariants.all {
+                outputs
+                    .map { it as com.android.build.gradle.internal.api.ApkVariantOutputImpl }
+                    .all { output ->
+                        output.outputFileName = "Itinero-v${versionName}.apk"
+                        false
+                    }
+            }
+        }
+
+        release {
+            isDebuggable = false
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("debug") // TODO: Using debug signing for now
+
+            applicationVariants.all {
+                outputs
+                    .map { it as com.android.build.gradle.internal.api.ApkVariantOutputImpl }
+                    .all { output ->
+                        output.outputFileName = "Itinero-${flavorName}-v${versionName}.apk"
+                        false
+                    }
+            }
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/*"
+            excludes += "xsd/catalog.xml"
+        }
+    }
+
+    configurations {
+        implementation {
+            exclude(group = "com.sun.activation", module = "javax.activation")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -37,6 +157,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

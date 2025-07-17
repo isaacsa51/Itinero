@@ -1,4 +1,4 @@
-name: On Pull Request Opened on MASTER
+name: RELEASE - Lint & UTs
 
 on:
   pull_request:
@@ -17,8 +17,35 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Set up secret variables
         run: echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" > local.properties
+
+      - name: Determine build flavor
+        id: flavor
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch: $BRANCH_NAME"
+
+          if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
+            FLAVOR="production"
+          elif [ "$BRANCH_NAME" = "develop" ]; then
+            FLAVOR="beta"
+          else
+            FLAVOR="alpha"
+          fi
+
+          echo "Selected flavor: $FLAVOR"
+          echo "flavor=$FLAVOR" >> $GITHUB_OUTPUT
+          echo "build_variant=${FLAVOR}Release" >> $GITHUB_OUTPUT
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -26,8 +53,72 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Clean build cache
+        run: ./gradlew clean
+
       - name: Execute Gradle command - testReleaseUnitTest
-        run: ./gradlew testReleaseUnitTest
+        run: ./gradlew test${{ steps.flavor.outputs.flavor }}ReleaseUnitTest
 
       - name: Execute Gradle command - lintRelease
-        run: ./gradlew lintRelease
+        run: ./gradlew lint${{ steps.flavor.outputs.flavor }}Release
+
+  release-apk:
+    name: Generate RELEASE APK
+    runs-on: ubuntu-latest
+    needs: run_tests
+    if: success()
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch full history for proper branch detection
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+        # TODO: Implement proper API for release
+      - name: Set up secret variables
+        run: echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" > local.properties
+
+      - name: Determine build flavor
+        id: flavor
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch: $BRANCH_NAME"
+
+          if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
+            FLAVOR="production"
+          elif [ "$BRANCH_NAME" = "develop" ]; then
+            FLAVOR="beta"
+          else
+            FLAVOR="alpha"
+          fi
+
+          echo "Selected flavor: $FLAVOR"
+          echo "flavor=$FLAVOR" >> $GITHUB_OUTPUT
+          echo "build_variant=${FLAVOR}Release" >> $GITHUB_OUTPUT
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Clean build cache
+        run: ./gradlew clean
+
+      - name: Build release APK
+        run: ./gradlew assemble${{ steps.flavor.outputs.flavor }}Release --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk-${{ steps.flavor.outputs.flavor }}
+          path: app/build/outputs/apk/${{ steps.flavor.outputs.flavor }}/release/*.apk
