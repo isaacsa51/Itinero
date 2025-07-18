@@ -15,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.serranoie.app.designsystemlib.ui.ComponentPreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 
 private enum class Visibility {
     VISIBLE, GONE
@@ -61,8 +63,10 @@ fun JumpToBottom(
     }
 }
 
-@Preview
+@ComponentPreview
 @Composable
 fun JumpToBottomPreview() {
-    JumpToBottom(enabled = true, onClicked = {})
+    PreviewWrapper {
+        JumpToBottom(enabled = true, onClicked = {})
+    }
 }
