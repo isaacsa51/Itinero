@@ -43,7 +43,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystemlib.R
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 
@@ -80,13 +79,13 @@ fun ChatBubble(
 ) {
     val bubbleShape = shape ?: getChatBubbleShape(isUserMe)
     val bubbleColor = backgroundColor ?: if (isUserMe) {
-        MaterialTheme.colorScheme.tertiaryFixed
+        MaterialTheme.colorScheme.tertiaryContainer
     } else {
         MaterialTheme.colorScheme.secondaryContainer
     }
 
     val contentColor = textColor ?: if (isUserMe) {
-        MaterialTheme.colorScheme.onTertiaryFixedVariant
+        MaterialTheme.colorScheme.tertiary
     } else {
         MaterialTheme.colorScheme.onSecondaryContainer
     }
@@ -130,7 +129,7 @@ fun ChatBubble(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = timestamp,
-                style = MaterialTheme.typography.labelMediumEmphasized,
+                style = MaterialTheme.typography.bodySmallEmphasized,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
@@ -158,7 +157,6 @@ fun ChatBubbleWithAvatar(
     message: String,
     isUserMe: Boolean,
     timestamp: String,
-    avatarRes: Int = R.drawable.ic_avatar_placeholder,
     authorName: String = "",
     showAvatar: Boolean = !isUserMe,
     showAuthor: Boolean = !isUserMe,
@@ -173,7 +171,6 @@ fun ChatBubbleWithAvatar(
         if (!isUserMe) {
             if (showAvatar) {
                 ChatAvatar(
-                    avatarRes = avatarRes,
                     authorName = authorName,
                     onClick = { onAvatarClick(authorName) },
                     modifier = Modifier.padding(end = 8.dp)
@@ -183,16 +180,21 @@ fun ChatBubbleWithAvatar(
             }
         }
 
-        // Message content
+        // Message content - no width constraints for user messages
         Column(
             horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = if (isUserMe) {
+                Modifier
+            } else {
+                // For other messages, use weight but don't fill
+                Modifier.weight(1f, fill = false)
+            }
         ) {
             // Author name for other users
             if (showAuthor && !isUserMe && authorName.isNotEmpty()) {
                 Text(
                     text = authorName,
-                    style = MaterialTheme.typography.labelSmallEmphasized,
+                    style = MaterialTheme.typography.labelMediumEmphasized,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 4.dp, start = 8.dp)
@@ -247,7 +249,6 @@ fun ChatConversation(
                 message = message.content,
                 isUserMe = isUserMe,
                 timestamp = message.timestamp,
-                avatarRes = message.avatarRes,
                 authorName = message.authorName,
                 showAvatar = showAvatar,
                 showAuthor = showAuthor,
@@ -264,7 +265,6 @@ fun ChatConversation(
  */
 @Composable
 private fun ChatAvatar(
-    avatarRes: Int,
     authorName: String,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -392,8 +392,8 @@ private fun ChatBubbleContent(
 
     ClickableText(
         text = styledMessage,
-        style = MaterialTheme.typography.bodyLarge.copy(color = contentColor),
-        modifier = Modifier.padding(16.dp),
+        style = MaterialTheme.typography.bodyMedium.copy(color = contentColor),
+        modifier = Modifier.padding(12.dp),
         onClick = { offset ->
             // Handle clicks on the message
             onMessageClick(message)
@@ -413,47 +413,6 @@ private fun getChatBubbleShape(isUserMe: Boolean): Shape =
     } else {
         RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
     }
-
-/**
- * A more advanced chat bubble that includes author information
- */
-@Composable
-fun ChatBubbleWithAuthor(
-    message: String,
-    author: String,
-    timestamp: String,
-    isUserMe: Boolean,
-    showAuthor: Boolean = true,
-    imageRes: Int? = null,
-    onMessageClick: (String) -> Unit = {},
-    onLinkClick: (String) -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    Column(
-        horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
-        modifier = modifier
-    ) {
-        // Author name and timestamp for other users
-        if (showAuthor && !isUserMe) {
-            AuthorTimestamp(
-                author = author,
-                timestamp = timestamp,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-        }
-
-        // Chat bubble
-        ChatBubble(
-            message = message,
-            isUserMe = isUserMe,
-            timestamp = timestamp,
-            imageRes = imageRes,
-            onMessageClick = onMessageClick,
-            onLinkClick = onLinkClick,
-            showTimestamp = isUserMe // Only show timestamp for user messages
-        )
-    }
-}
 
 /**
  * Author and timestamp header for messages from other users
@@ -528,7 +487,6 @@ data class ChatMessage(
     val authorId: String,
     val authorName: String,
     val timestamp: String,
-    val avatarRes: Int = R.drawable.ic_avatar_placeholder
 )
 
 @ComponentPreview
@@ -539,100 +497,10 @@ private fun ChatBubblePreview() {
             verticalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier.padding(16.dp)
         ) {
-            // Basic Chat Bubbles
-            Text(
-                text = "Basic Chat Bubbles",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Column(
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                ChatBubble(
-                    message = "Hello! How are you doing?",
-                    isUserMe = true,
-                    timestamp = "10:30 AM"
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                ChatBubble(
-                    message = "This is a longer message to demonstrate multi-line text handling in chat bubbles.",
-                    isUserMe = true,
-                    timestamp = "10:31 AM"
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.Start,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                ChatBubble(
-                    message = "I'm doing great, thanks for asking!",
-                    isUserMe = false,
-                    timestamp = "10:32 AM"
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                ChatBubble(
-                    message = "How about you?",
-                    isUserMe = false,
-                    timestamp = "10:33 AM"
-                )
-            }
-
-            // Chat Bubbles with Avatars
-            Text(
-                text = "Chat Bubbles with Initials Avatars",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                ChatBubbleWithAvatar(
-                    message = "Hey there! This message shows initials avatar.",
-                    isUserMe = false,
-                    timestamp = "10:35 AM",
-                    authorName = "Isaac Serrano",
-                    showAvatar = true,
-                    showAuthor = true
-                )
-
-                ChatBubbleWithAvatar(
-                    message = "Here's another message from Isaac - same color!",
-                    isUserMe = false,
-                    timestamp = "10:36 AM",
-                    authorName = "Isaac Serrano",
-                    showAvatar = false,
-                    showAuthor = false
-                )
-
-                ChatBubbleWithAvatar(
-                    message = "And this is my reply.",
-                    isUserMe = true,
-                    timestamp = "10:37 AM",
-                    authorName = "Me",
-                    showAvatar = false,
-                    showAuthor = false
-                )
-
-                ChatBubbleWithAvatar(
-                    message = "Hi everyone! I'm Andrea with a different color.",
-                    isUserMe = false,
-                    timestamp = "10:38 AM",
-                    authorName = "Andrea Mena",
-                    showAvatar = true,
-                    showAuthor = true
-                )
-            }
-
             // Chat Conversation
             Text(
                 text = "Chat Conversation",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary
             )
 
@@ -720,7 +588,7 @@ private fun ChatBubblePreview() {
             // Compact Chat Bubbles
             Text(
                 text = "Compact Chat Bubbles",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary
             )
 
@@ -742,31 +610,6 @@ private fun ChatBubblePreview() {
                     isUserMe = true,
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Chat Bubbles with Author (Legacy)
-            Text(
-                text = "Chat Bubbles with Author Info",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                ChatBubbleWithAuthor(
-                    message = "This uses the legacy author component",
-                    author = "Team Lead",
-                    timestamp = "10:45 AM",
-                    isUserMe = false,
-                    showAuthor = true
-                )
-
-                ChatBubbleWithAuthor(
-                    message = "My response to the team lead",
-                    author = "Me",
-                    timestamp = "10:46 AM",
-                    isUserMe = true,
-                    showAuthor = false
                 )
             }
         }

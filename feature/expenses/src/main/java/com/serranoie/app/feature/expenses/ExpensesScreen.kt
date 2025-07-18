@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -186,57 +187,93 @@ fun BalanceCircles(
     } else {
         140.dp to 140.dp
     }
-    
+
+    // Determine which circle should be on top based on amount
+    val isOweOnTop = youOwe > youAreOwed
+    val overlapOffset = 68.dp // How much the circles overlap
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 16.dp)
+        Box(
+            modifier = Modifier.padding(vertical = 16.dp),
+            contentAlignment = Alignment.Center
         ) {
+            // Bottom circle (the one that appears behind)
             Box(
                 modifier = Modifier
-                    .size(oweSize)
+                    .size(if (isOweOnTop) owedSize else oweSize)
+                    .offset(x = if (isOweOnTop) overlapOffset else -overlapOffset)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.tertiary)
+                    .background(
+                        if (isOweOnTop)
+                            MaterialTheme.colorScheme.tertiaryContainer
+                        else
+                            MaterialTheme.colorScheme.tertiary
+                    )
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         textAlign = TextAlign.Center,
-                        text = "You owe",
-                        style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface)
+                        text = if (isOweOnTop) "You are owed" else "You owe",
+                        style = MaterialTheme.typography.labelLargeEmphasized.copy(
+                            color = if (isOweOnTop)
+                                MaterialTheme.colorScheme.onTertiaryContainer
+                            else
+                                MaterialTheme.colorScheme.surface
+                        )
                     )
                     Text(
                         textAlign = TextAlign.Center,
-                        text = formatCurrency(youOwe.toString()),
-                        style = MaterialTheme.typography.titleLargeEmphasized.copy(color = MaterialTheme.colorScheme.surface),
+                        text = formatCurrency(if (isOweOnTop) youAreOwed.toString() else youOwe.toString()),
+                        style = MaterialTheme.typography.titleLargeEmphasized.copy(
+                            color = if (isOweOnTop)
+                                MaterialTheme.colorScheme.onTertiaryContainer
+                            else
+                                MaterialTheme.colorScheme.surface
+                        ),
                         modifier = Modifier.shimmerable()
                     )
                 }
             }
 
+            // Top circle (the one that appears in front)
             Box(
                 modifier = Modifier
-                    .size(owedSize)
+                    .size(if (isOweOnTop) oweSize else owedSize)
+                    .offset(x = if (isOweOnTop) -overlapOffset else overlapOffset)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                    .background(
+                        if (isOweOnTop)
+                            MaterialTheme.colorScheme.tertiary
+                        else
+                            MaterialTheme.colorScheme.tertiaryContainer
+                    )
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         textAlign = TextAlign.Center,
-                        text = "You are owed",
-                        style = MaterialTheme.typography.labelLargeEmphasized.copy(color = MaterialTheme.colorScheme.onTertiaryContainer)
+                        text = if (isOweOnTop) "You owe" else "You are owed",
+                        style = MaterialTheme.typography.labelLargeEmphasized.copy(
+                            color = if (isOweOnTop)
+                                MaterialTheme.colorScheme.surface
+                            else
+                                MaterialTheme.colorScheme.onTertiaryContainer
+                        )
                     )
                     Text(
                         textAlign = TextAlign.Center,
-                        text = formatCurrency(youAreOwed.toString()),
+                        text = formatCurrency(if (isOweOnTop) youOwe.toString() else youAreOwed.toString()),
                         style = MaterialTheme.typography.titleLargeEmphasized.copy(
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            color = if (isOweOnTop)
+                                MaterialTheme.colorScheme.surface
+                            else
+                                MaterialTheme.colorScheme.onTertiaryContainer
                         ),
                         modifier = Modifier.shimmerable()
                     )

@@ -52,7 +52,6 @@ import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubble
-import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithAuthor
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithAvatar
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatConversation
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
@@ -72,10 +71,9 @@ fun ComponentsScreen() {
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        // Header
         Text(
             text = "Component Library",
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.displaySmallEmphasized,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -318,36 +316,6 @@ fun ChatComponentsShowcase() {
                 message = "How has your day been so far?",
                 isUserMe = false,
                 timestamp = "10:33 AM"
-            )
-        }
-
-        HorizontalDivider()
-
-        // Chat Bubbles with Authors
-        Text(
-            text = "Chat Bubbles with Authors",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Column(
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            ChatBubbleWithAuthor(
-                message = "Hey everyone! Just wanted to share some exciting news.",
-                author = "Alice",
-                timestamp = "10:35 AM",
-                isUserMe = false
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ChatBubbleWithAuthor(
-                message = "That sounds interesting! What's the news?",
-                author = "Bob",
-                timestamp = "10:36 AM",
-                isUserMe = false
             )
         }
 
