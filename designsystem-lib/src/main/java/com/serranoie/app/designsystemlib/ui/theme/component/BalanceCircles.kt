@@ -170,7 +170,7 @@ private fun calculateCircleSizes(
 
     return when {
         youOwe > youAreOwed -> {
-            val ratio = (youOwe / youAreOwed).coerceAtMost(1.5)
+            val ratio = if (youAreOwed > 0) (youOwe / youAreOwed).coerceAtMost(1.5) else 1.5
             val oweSize =
                 (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
             val owedSize =
@@ -179,7 +179,7 @@ private fun calculateCircleSizes(
         }
 
         youAreOwed > youOwe -> {
-            val ratio = (youAreOwed / youOwe).coerceAtMost(1.5)
+            val ratio = if (youOwe > 0) (youAreOwed / youOwe).coerceAtMost(1.5) else 1.5
             val owedSize =
                 (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
             val oweSize =

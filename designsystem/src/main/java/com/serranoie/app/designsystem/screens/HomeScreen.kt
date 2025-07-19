@@ -733,6 +733,7 @@ fun InputFieldShowcase() {
                 onValueChange = { },
                 placeholder = "Disabled",
                 leadingIcon = Icons.Default.Settings,
+                enabled = false,
                 modifier = Modifier.weight(1f)
             )
             

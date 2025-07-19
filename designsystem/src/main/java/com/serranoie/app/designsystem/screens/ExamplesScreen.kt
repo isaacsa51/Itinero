@@ -1111,26 +1111,6 @@ fun MockExpenseDateSection(
 }
 
 @Composable
-fun MockExpenseItem(
-    name: String, amount: String, members: String, category: String, isYours: Boolean
-) {
-    ExpenseCard(
-        expenseName = name,
-        membersCount = members.substringBefore(" ").toIntOrNull() ?: 4,
-        amountOwed = amount.removePrefix("¥").replace(",", "").toDoubleOrNull() ?: 0.0,
-        isCompleted = false,
-        isYours = isYours,
-        icon = when (category.lowercase()) {
-            "food" -> Icons.Default.Restaurant
-            "transportation" -> Icons.Default.MonetizationOn
-            "accommodation" -> Icons.Default.Home
-            else -> Icons.Default.MonetizationOn
-        },
-        modifier = Modifier.fillMaxWidth()
-    ) { }
-}
-
-@Composable
 fun ChatExampleContent() {
     val chatListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()

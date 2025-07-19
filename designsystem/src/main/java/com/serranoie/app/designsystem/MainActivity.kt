@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.datastore.preferences.preferencesDataStore
 import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicMaterialThemeState
@@ -42,6 +43,8 @@ import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTypography
 import com.serranoie.app.designsystemlib.ui.theme.SeedColor
 import com.serranoie.app.designsystemlib.ui.theme.Tertiary
+
+private val android.content.Context.dataStore by preferencesDataStore("theme_preferences")
 
 data class NavigationItem(
     val label: String, val icon: ImageVector, val screen: @Composable () -> Unit
@@ -62,9 +65,9 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     var selectedItemIndex by remember { mutableIntStateOf(0) }
 
-    // Initialize ViewModel with context
+    // Initialize ViewModel with DataStore
     val context = LocalContext.current
-    val themeViewModel = remember { ThemeViewModel(context) }
+    val themeViewModel = remember { ThemeViewModel(context.dataStore) }
 
     // Collect theme states from ViewModel
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState(initial = false)

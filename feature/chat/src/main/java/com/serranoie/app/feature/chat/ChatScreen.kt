@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -131,12 +129,14 @@ val exampleUiState = ChatUiState(
  * Entry point for a conversation screen.
  *
  * @param uiState [ChatUiState] that contains messages to display
+ * @param currentUserId ID of the current user to determine message ownership
  * @param onBackPressed Called when the user taps the back button
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     uiState: ChatUiState = exampleUiState,
+    currentUserId: String = "isaac", // Default for previews
     onBackPressed: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -161,6 +161,7 @@ fun ChatScreen(
         ) {
             Messages(
                 messages = uiState.messages,
+                currentUserId = currentUserId,
                 navigateToProfile = { user ->
                     // Handle navigation to profile
                 },
@@ -231,6 +232,7 @@ fun ChannelNameBar(
 @Composable
 fun Messages(
     messages: List<ChatMessage>,
+    currentUserId: String,
     navigateToProfile: (String) -> Unit,
     scrollState: LazyListState,
     modifier: Modifier = Modifier
@@ -247,7 +249,7 @@ fun Messages(
             items(messages.reversed()) { message ->
                 MessageItem(
                     message = message,
-                    isUserMe = message.authorId == "isaac", // Current user is Isaac
+                    isUserMe = message.authorId == currentUserId,
                     onAuthorClick = navigateToProfile
                 )
             }
