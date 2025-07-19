@@ -38,6 +38,7 @@ import androidx.navigation.navArgument
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.feature.chat.ChatScreen
+import com.serranoie.app.feature.chat.exampleUiState
 import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.HomeUiState
@@ -108,7 +109,10 @@ fun HomeRootScreen(
                 expensesGraph(navController, tripId)
 
                 composable(Route.Chat.route) {
-                    ChatScreen(navController, tripId)
+                    ChatScreen(
+                        uiState = exampleUiState,
+                        onBackPressed = { navController.popBackStack() }
+                    )
                 }
 
                 composable(

@@ -29,7 +29,7 @@ val displayFontFamily = FontFamily(
 val displayLargeFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(900),
+            FontVariation.weight(400),
             FontVariation.width(600f),
         )
     )
@@ -39,7 +39,7 @@ val displayLargeFontFamily = FontFamily(
 val displayMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(800),
+            FontVariation.weight(400),
             FontVariation.width(150f),
         )
     )
@@ -49,7 +49,7 @@ val displayMediumFontFamily = FontFamily(
 val displaySmallFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(1000),
+            FontVariation.weight(400),
             FontVariation.width(150f),
         )
     )
@@ -59,7 +59,7 @@ val displaySmallFontFamily = FontFamily(
 val headlineLargeFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(800),
+            FontVariation.weight(400),
             FontVariation.width(120f)
         )
     )
@@ -69,7 +69,7 @@ val headlineLargeFontFamily = FontFamily(
 val headlineMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(800),
+            FontVariation.weight(400),
             FontVariation.width(150f),
         )
     )
@@ -79,19 +79,28 @@ val headlineMediumFontFamily = FontFamily(
 val headlineSmallFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(200f),
+            FontVariation.weight(400),
+            FontVariation.width(150f),
         )
     )
 )
 
+@OptIn(ExperimentalTextApi::class)
+val titleLargeFontFamily = FontFamily(
+    Font(
+        R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
+            FontVariation.weight(400),
+            FontVariation.width(150f),
+        )
+    )
+)
 
 @OptIn(ExperimentalTextApi::class)
 val titleMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(600),
-            FontVariation.width(120f),
+            FontVariation.weight(400),
+            FontVariation.width(150f),
         )
     )
 )
@@ -100,7 +109,7 @@ val titleMediumFontFamily = FontFamily(
 val titleSmallFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(1000),
+            FontVariation.weight(400),
             FontVariation.width(150f),
         )
     )
@@ -121,7 +130,7 @@ val labelMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
             FontVariation.weight(600),
-            FontVariation.width(70f),
+            FontVariation.width(150f),
         )
     )
 )
@@ -131,7 +140,7 @@ val labelSmallFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
             FontVariation.weight(400),
-            FontVariation.width(200f),
+            FontVariation.width(80f),
         )
     )
 )
@@ -159,7 +168,7 @@ val bodyMediumFontFamily = FontFamily(
 val bodySmallFontFamily = FontFamily(
     Font(
         R.font.chivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.width(300f),
+            FontVariation.width(200f),
         )
     )
 )
@@ -181,8 +190,8 @@ val ItineroTypography = Typography(
     headlineMediumEmphasized = baseline.headlineMediumEmphasized.copy(fontFamily = headlineMediumFontFamily),
     headlineSmall = baseline.headlineSmall.copy(fontFamily = displayFontFamily),
     headlineSmallEmphasized = baseline.headlineSmallEmphasized.copy(fontFamily = headlineSmallFontFamily),
-    titleLargeEmphasized = baseline.titleLargeEmphasized.copy(fontFamily = displayLargeFontFamily),
     titleLarge = baseline.titleLarge.copy(fontFamily = displayFontFamily),
+    titleLargeEmphasized = baseline.titleLargeEmphasized.copy(fontFamily = titleLargeFontFamily),
     titleMedium = baseline.titleMedium.copy(fontFamily = displayFontFamily),
     titleMediumEmphasized = baseline.titleMediumEmphasized.copy(fontFamily = titleMediumFontFamily),
     titleSmall = baseline.titleSmall.copy(fontFamily = displayFontFamily),

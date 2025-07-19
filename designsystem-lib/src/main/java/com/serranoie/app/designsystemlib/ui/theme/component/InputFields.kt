@@ -215,28 +215,34 @@ fun ISmallerTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize
+    fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
+    enabled: Boolean = true
 ) {
     BasicTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = if (enabled) onValueChange else { _ -> },
         singleLine = true,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
+        enabled = enabled,
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         textStyle = LocalTextStyle.current.copy(
-            color = MaterialTheme.colorScheme.onSurface,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                alpha = 0.38f
+            ),
             fontSize = fontSize
         ),
         modifier = modifier
             .height(32.dp)
             .background(
-                MaterialTheme.colorScheme.surface,
+                if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(
+                    alpha = 0.12f
+                ),
                 shape
             )
             .border(
                 1.dp,
-                borderColor,
+                if (enabled) borderColor else borderColor.copy(alpha = 0.12f),
                 shape
             )
             .fillMaxWidth(),
@@ -250,7 +256,9 @@ fun ISmallerTextField(
                         imageVector = it,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.outline
+                        tint = if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.38f
+                        )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -260,7 +268,9 @@ fun ISmallerTextField(
                         Text(
                             text = placeholder,
                             style = LocalTextStyle.current.copy(
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+                                color = if (enabled) MaterialTheme.colorScheme.outline.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                ),
                                 fontSize = fontSize
                             )
                         )
@@ -274,7 +284,9 @@ fun ISmallerTextField(
                         imageVector = it,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.outline
+                        tint = if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.38f
+                        )
                     )
                 }
             }

@@ -48,6 +48,7 @@ import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -91,6 +92,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue
 
@@ -108,7 +110,7 @@ enum class EmojiStickerSelector {
     STICKER
 }
 
-@Preview
+@ComponentPreview
 @Composable
 fun UserInputPreview() {
     UserInput(onMessageSent = {})
@@ -277,21 +279,9 @@ private fun UserInputSelector(
             description = "Emoji selector"
         )
         InputSelectorButton(
-            onClick = { onSelectorChange(InputSelector.DM) },
-            icon = Icons.Outlined.AlternateEmail,
-            selected = currentInputSelector == InputSelector.DM,
-            description = "Direct Message selector"
-        )
-        InputSelectorButton(
             onClick = { onSelectorChange(InputSelector.PICTURE) },
             icon = Icons.Outlined.InsertPhoto,
             selected = currentInputSelector == InputSelector.PICTURE,
-            description = ""
-        )
-        InputSelectorButton(
-            onClick = { onSelectorChange(InputSelector.MAP) },
-            icon = Icons.Outlined.Place,
-            selected = currentInputSelector == InputSelector.MAP,
             description = ""
         )
 
@@ -320,7 +310,8 @@ private fun UserInputSelector(
             onClick = onMessageSent,
             colors = buttonColors,
             border = border,
-            contentPadding = PaddingValues(0.dp)
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(8.dp)
         ) {
             Text(
                 text = "Send",
@@ -443,6 +434,7 @@ private fun UserInputText(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun BoxScope.UserInputTextField(
     textFieldValue: TextFieldValue,
@@ -486,7 +478,7 @@ private fun BoxScope.UserInputTextField(
                 .align(Alignment.CenterStart)
                 .padding(start = 32.dp),
             text = "Type a message...",
-            style = MaterialTheme.typography.bodyLarge.copy(color = disableContentColor)
+            style = MaterialTheme.typography.bodyLargeEmphasized.copy(color = disableContentColor)
         )
     }
 }

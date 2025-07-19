@@ -109,7 +109,15 @@ android {
                 outputs
                     .map { it as com.android.build.gradle.internal.api.ApkVariantOutputImpl }
                     .all { output ->
-                        output.outputFileName = "Itinero-v${versionName}.apk"
+                        val flavorDisplayName = when (flavorName) {
+                            "alpha" -> "Alpha"
+                            "beta" -> "Beta"
+                            "production" -> ""
+                            else -> flavorName.replaceFirstChar { it.uppercase() }
+                        }
+                        val appName =
+                            if (flavorDisplayName.isEmpty()) "Itinero" else "Itinero $flavorDisplayName"
+                        output.outputFileName = "$appName-v${defaultConfig.versionName}.apk"
                         false
                     }
             }
@@ -128,7 +136,15 @@ android {
                 outputs
                     .map { it as com.android.build.gradle.internal.api.ApkVariantOutputImpl }
                     .all { output ->
-                        output.outputFileName = "Itinero-${flavorName}-v${versionName}.apk"
+                        val flavorDisplayName = when (flavorName) {
+                            "alpha" -> "Alpha"
+                            "beta" -> "Beta"
+                            "production" -> ""
+                            else -> flavorName.replaceFirstChar { it.uppercase() }
+                        }
+                        val appName =
+                            if (flavorDisplayName.isEmpty()) "Itinero" else "Itinero $flavorDisplayName"
+                        output.outputFileName = "$appName-v${defaultConfig.versionName}.apk"
                         false
                     }
             }

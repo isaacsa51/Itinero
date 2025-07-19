@@ -52,7 +52,6 @@ import com.serranoie.app.designsystemlib.ui.theme.UiUtils.ALPHA_FULL
 
 class LargeDropdownMenu {
     @SuppressLint("NotConstructor")
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun <T> LargeDropdownMenu(
         modifier: Modifier = Modifier,
