@@ -36,10 +36,11 @@ Itinero supports joining a group via:
 - **QR Code Scanning**  
   QR codes can encode a deep link that opens the app via standard Android intents, enabling quick and seamless access to the correct trip group.
 
-## Status
+## Theming and Design System
 
-Currently in active development. New features are being added and refined regularly.
+The app currently have it's own design language (not so different from Material 3 Expressive) but has it's core elements/components inside the `designsystem-lib` module. Each component has their documentation and `@Preview` to see how it behaves and looks.
 
+Apart having a proper proper "showcase" and guidelines on how to use the theme correctly while displaying screen examples and each custom component. This app is hosted on the `designsystem` app module, should be a great place to start to look how the app looks and how to use the components.
 
 ### Product Flavors System
 
