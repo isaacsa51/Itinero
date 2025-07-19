@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 
 /**
  * A flexible settings group container that can hold any composable content.
@@ -60,8 +61,9 @@ fun FlexibleListGroup(
         title?.let {
             Text(
                 text = it,
+                color = MaterialTheme.colorScheme.outline,
                 style = MaterialTheme.typography.labelLargeEmphasized,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = smallPadding)
             )
         }
 

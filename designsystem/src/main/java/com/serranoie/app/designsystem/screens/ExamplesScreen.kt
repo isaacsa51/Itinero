@@ -3,6 +3,7 @@ package com.serranoie.app.designsystem.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,20 +11,34 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DensitySmall
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,12 +46,16 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,20 +65,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
+import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
+import com.serranoie.app.designsystemlib.ui.theme.component.JumpToBottom
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithAvatar
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeActionsConfig
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 data class ExampleCategory(
-    val title: String,
-    val description: String,
-    val icon: ImageVector
+    val title: String, val description: String, val icon: ImageVector
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,26 +96,18 @@ fun ExamplesScreen() {
 
     val categories = listOf(
         ExampleCategory(
-            title = "Home",
-            description = "Main dashboard and overview",
-            icon = Icons.Default.Home
-        ),
-        ExampleCategory(
+            title = "Home", description = "Main dashboard and overview", icon = Icons.Default.Home
+        ), ExampleCategory(
             title = "Itinerary",
             description = "Travel plans and schedules",
             icon = Icons.Default.Map
-        ),
-        ExampleCategory(
+        ), ExampleCategory(
             title = "Expenses",
             description = "Budget tracking and expenses",
             icon = Icons.Default.MonetizationOn
-        ),
-        ExampleCategory(
-            title = "Chat",
-            description = "Messages and communication",
-            icon = Icons.Default.Chat
-        ),
-        ExampleCategory(
+        ), ExampleCategory(
+            title = "Chat", description = "Messages and communication", icon = Icons.Default.Chat
+        ), ExampleCategory(
             title = "Settings",
             description = "App preferences and configuration",
             icon = Icons.Default.Settings
@@ -97,31 +116,24 @@ fun ExamplesScreen() {
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (selectedCategory != null) {
-            TopAppBar(
-                title = { Text(selectedCategory!!.title) },
-                navigationIcon = {
-                    IconButton(onClick = { selectedCategory = null }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
+            TopAppBar(title = { Text(selectedCategory!!.title) }, navigationIcon = {
+                IconButton(onClick = { selectedCategory = null }) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                 }
-            )
+            })
             ExampleDetailScreen(selectedCategory!!)
         } else {
             TopAppBar(
-                title = { Text("Examples") }
-            )
+                title = { Text("Examples") })
             ExampleCategoriesScreen(
-                categories = categories,
-                onCategorySelected = { selectedCategory = it }
-            )
+                categories = categories, onCategorySelected = { selectedCategory = it })
         }
     }
 }
 
 @Composable
 fun ExampleCategoriesScreen(
-    categories: List<ExampleCategory>,
-    onCategorySelected: (ExampleCategory) -> Unit
+    categories: List<ExampleCategory>, onCategorySelected: (ExampleCategory) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -134,8 +146,7 @@ fun ExampleCategoriesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                onClick = { onCategorySelected(category) }
-            ) {
+                onClick = { onCategorySelected(category) }) {
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
@@ -152,8 +163,7 @@ fun ExampleCategoriesScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = category.title,
-                            style = MaterialTheme.typography.titleMedium
+                            text = category.title, style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             text = category.description,
@@ -171,10 +181,13 @@ fun ExampleCategoriesScreen(
 fun ExampleDetailScreen(category: ExampleCategory) {
     when (category.title) {
         "Home" -> HomeExampleContent()
+        "Itinerary" -> ItineraryExampleContent()
+        "Expenses" -> ExpensesExampleContent()
+        "Chat" -> ChatExampleContent()
+        "Settings" -> SettingsExampleContent()
         else -> {
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "${category.title} Screen Content",
@@ -196,18 +209,14 @@ fun HomeExampleContent() {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // Destination Card
         MockDestinationCard(
-            destination = "Tokyo, Japan",
-            groupName = "Tokyo Adventure Group"
+            destination = "Tokyo, Japan", groupName = "Tokyo Adventure Group"
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Info Cards Row
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             MockInfoCard(
                 title = "Travel date",
@@ -230,20 +239,16 @@ fun HomeExampleContent() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Summary Section
         MockSummarySection()
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Today's Tasks Section
         MockTodayTasksSection()
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Accommodation Section
         Text(
-            text = "Accommodation",
-            style = MaterialTheme.typography.headlineMedium
+            text = "Accommodation", style = MaterialTheme.typography.headlineMedium
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -279,19 +284,16 @@ fun HomeExampleContent() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Travel Information Section
         MockTravelInfoSection()
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Screen Divider
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 16.dp),
             thickness = 2.dp,
             color = MaterialTheme.colorScheme.outline
         )
 
-        // Trip Settings Screen Label
         Text(
             text = "Trip Settings Screen",
             style = MaterialTheme.typography.headlineLarge,
@@ -299,7 +301,6 @@ fun HomeExampleContent() {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Trip Settings Content
         MockTripSettingsContent()
     }
 }
@@ -329,53 +330,49 @@ fun MockTripSettingsContent() {
 
 @Composable
 fun MockGroupCodeCard() {
-    ICard(
-        modifier = Modifier.fillMaxWidth(),
-        content = {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "ITINERO GROUP CODE",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold
-                )
+    ICard(modifier = Modifier.fillMaxWidth(), content = {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "ITINERO GROUP CODE",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
 
-                OtpDisplayField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    otpText = "51712"
-                )
+            OtpDisplayField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp), otpText = "51712"
+            )
 
-                Text(
-                    text = "What's this code for?",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+            Text(
+                text = "What's this code for?",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
-                Text(
-                    text = "This code is your trip's unique invitation identifier. Share it only with people you want to invite to your Itinero planning group.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+            Text(
+                text = "This code is your trip's unique invitation identifier. Share it only with people you want to invite to your Itinero planning group.",
+                style = MaterialTheme.typography.bodyMedium
+            )
 
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = "Only the trip creator can manage group members.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        },
-        onClick = { }
-    )
+            Text(
+                text = "Only the trip creator can manage group members.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }, onClick = { })
 }
 
 @Composable
 fun MockTripInfoSection() {
     PaddedListGroup(title = "Trip Information".uppercase()) {
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.First
+            onClick = { }, position = PaddedListItemPosition.First
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -389,13 +386,15 @@ fun MockTripInfoSection() {
         }
 
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.Middle
+            onClick = { }, position = PaddedListItemPosition.Middle
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Trip Dates", style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Dec 15, 2024 - Dec 22, 2024", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "Dec 15, 2024 - Dec 22, 2024",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
@@ -404,8 +403,7 @@ fun MockTripInfoSection() {
         }
 
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.Middle
+            onClick = { }, position = PaddedListItemPosition.Middle
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -419,13 +417,15 @@ fun MockTripInfoSection() {
         }
 
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.Middle
+            onClick = { }, position = PaddedListItemPosition.Middle
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Accommodation Location", style = MaterialTheme.typography.bodyLarge)
-                Text(text = "1-1-1 Shibuya, Tokyo, Japan", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "1-1-1 Shibuya, Tokyo, Japan",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
@@ -434,8 +434,7 @@ fun MockTripInfoSection() {
         }
 
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.Last
+            onClick = { }, position = PaddedListItemPosition.Last
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -454,8 +453,7 @@ fun MockTripInfoSection() {
 fun MockGroupManagementSection() {
     PaddedListGroup(title = "GROUP MANAGEMENT") {
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.First
+            onClick = { }, position = PaddedListItemPosition.First
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -474,8 +472,7 @@ fun MockGroupManagementSection() {
         }
 
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.Middle
+            onClick = { }, position = PaddedListItemPosition.Middle
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -494,8 +491,7 @@ fun MockGroupManagementSection() {
         }
 
         CustomPaddedListItem(
-            onClick = { },
-            position = PaddedListItemPosition.Last
+            onClick = { }, position = PaddedListItemPosition.Last
         ) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -519,10 +515,8 @@ fun MockGroupManagementSection() {
 fun MockDangerZoneSection() {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "DANGER ZONE",
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+            text = "DANGER ZONE", style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error
             )
         )
 
@@ -556,8 +550,7 @@ fun MockDangerZoneSection() {
 
 @Composable
 fun MockDestinationCard(
-    destination: String,
-    groupName: String
+    destination: String, groupName: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -590,36 +583,27 @@ fun MockDestinationCard(
 
 @Composable
 fun MockInfoCard(
-    title: String,
-    value: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
+    title: String, value: String, subtitle: String, modifier: Modifier = Modifier
 ) {
-    ICard(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        content = {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        },
-        onClick = { }
-    )
+    ICard(modifier = modifier, shape = RoundedCornerShape(16.dp), content = {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline
+            )
+            Text(
+                text = value, style = MaterialTheme.typography.headlineSmall
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }, onClick = { })
 }
 
 @Composable
@@ -630,8 +614,7 @@ fun MockSummarySection() {
             .padding(horizontal = 16.dp)
     ) {
         Text(
-            text = "Summary",
-            style = MaterialTheme.typography.headlineMedium
+            text = "Summary", style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -652,181 +635,161 @@ fun MockSummarySection() {
 fun MockTodayTasksSection() {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Today's Tasks",
-            style = MaterialTheme.typography.headlineMedium
+            text = "Today's Tasks", style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(12.dp))
 
         // Expense Summary Card
-        ICard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            content = {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+        ICard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), content = {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Expense Summary",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Expense Summary",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Breakfast", style = MaterialTheme.typography.bodyMedium
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Breakfast",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "¥2,500",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Train tickets",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "¥800",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Total Today",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "¥3,300",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                    Text(
+                        text = "¥2,500",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
-            },
-            onClick = { }
-        )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Train tickets", style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "¥800",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Total Today", style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "¥3,300",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }, onClick = { })
 
         Spacer(modifier = Modifier.height(12.dp))
 
         // Today's Itinerary Card
-        ICard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            content = {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+        ICard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), content = {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Today's Itinerary",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Itinerary Item 1
+                Row(
+                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        text = "Today's Itinerary",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        text = "9:00 AM",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(80.dp)
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Itinerary Item 1
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
+                    Column(
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "9:00 AM",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.width(80.dp)
+                            text = "Senso-ji Temple", style = MaterialTheme.typography.bodyMedium
                         )
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Senso-ji Temple",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Visit Tokyo's oldest temple in Asakusa",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Itinerary Item 2
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
-                    ) {
                         Text(
-                            text = "2:00 PM",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.width(80.dp)
+                            text = "Visit Tokyo's oldest temple",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Shibuya Crossing",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Experience the world's busiest pedestrian crossing",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Itinerary Item 3
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "7:00 PM",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.width(80.dp)
-                        )
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Izakaya Dinner",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Traditional Japanese pub experience",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
                     }
                 }
-            },
-            onClick = { }
-        )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Itinerary Item 2
+                Row(
+                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "2:00 PM",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(80.dp)
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Shibuya Crossing", style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Experience the world's busiest pedestrian crossing",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Itinerary Item 3
+                Row(
+                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "7:00 PM",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.width(80.dp)
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Izakaya Dinner", style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Traditional Japanese pub experience",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }, onClick = { })
     }
 }
 
@@ -846,8 +809,7 @@ fun MockTravelInfoSection() {
             )
             IconButton(onClick = { }) {
                 Icon(
-                    imageVector = Icons.Rounded.Edit,
-                    contentDescription = "Edit travel information"
+                    imageVector = Icons.Rounded.Edit, contentDescription = "Edit travel information"
                 )
             }
         }
@@ -901,6 +863,621 @@ fun MockTravelInfoSection() {
             leadingIcon = null,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+fun ItineraryExampleContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+    ) {
+        MockItineraryDateSection(
+            date = LocalDate.now(), title = "Today - December 15, 2024"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MockItineraryDateSection(
+            date = LocalDate.now().plusDays(1), title = "Tomorrow - December 16, 2024"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MockItineraryDateSection(
+            date = LocalDate.now().plusDays(2), title = "Day 3 - December 17, 2024"
+        )
+    }
+}
+
+@Composable
+fun MockItineraryDateSection(
+    date: LocalDate, title: String
+) {
+    Row {
+        // Date sidebar
+        DateRangeToolbar(date = date)
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp)
+        ) {
+            // Activity cards
+            MockItineraryActivity(
+                name = "Senso-ji Temple Visit",
+                time = "9:00 AM",
+                location = "Asakusa, Tokyo",
+                description = "Visit Tokyo's oldest temple and explore traditional shops",
+                isCompleted = false
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            MockItineraryActivity(
+                name = "Tokyo Skytree",
+                time = "2:00 PM",
+                location = "Sumida, Tokyo",
+                description = "Observation deck with panoramic city views",
+                isCompleted = true
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            MockItineraryActivity(
+                name = "Izakaya Dinner",
+                time = "7:00 PM",
+                location = "Shibuya, Tokyo",
+                description = "Traditional Japanese pub experience",
+                isCompleted = false
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(thickness = 1.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun MockItineraryActivity(
+    name: String, time: String, location: String, description: String, isCompleted: Boolean
+) {
+    ICard(
+        swipeable = true,
+        isCompleted = isCompleted,
+        headerTitle = name,
+        headerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        swipeActionsConfig = if (!isCompleted) {
+            SwipeActionsConfig(
+                threshold = 0.3f,
+                icon = Icons.Default.Check,
+                iconTint = MaterialTheme.colorScheme.onPrimary,
+                background = MaterialTheme.colorScheme.primary,
+                stayDismissed = false,
+                onDismiss = { })
+        } else {
+            SwipeActionsConfig(
+                threshold = 0.3f,
+                icon = Icons.Default.Close,
+                iconTint = MaterialTheme.colorScheme.onError,
+                background = MaterialTheme.colorScheme.error,
+                stayDismissed = false,
+                onDismiss = { })
+        },
+        onSwipe = { },
+        content = {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = 24.dp, vertical = 8.dp
+                )
+            ) {
+                Text(
+                    text = "🕒 $time", style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "📍 $location", style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "❓ $description", style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        onClick = { })
+}
+
+@Composable
+fun ExpensesExampleContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+    ) {
+        BalanceCircles(
+            youOwe = 2500.0, youAreOwed = 5200.0
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "History of expenses", style = MaterialTheme.typography.headlineMedium
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MockExpenseDateSection(
+            date = LocalDate.now(), title = "Today - December 15, 2024"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MockExpenseDateSection(
+            date = LocalDate.now().plusDays(-1), title = "Yesterday - December 14, 2024"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MockExpenseDateSection(
+            date = LocalDate.now().plusDays(-2), title = "December 13, 2024"
+        )
+    }
+}
+
+@Composable
+fun MockExpenseDateSection(
+    date: LocalDate, title: String
+) {
+    Row {
+        // Date sidebar
+        DateRangeToolbar(date = date)
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp, start = 8.dp)
+        ) {
+            // Mock expense items
+            when (title) {
+                "Today - December 15, 2024" -> {
+                    ExpenseCard(
+                        expenseName = "Lunch at Ramen Shop",
+                        membersCount = 4,
+                        amountOwed = 3200.0,
+                        isCompleted = false,
+                        isYours = true,
+                        icon = Icons.Default.Restaurant,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ExpenseCard(
+                        expenseName = "Train Tickets",
+                        membersCount = 4,
+                        amountOwed = 800.0,
+                        isCompleted = false,
+                        isYours = false,
+                        icon = Icons.Default.Train,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { }
+                }
+
+                "Yesterday - December 14, 2024" -> {
+                    ExpenseCard(
+                        expenseName = "Hotel Room",
+                        membersCount = 4,
+                        amountOwed = 12000.0,
+                        isCompleted = false,
+                        isYours = false,
+                        icon = Icons.Default.Home,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ExpenseCard(
+                        expenseName = "Dinner & Drinks",
+                        membersCount = 4,
+                        amountOwed = 8500.0,
+                        isCompleted = false,
+                        isYours = true,
+                        icon = Icons.Default.Restaurant,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { }
+                }
+
+                "December 13, 2024" -> {
+                    ExpenseCard(
+                        expenseName = "Flight Tickets",
+                        membersCount = 4,
+                        amountOwed = 45000.0,
+                        isCompleted = false,
+                        isYours = false,
+                        icon = Icons.Default.MonetizationOn,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(thickness = 1.dp)
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun MockExpenseItem(
+    name: String, amount: String, members: String, category: String, isYours: Boolean
+) {
+    ExpenseCard(
+        expenseName = name,
+        membersCount = members.substringBefore(" ").toIntOrNull() ?: 4,
+        amountOwed = amount.removePrefix("¥").replace(",", "").toDoubleOrNull() ?: 0.0,
+        isCompleted = false,
+        isYours = isYours,
+        icon = when (category.lowercase()) {
+            "food" -> Icons.Default.Restaurant
+            "transportation" -> Icons.Default.MonetizationOn
+            "accommodation" -> Icons.Default.Home
+            else -> Icons.Default.MonetizationOn
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) { }
+}
+
+@Composable
+fun ChatExampleContent() {
+    val chatListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val mockMessages = listOf(
+        ChatMessage(
+            id = "1",
+            content = "Hey everyone! Welcome to our Tokyo trip planning group!",
+            authorId = "isaac",
+            authorName = "Isaac Serrano",
+            timestamp = "8:07 PM"
+        ), ChatMessage(
+            id = "2",
+            content = "Thanks Isaac! Excited to be part of this adventure 🎌",
+            authorId = "andrea",
+            authorName = "Andrea Mena",
+            timestamp = "8:08 PM"
+        ), ChatMessage(
+            id = "3",
+            content = "I've been researching some amazing temples we should visit!",
+            authorId = "carlos",
+            authorName = "Carlos Rodriguez",
+            timestamp = "8:09 PM"
+        ), ChatMessage(
+            id = "4",
+            content = "That sounds great! I've been looking into the best ramen spots 🍜",
+            authorId = "isaac",
+            authorName = "Isaac Serrano",
+            timestamp = "8:10 PM"
+        ), ChatMessage(
+            id = "5",
+            content = "Perfect! We should also check out Shibuya Crossing at night 🌃",
+            authorId = "maria",
+            authorName = "Maria Garcia",
+            timestamp = "8:11 PM"
+        ), ChatMessage(
+            id = "6",
+            content = "And don't forget about the cherry blossom season! 🌸",
+            authorId = "david",
+            authorName = "David Thompson",
+            timestamp = "8:12 PM"
+        ), ChatMessage(
+            id = "7",
+            content = "Should we book the hotel near Shibuya station?",
+            authorId = "andrea",
+            authorName = "Andrea Mena",
+            timestamp = "8:13 PM"
+        ), ChatMessage(
+            id = "8",
+            content = "That's a great idea! It's close to everything we want to see.",
+            authorId = "isaac",
+            authorName = "Isaac Serrano",
+            timestamp = "8:14 PM"
+        )
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Tokyo Adventure Group",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "5 members",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Box(modifier = Modifier.weight(1f)) {
+            LazyColumn(
+                state = chatListState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                reverseLayout = true
+            ) {
+                items(items = mockMessages.reversed(), key = { it.id }) { message ->
+                    ChatBubbleWithAvatar(
+                        message = message.content,
+                        isUserMe = message.authorId == "isaac",
+                        timestamp = message.timestamp,
+                        authorName = message.authorName,
+                        onMessageClick = { },
+                        onAvatarClick = { },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            JumpToBottom(
+                enabled = true, onClicked = {
+                    coroutineScope.launch {
+                        chatListState.animateScrollToItem(0)
+                    }
+                }, modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        UserInput(
+            onMessageSent = { content ->
+            coroutineScope.launch {
+                chatListState.animateScrollToItem(0)
+            }
+        }, resetScroll = {
+            coroutineScope.launch {
+                chatListState.scrollToItem(0)
+            }
+        }, modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun SettingsExampleContent() {
+    var themeMode by remember { mutableStateOf("System Default") }
+    var isMaterialYou by remember { mutableStateOf(true) }
+
+    val themeOptions = listOf("Light", "Dark", "System Default")
+    val selectedThemeIndex = themeOptions.indexOf(themeMode)
+    var showThemeDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        if (showThemeDialog) {
+            AlertDialog(
+                onDismissRequest = { showThemeDialog = false },
+                title = { Text("Choose Theme") },
+                text = {
+                    Column {
+                        themeOptions.forEachIndexed { idx, option ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .also { if (idx == selectedThemeIndex) it }) {
+                                RadioButton(
+                                    selected = selectedThemeIndex == idx, onClick = {
+                                        themeMode = option
+                                        showThemeDialog = false
+                                    })
+                                Text(
+                                    text = option,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showThemeDialog = false }) {
+                        Text("Cancel")
+                    }
+                })
+        }
+
+        PaddedListGroup(
+            title = "Look & Feel"
+        ) {
+            CustomPaddedListItem(
+                onClick = { showThemeDialog = true }, position = PaddedListItemPosition.First
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DarkMode,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "App theme", style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Change the overall theme of the app.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Current: $themeMode",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = "Select theme",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            CustomPaddedListItem(
+                onClick = { }, position = PaddedListItemPosition.Last
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Palette,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Enable Material You", style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Apply Material You colors based from your wallpaper to your app (Android 12+)",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Switch(
+                    checked = isMaterialYou, onCheckedChange = {
+                        isMaterialYou = it
+                    })
+            }
+        }
+
+        PaddedListGroup(
+            title = "App Information"
+        ) {
+            CustomPaddedListItem(
+                onClick = { }, position = PaddedListItemPosition.First
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Information", style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "See the information of the app and the developer.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            CustomPaddedListItem(
+                onClick = { }, position = PaddedListItemPosition.Middle
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DensitySmall,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Website", style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Visit our website for more extensive information about the app and the development of it.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            CustomPaddedListItem(
+                onClick = { }, position = PaddedListItemPosition.Middle
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Privacy Policy", style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Read the privacy policy & terms of use of the app.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            CustomPaddedListItem(
+                onClick = { }, position = PaddedListItemPosition.Middle
+            ) {
+                Icon(
+                    imageVector = Icons.Default.BugReport,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Encountered a bug?", style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Send us a report or issues you encounter creating a Bug/Issue report on GitHub.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            CustomPaddedListItem(
+                onClick = { }, position = PaddedListItemPosition.Last
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Version", style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Version 0.5", style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
     }
 }
 
