@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.designsystemlib.ui.theme.component.AIShimmer
 import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroughText
+import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.BottomSheetContent
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedExpandableItem
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
@@ -88,6 +89,13 @@ fun ComponentsScreen() {
         // Cards Section
         ComponentSection(title = "Card Components") {
             CardComponentsShowcase()
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Balance Circles Section
+        ComponentSection(title = "Balance Circles") {
+            BalanceCirclesShowcase()
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -506,63 +514,6 @@ fun ChatComponentsShowcase() {
                 isUserMe = true,
                 timestamp = "10:41 AM",
                 shape = RoundedCornerShape(16.dp)
-            )
-        }
-
-        HorizontalDivider()
-
-        // Interactive Chat Bubbles
-        Text(
-            text = "Interactive Chat Bubbles",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Column(
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            ChatBubble(
-                message = "Tap this message to see interaction!",
-                isUserMe = false,
-                timestamp = "10:45 AM",
-                onMessageClick = { message ->
-                    // Handle message click
-                    println("Message clicked: $message")
-                }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ChatBubble(
-                message = "This message has link handling support",
-                isUserMe = true,
-                timestamp = "10:46 AM",
-                onLinkClick = { link ->
-                    // Handle link click
-                    println("Link clicked: $link")
-                }
-            )
-        }
-
-        HorizontalDivider()
-
-        // Chat Bubbles without Timestamp
-        Text(
-            text = "Chat Bubbles without Timestamp",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Column(
-            horizontalAlignment = Alignment.End,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            ChatBubble(
-                message = "This message doesn't show timestamp",
-                isUserMe = true,
-                timestamp = "10:50 AM",
-                showTimestamp = false
             )
         }
     }
@@ -1076,6 +1027,123 @@ fun ListsAndSettingsShowcase() {
                 leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) }
             )
         }
+    }
+}
+
+@Composable
+fun BalanceCirclesShowcase() {
+    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+        Text(
+            text = "Financial Balance Components",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        // Equal amounts
+        Text(
+            text = "Equal Amounts",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 150.0,
+            youAreOwed = 150.0
+        )
+
+        HorizontalDivider()
+
+        // You owe more
+        Text(
+            text = "You Owe More",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 250.0,
+            youAreOwed = 100.0
+        )
+
+        HorizontalDivider()
+
+        // You are owed more
+        Text(
+            text = "You Are Owed More",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 75.0,
+            youAreOwed = 300.0
+        )
+
+        HorizontalDivider()
+
+        // Small amounts
+        Text(
+            text = "Small Amounts",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 12.50,
+            youAreOwed = 8.25
+        )
+
+        HorizontalDivider()
+
+        // Large amounts
+        Text(
+            text = "Large Amounts",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 1250.0,
+            youAreOwed = 850.0
+        )
+
+        HorizontalDivider()
+
+        // Zero amounts
+        Text(
+            text = "Zero Amounts",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 0.0,
+            youAreOwed = 0.0
+        )
+
+        HorizontalDivider()
+
+        // One-sided balance
+        Text(
+            text = "One-Sided Balance",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 0.0,
+            youAreOwed = 125.0
+        )
+
+        HorizontalDivider()
+
+        // Custom colors
+        Text(
+            text = "Custom Colors",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        BalanceCircles(
+            youOwe = 100.0,
+            youAreOwed = 150.0,
+            oweColor = MaterialTheme.colorScheme.error,
+            owedColor = MaterialTheme.colorScheme.primaryContainer,
+            oweTextColor = MaterialTheme.colorScheme.onError,
+            owedTextColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 

@@ -65,4 +65,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
 
     implementation(libs.materialKolor)
+
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
 }

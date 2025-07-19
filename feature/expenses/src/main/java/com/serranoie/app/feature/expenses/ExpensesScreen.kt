@@ -1,6 +1,5 @@
 package com.serranoie.app.feature.expenses
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,12 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Money
@@ -37,21 +33,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
 import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
-import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
 import com.serranoie.app.feature.expenses.domain.model.Expense
 import com.serranoie.app.feature.expenses.domain.model.UserExpenseSummary
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
@@ -172,147 +166,6 @@ fun ExpensesScreen(
                 }
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun BalanceCircles(
-    youOwe: Double = 50.0, 
-    youAreOwed: Double = 100.0
-) {
-    val totalAmount = youOwe + youAreOwed
-    val (oweSize, owedSize) = if (totalAmount > 0) {
-        calculateCircleSizes(youOwe, youAreOwed)
-    } else {
-        140.dp to 140.dp
-    }
-
-    // Determine which circle should be on top based on amount
-    val isOweOnTop = youOwe > youAreOwed
-    val overlapOffset = 68.dp // How much the circles overlap
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier.padding(vertical = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            // Bottom circle (the one that appears behind)
-            Box(
-                modifier = Modifier
-                    .size(if (isOweOnTop) owedSize else oweSize)
-                    .offset(x = if (isOweOnTop) overlapOffset else -overlapOffset)
-                    .clip(CircleShape)
-                    .background(
-                        if (isOweOnTop)
-                            MaterialTheme.colorScheme.tertiaryContainer
-                        else
-                            MaterialTheme.colorScheme.tertiary
-                    )
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = if (isOweOnTop) "You are owed" else "You owe",
-                        style = MaterialTheme.typography.labelLargeEmphasized.copy(
-                            color = if (isOweOnTop)
-                                MaterialTheme.colorScheme.onTertiaryContainer
-                            else
-                                MaterialTheme.colorScheme.surface
-                        )
-                    )
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = formatCurrency(if (isOweOnTop) youAreOwed.toString() else youOwe.toString()),
-                        style = MaterialTheme.typography.titleLargeEmphasized.copy(
-                            color = if (isOweOnTop)
-                                MaterialTheme.colorScheme.onTertiaryContainer
-                            else
-                                MaterialTheme.colorScheme.surface
-                        ),
-                        modifier = Modifier.shimmerable()
-                    )
-                }
-            }
-
-            // Top circle (the one that appears in front)
-            Box(
-                modifier = Modifier
-                    .size(if (isOweOnTop) oweSize else owedSize)
-                    .offset(x = if (isOweOnTop) -overlapOffset else overlapOffset)
-                    .clip(CircleShape)
-                    .background(
-                        if (isOweOnTop)
-                            MaterialTheme.colorScheme.tertiary
-                        else
-                            MaterialTheme.colorScheme.tertiaryContainer
-                    )
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = if (isOweOnTop) "You owe" else "You are owed",
-                        style = MaterialTheme.typography.labelLargeEmphasized.copy(
-                            color = if (isOweOnTop)
-                                MaterialTheme.colorScheme.surface
-                            else
-                                MaterialTheme.colorScheme.onTertiaryContainer
-                        )
-                    )
-                    Text(
-                        textAlign = TextAlign.Center,
-                        text = formatCurrency(if (isOweOnTop) youOwe.toString() else youAreOwed.toString()),
-                        style = MaterialTheme.typography.titleLargeEmphasized.copy(
-                            color = if (isOweOnTop)
-                                MaterialTheme.colorScheme.surface
-                            else
-                                MaterialTheme.colorScheme.onTertiaryContainer
-                        ),
-                        modifier = Modifier.shimmerable()
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun calculateCircleSizes(youOwe: Double, youAreOwed: Double): Pair<Dp, Dp> {
-    val minSize = 120.dp
-    val maxSize = 180.dp
-    val defaultSize = 140.dp
-    
-    if (youOwe < 0.01 && youAreOwed < 0.01) {
-        return defaultSize to defaultSize
-    }
-    
-    val totalAmount = youOwe + youAreOwed
-    val difference = kotlin.math.abs(youOwe - youAreOwed)
-    
-    if (difference / totalAmount < 0.1) {
-        return defaultSize to defaultSize
-    }
-    
-    return when {
-        youOwe > youAreOwed -> {
-            val ratio = (youOwe / youAreOwed).coerceAtMost(1.5) 
-            val oweSize = (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
-            val owedSize = (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / 0.5).dp
-            oweSize to owedSize.coerceAtLeast(minSize)
-        }
-        youAreOwed > youOwe -> {
-            val ratio = (youAreOwed / youOwe).coerceAtMost(1.5) 
-            val owedSize = (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
-            val oweSize = (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / 0.5).dp
-            oweSize.coerceAtLeast(minSize) to owedSize
-        }
-        else -> defaultSize to defaultSize
     }
 }
 
