@@ -36,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IFilledSmallerTextField
@@ -749,7 +749,7 @@ fun InputFieldShowcase() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 fun HomeScreenPreview() {
     PreviewWrapper {

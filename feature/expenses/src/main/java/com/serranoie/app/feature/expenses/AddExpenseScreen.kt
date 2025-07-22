@@ -76,7 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroughText
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
@@ -966,7 +966,7 @@ fun DatePickerDialog(
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun AddExpenseScreenPreview() {
     var extraInfoState by androidx.compose.runtime.remember {

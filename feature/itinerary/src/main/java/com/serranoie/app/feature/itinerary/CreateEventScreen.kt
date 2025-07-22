@@ -35,7 +35,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
@@ -71,12 +70,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
-import com.serranoie.app.designsystemlib.ui.theme.component.SlideToConfirm
 import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.formatMyDate
@@ -876,7 +874,7 @@ private fun SaveButtonSection(
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun CreateEventScreenPreview() {
     PreviewWrapper {

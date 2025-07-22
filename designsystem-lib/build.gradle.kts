@@ -62,4 +62,9 @@ dependencies {
 
     // Shimmer effect
     implementation("com.valentinilk.shimmer:compose-shimmer:1.3.1")
+
+    //Koin
+    implementation("io.insert-koin:koin-android:4.0.3")
+    implementation("io.insert-koin:koin-core:4.0.3")
+    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
 }

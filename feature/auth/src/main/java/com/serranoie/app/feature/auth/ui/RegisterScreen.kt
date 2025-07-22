@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Facebook
 import androidx.compose.material.icons.rounded.GppGood
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,16 +38,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import org.koin.androidx.compose.koinViewModel
-import androidx.compose.runtime.State
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 data class FieldValidation(
@@ -373,7 +368,7 @@ private fun validatePasswordConfirmation(password: String, confirmation: String)
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun RegisterScreenPreview() {
     PreviewWrapper {

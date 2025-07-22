@@ -43,7 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
 import com.serranoie.app.feature.TravelUiState
@@ -446,7 +446,7 @@ fun determineTripStatus(startDate: String, endDate: String): String {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun TravelListPreview() {
     PreviewWrapper {

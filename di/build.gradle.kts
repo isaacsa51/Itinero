@@ -36,10 +36,12 @@ dependencies {
 
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
+    implementation(project(":core:settings"))
     implementation(project(":feature:itinerary:data"))
     implementation(project(":feature:itinerary:domain"))
     implementation(project(":feature:expenses:data"))
     implementation(project(":feature:expenses:domain"))
+    implementation(project(":designsystem-lib"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -62,4 +64,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.auth)
+
+    // DataStore preferences
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
 }

@@ -183,6 +183,7 @@ dependencies {
     implementation(project(":designsystem-lib"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:settings"))
     implementation(project(":di"))
     implementation(project(":feature:home"))
     implementation(project(":feature:onboard"))
@@ -254,6 +255,12 @@ dependencies {
     // Lifecycle viewmodel
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+
+    // DataStore preferences
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+
+    // Material Kolor
+    implementation(libs.materialKolor)
 
     // ML Kit and QR generator
     implementation("com.google.mlkit:barcode-scanning:17.3.0")

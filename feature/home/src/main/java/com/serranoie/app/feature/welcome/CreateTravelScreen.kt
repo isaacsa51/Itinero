@@ -49,7 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
@@ -331,7 +331,7 @@ fun DateRangePickerModal(
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun CreateTravelScreenPreview() {
     PreviewWrapper {

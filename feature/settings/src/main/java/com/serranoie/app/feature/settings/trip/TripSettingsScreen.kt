@@ -60,7 +60,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedExpandableItem
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
@@ -644,7 +644,7 @@ private fun DangerZoneSection(currentUserMembershipStatus: MembershipStatus?) {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun TripSettingsScreenPreview() {
     PreviewWrapper {

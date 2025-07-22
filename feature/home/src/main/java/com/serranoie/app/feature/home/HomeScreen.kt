@@ -57,8 +57,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
 import com.serranoie.app.designsystemlib.ui.theme.component.AIShimmer
 import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
@@ -200,7 +200,7 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /*navController.navigate("settings")*/ }) {
+                    IconButton(onClick = { navController.navigate(Route.Settings.route) }) {
                         Icon(Icons.Outlined.Settings, contentDescription = "Settings")
                     }
                 },
@@ -605,12 +605,10 @@ fun HomeScreenContent(
     onShowSnackbar: suspend (String) -> Unit
 ) {
     PullToRefreshBox(
-        isRefreshing = false,
-        onRefresh = {
+        isRefreshing = false, onRefresh = {
             onRefresh()
             Log.d("ITINERO", "Refreshing data...")
-        }
-    ) {
+        }) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1093,8 +1091,7 @@ fun TodayTasksSection() {
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "Visit Local Market",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "Visit Local Market", style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = "Explore traditional crafts and local foods",
@@ -1146,8 +1143,7 @@ fun TodayTasksSection() {
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = "Dinner Reservation",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "Dinner Reservation", style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
                             text = "Traditional cuisine at La Bella Vista",
@@ -1265,7 +1261,7 @@ fun TravelInfoCardShimmer() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 fun HomeScreenPreview() {
     PreviewWrapper {
@@ -1304,7 +1300,7 @@ fun HomeScreenPreview() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 fun HomeScreenPreviewLoading() {
     PreviewWrapper {

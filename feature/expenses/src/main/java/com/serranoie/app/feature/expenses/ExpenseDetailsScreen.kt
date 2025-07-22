@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.times
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
@@ -1101,7 +1101,7 @@ fun ExpenseDetailSkeleton() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun SkeletonPreview() {
     PreviewWrapper {
@@ -1109,7 +1109,7 @@ private fun SkeletonPreview() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun ExpenseDetailsScreenPreview() {
     PreviewWrapper {

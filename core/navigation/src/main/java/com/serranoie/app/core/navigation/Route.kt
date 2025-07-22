@@ -47,7 +47,8 @@ sealed class Route(val route: String) {
     data object JoinTrip : Route(Screen.JOIN_TRIP.name)
     data object CameraScanner : Route(Screen.CAMERA_SCANNER.name)
 
-    data object SettingsNavigation : Route("settingsNavigation")
+    //data object SettingsNavigation : Route("settingsNavigation")
+    data object Settings : Route(Screen.SETTINGS.name)
 
     data object AuthNavigation : Route("authNavigation")
     data object Authentication : Route(Screen.AUTH.name)

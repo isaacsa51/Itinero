@@ -6,6 +6,7 @@ val diModules = module {
     includes(
         persistenceModule,
         repositoryModule,
-        useCaseModule
+        useCaseModule,
+        utilitiesModule
     )
 }

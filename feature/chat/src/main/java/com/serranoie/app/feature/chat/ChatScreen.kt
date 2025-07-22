@@ -39,7 +39,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.designsystemlib.ui.theme.component.JumpToBottom
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
@@ -335,7 +335,7 @@ fun DayHeaderPrev() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun ChatScreenPreview() {
     PreviewWrapper {

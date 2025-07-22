@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 
 @Composable
 fun OnboardScreen(
@@ -41,7 +41,7 @@ fun OnboardScreen(
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 fun OnboardScreenPreview() {
     PreviewWrapper {

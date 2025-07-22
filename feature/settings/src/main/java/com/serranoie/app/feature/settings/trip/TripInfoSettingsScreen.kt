@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
@@ -271,7 +271,7 @@ fun SectionHeader(title: String) {
     )
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun TripInfoSettingsScreenPreview() {
     val routeTripId = "ITN-12349"
