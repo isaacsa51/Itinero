@@ -32,37 +32,34 @@ class NetworkObserver(
      */
     val isConnectedFlow: Flow<Boolean>
         get() = callbackFlow {
-            // Define a NetworkCallback to handle connectivity events such as
-            // network becoming available, lost, or changes in capabilities.
             val networkCallback = object : ConnectivityManager.NetworkCallback() {
-                // Called when a network becomes available.
                 @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
                 override fun onAvailable(network: Network) {
-                    // Check if the network has internet capability before emitting true.
                     connectivityManager?.getNetworkCapabilities(network)?.let {
-                        if (it.hasCapability(NET_CAPABILITY_INTERNET)) {
-                            trySend(true) // Emit `true` when internet capability is available.
+                        if (it.hasCapability(NET_CAPABILITY_INTERNET) && it.hasCapability(
+                                NetworkCapabilities.NET_CAPABILITY_VALIDATED
+                            )
+                        ) {
+                            trySend(true)
                         }
                     }
                 }
 
                 // Called when a network is lost.
                 override fun onLost(network: Network) {
-                    trySend(false) // Emit `false` when the network is lost.
+                    trySend(false)
                 }
 
                 // Called when no networks are available or a request fails.
                 override fun onUnavailable() {
-                    trySend(false) // Emit `false` when no network is available.
+                    trySend(false)
                 }
 
                 // Called when network capabilities change, such as validation status.
                 override fun onCapabilitiesChanged(
-                    network: Network,
-                    capabilities: NetworkCapabilities
+                    network: Network, capabilities: NetworkCapabilities
                 ) {
                     super.onCapabilitiesChanged(network, capabilities)
-                    // Emit `true` if the network is validated, otherwise emit `false`.
                     if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
                         trySend(true)
                     } else {
@@ -73,10 +70,10 @@ class NetworkObserver(
 
             // Create a NetworkRequest specifying the types of networks and capabilities we are interested in.
             val networkRequest = NetworkRequest.Builder()
-                .addCapability(NET_CAPABILITY_INTERNET) // Require internet capability.
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI) // Include WiFi networks.
-                .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET) // Include Ethernet networks.
-                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR) // Include mobile networks.
+                .addCapability(NET_CAPABILITY_INTERNET)
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
                 .build()
 
             // Register the NetworkCallback with the ConnectivityManager to start listening for changes.

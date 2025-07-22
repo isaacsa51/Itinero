@@ -17,6 +17,6 @@ kotlin {
 dependencies {
     implementation(project(":core:domain"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
 }

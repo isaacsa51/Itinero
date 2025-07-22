@@ -62,9 +62,7 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
 
     // Material Icons Extended
-    implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
+    implementation(libs.androidx.material.icons.extended.android)
 
-    implementation(libs.materialKolor)
-
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation(libs.androidx.datastore.preferences)
 }

@@ -13,7 +13,9 @@ package com.serranoie.core.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Build
 import android.util.Log
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
@@ -116,4 +118,25 @@ class SettingsViewModel(private val context: Context) : ViewModel() {
         }
         return isDark
     }
+
+    /**
+     * Gets the app version string from the package manager.
+     */
+    val appVersion: String
+        get() = try {
+            val packageManager = context.packageManager
+            val packageName = context.packageName
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.PackageInfoFlags.of(0)
+                ).versionName ?: "Unknown"
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, 0).versionName ?: "Unknown"
+            }
+        } catch (e: Exception) {
+            Log.e("SettingsViewModel", "Failed to get app version", e)
+            "Unknown"
+        }
 }

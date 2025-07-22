@@ -64,6 +64,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPositi
 @Composable
 fun SettingsScreen(
     navController: NavController,
+    settingsViewModel: SettingsViewModel,
     currentThemeMode: String,
     isMaterialYouEnabled: Boolean,
     onThemeModeChanged: (String) -> Unit,
@@ -79,17 +80,17 @@ fun SettingsScreen(
         topBar = {
             MediumTopAppBar(
                 title = {
-                Text(
-                    "Settings", maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-            }, navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }, content = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
+                    Text(
+                        "Settings", maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
-                })
-            }, scrollBehavior = scrollBehavior
+                }, navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }, content = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go back"
+                        )
+                    })
+                }, scrollBehavior = scrollBehavior
             )
         }) { padding ->
         Column(
@@ -110,7 +111,7 @@ fun SettingsScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp)
-                                        .also { if (idx == selectedThemeIndex) it }) {
+                                ) {
                                     RadioButton(
                                         selected = selectedThemeIndex == idx, onClick = {
                                             onThemeModeChanged(option)
@@ -305,8 +306,267 @@ fun SettingsScreen(
                         Text(
                             text = "Version", style = MaterialTheme.typography.bodyLarge
                         )
+
                         Text(
-                            text = "Version 0.5", style = MaterialTheme.typography.bodySmall
+                            text = "Version ${settingsViewModel.appVersion}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreenPreviewContent(
+    navController: NavController,
+    currentThemeMode: String,
+    isMaterialYouEnabled: Boolean,
+    onThemeModeChanged: (String) -> Unit,
+    onMaterialYouChanged: (Boolean) -> Unit
+) {
+    val themeOptions = listOf("Light", "Dark", "System Default")
+    val selectedThemeIndex = themeOptions.indexOf(currentThemeMode)
+    var showThemeDialog by remember { mutableStateOf(false) }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    Scaffold(
+        topBar = {
+            MediumTopAppBar(
+                title = {
+                    Text(
+                        "Settings", maxLines = 1, overflow = TextOverflow.Ellipsis
+                    )
+                }, navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }, content = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Go back"
+                        )
+                    })
+                }, scrollBehavior = scrollBehavior
+            )
+        }) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            if (showThemeDialog) {
+                AlertDialog(
+                    onDismissRequest = { showThemeDialog = false },
+                    title = { Text("Choose Theme") },
+                    text = {
+                        Column {
+                            themeOptions.forEachIndexed { idx, option ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = selectedThemeIndex == idx, onClick = {
+                                            onThemeModeChanged(option)
+                                            showThemeDialog = false
+                                        })
+                                    Text(
+                                        text = option,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showThemeDialog = false }) {
+                            Text("Cancel")
+                        }
+                    })
+            }
+
+            PaddedListGroup(
+                title = "Look & Feel"
+            ) {
+                CustomPaddedListItem(
+                    onClick = { showThemeDialog = true }, position = PaddedListItemPosition.First
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DarkMode,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "App theme", style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Change the overall theme of the app.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = "Current: $currentThemeMode",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                        contentDescription = "Select theme",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                CustomPaddedListItem(
+                    onClick = { }, position = PaddedListItemPosition.Last
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Palette,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Enable Material You", style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Apply Material You colors based from your wallpaper to your app (Android 12+)",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    Switch(
+                        checked = isMaterialYouEnabled, onCheckedChange = {
+                            onMaterialYouChanged(it)
+                        })
+                }
+            }
+
+            PaddedListGroup(
+                title = "App Information"
+            ) {
+                CustomPaddedListItem(
+                    onClick = { }, position = PaddedListItemPosition.First
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Information", style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "See the information of the app and the developer.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                CustomPaddedListItem(
+                    onClick = { }, position = PaddedListItemPosition.Middle
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DensitySmall,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Website", style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Visit our website for more extensive information about the app and the development of it.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                CustomPaddedListItem(
+                    onClick = { }, position = PaddedListItemPosition.Middle
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Privacy Policy", style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Read the privacy policy & terms of use of the app.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                CustomPaddedListItem(
+                    onClick = { }, position = PaddedListItemPosition.Middle
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.BugReport,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Encountered a bug?", style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = "Send us a report or issues you encounter creating a Bug/Issue report on GitHub.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                CustomPaddedListItem(
+                    onClick = { }, position = PaddedListItemPosition.Last
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Version", style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        Text(
+                            text = "Version 1.0.0",
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
@@ -319,17 +579,19 @@ fun SettingsScreen(
 @Composable
 private fun SettingsScreenPreview() {
     PreviewWrapper {
-        // For preview, we create the screen with the old signature for simplicity
+        // For preview, we create the screen with mock values
         val navController = rememberNavController()
         var currentThemeMode by remember { mutableStateOf("System Default") }
-        var isMaterialYouEnabled by remember { mutableStateOf(true) }
-        SettingsScreen(
+        var isMaterialYou by remember { mutableStateOf(true) }
+
+        // Create a simple preview version without actual ViewModel
+        SettingsScreenPreviewContent(
             navController = navController,
             currentThemeMode = currentThemeMode,
-            isMaterialYouEnabled = isMaterialYouEnabled,
+            isMaterialYouEnabled = isMaterialYou,
             onThemeModeChanged = { newThemeMode -> currentThemeMode = newThemeMode },
             onMaterialYouChanged = { newMaterialYouEnabled ->
-                isMaterialYouEnabled = newMaterialYouEnabled
+                isMaterialYou = newMaterialYouEnabled
             }
         )
     }

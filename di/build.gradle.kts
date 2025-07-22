@@ -52,9 +52,9 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     // Koin
-    implementation("io.insert-koin:koin-android:4.0.3")
-    implementation("io.insert-koin:koin-core:4.0.3")
-    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
+    implementation(libs.koin.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.androidx.compose)
 
     // Ktor
     implementation(libs.ktor.client.okhttp)
@@ -66,5 +66,5 @@ dependencies {
     implementation(libs.ktor.client.auth)
 
     // DataStore preferences
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation(libs.androidx.datastore.preferences)
 }

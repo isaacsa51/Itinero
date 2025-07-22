@@ -35,6 +35,7 @@ class HomeNavigationGraph : NavigationGraph {
 
                 SettingsScreen(
                     navController = navController,
+                    settingsViewModel = settingsViewModel,
                     currentThemeMode = themeMode,
                     isMaterialYouEnabled = isMaterialYouEnabled,
                     onThemeModeChanged = { newThemeMode ->

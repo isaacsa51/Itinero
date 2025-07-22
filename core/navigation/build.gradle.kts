@@ -41,5 +41,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     // Compose navigation
-    implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation(libs.androidx.navigation.compose)
 }
