@@ -9,5 +9,6 @@ val appModule = module {
         persistenceModule,
         repositoryModule,
         useCaseModule,
+        utilitiesModule,
     )
 }

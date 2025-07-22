@@ -1,13 +1,22 @@
 package com.serranoie.app.designsystemlib.ui.theme
 
+import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 // Generated using MaterialKolor Builder version 1.0.1 (101)
-// https://materialkolor.com/?color_seed=FF68A500&dark_mode=true&selected_preset_id=res-0
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -240,16 +249,40 @@ private val highContrastDarkColorScheme = darkColorScheme(
 @Composable
 fun ItineroTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable() () -> Unit,
+    materialYou: Boolean = false,
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        darkTheme -> darkScheme
-        else -> lightScheme
+    val context = LocalContext.current
+    val view = LocalView.current
+
+    // Determine the color scheme based on Material You availability and preference
+    val colorScheme = if (materialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (darkTheme) {
+            dynamicDarkColorScheme(context)
+        } else {
+            dynamicLightColorScheme(context)
+        }
+    } else {
+        if (darkTheme) {
+            darkScheme
+        } else {
+            lightScheme
+        }
+    }
+
+    // Handle status bar appearance
+    if (!view.isInEditMode && context is Activity) {
+        SideEffect {
+            val window = context.window
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = ItineroTypography,
-        content = content
+        content = content,
     )
 }
+

@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
@@ -287,7 +287,7 @@ data class ItineraryItem(
     var isCompleted: Boolean = false
 )
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun ItineraryScreenPreview() {
     val startDate = LocalDate.now()
@@ -340,7 +340,7 @@ private fun ItineraryScreenPreview() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun LoadingItineraryPreview() {
     PreviewWrapper {

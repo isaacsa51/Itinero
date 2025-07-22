@@ -56,10 +56,13 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
 
     // Material Icons Extended
-    implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
-
-    implementation(libs.materialKolor)
+    implementation(libs.androidx.material.icons.extended.android)
 
     // Shimmer effect
-    implementation("com.valentinilk.shimmer:compose-shimmer:1.3.1")
+    implementation(libs.compose.shimmer)
+
+    //Koin
+    implementation(libs.koin.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.androidx.compose)
 }

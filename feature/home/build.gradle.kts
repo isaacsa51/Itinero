@@ -57,43 +57,42 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     //Koin
-    implementation("io.insert-koin:koin-android:4.0.3")
-    implementation("io.insert-koin:koin-core:4.0.3")
-    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
+    implementation(libs.koin.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.androidx.compose)
 
     // Compose navigation
-    implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation(libs.androidx.navigation.compose)
 
     // Compose animation
-    implementation("androidx.compose.animation:animation:1.8.1")
+    implementation(libs.androidx.animation)
 
     // Compose Foundation
-    implementation("androidx.compose.foundation:foundation:1.8.1")
+    implementation(libs.androidx.foundation)
 
     // Material Icons Extended
-    implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
+    implementation(libs.androidx.material.icons.extended.android)
 
     // Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    testImplementation("androidx.room:room-testing:2.6.1")
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    testImplementation(libs.androidx.room.testing)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.7")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // Coil image loader
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.coil.compose)
 
     // Lifecycle viewmodel
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    implementation("com.google.guava:guava:33.4.8-android")
-    api("com.google.guava:guava:33.4.8-android")
-
+    implementation(libs.guava)
+    api(libs.google.guava)
 
     // Camera - Updated to stable versions
     implementation(libs.androidx.camera.core)
@@ -103,10 +102,11 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     // Concurrent futures for compatibility
-    implementation("androidx.concurrent:concurrent-futures:1.2.0")
-    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
+    implementation(libs.androidx.concurrent.futures)
+    implementation(libs.androidx.concurrent.futures.ktx)
 
-    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    // Barcode scanning ML Kit
+    implementation(libs.barcode.scanning)
 }
 
 kapt {

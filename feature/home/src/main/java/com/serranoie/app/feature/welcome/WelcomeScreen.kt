@@ -1,6 +1,5 @@
 package com.serranoie.app.feature.welcome
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.feature.home.R
 
 @Composable
@@ -136,7 +135,7 @@ fun ActionTripButton(
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun WelcomeScreenPreview() {
     PreviewWrapper {

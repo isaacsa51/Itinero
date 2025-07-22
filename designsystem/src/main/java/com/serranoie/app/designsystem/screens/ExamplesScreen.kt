@@ -64,7 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
@@ -1461,7 +1461,7 @@ fun SettingsExampleContent() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 fun ExamplesScreenPreview() {
     PreviewWrapper {

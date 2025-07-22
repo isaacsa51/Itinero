@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.ThemePreviews
+import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
@@ -362,7 +362,7 @@ private fun parseDate(dateString: String): LocalDate {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun ExpensesScreenPreview() {
     val tripId = "mock-trip-id"
@@ -438,7 +438,7 @@ private fun ExpensesScreenPreview() {
     }
 }
 
-@ThemePreviews
+@DevicePreview
 @Composable
 private fun ExpensesScreenPreviewLoading() {
     val tripId = "mock-trip-id"

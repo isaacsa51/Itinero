@@ -36,10 +36,12 @@ dependencies {
 
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
+    implementation(project(":core:settings"))
     implementation(project(":feature:itinerary:data"))
     implementation(project(":feature:itinerary:domain"))
     implementation(project(":feature:expenses:data"))
     implementation(project(":feature:expenses:domain"))
+    implementation(project(":designsystem-lib"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -50,9 +52,9 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     // Koin
-    implementation("io.insert-koin:koin-android:4.0.3")
-    implementation("io.insert-koin:koin-core:4.0.3")
-    implementation("io.insert-koin:koin-androidx-compose:4.0.3")
+    implementation(libs.koin.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.androidx.compose)
 
     // Ktor
     implementation(libs.ktor.client.okhttp)
@@ -62,4 +64,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.auth)
+
+    // DataStore preferences
+    implementation(libs.androidx.datastore.preferences)
 }

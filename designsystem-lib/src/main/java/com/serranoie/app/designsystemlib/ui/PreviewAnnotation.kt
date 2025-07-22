@@ -10,11 +10,19 @@ import androidx.compose.ui.tooling.preview.Preview
 @Preview(
     showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_NIGHT_YES,
+    device = "spec:parent=pixel_5,navigation=buttons",
 )
-annotation class ThemePreviews
+annotation class DevicePreview
 
-@Preview(showBackground = true)
-@Preview(showBackground = true,
+@Preview(
+    name = "Light Mode",
+    showBackground = true,
+    device = "spec:parent=pixel_5,navigation=buttons",
+    showSystemUi = false
+)
+@Preview(
+    name = "Dark Mode",
+    showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL
 )
 annotation class ComponentPreview

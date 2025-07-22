@@ -47,6 +47,8 @@ import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
 import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
+import com.serranoie.core.settings.SettingsScreen
+import com.serranoie.core.settings.SettingsViewModel
 import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -112,6 +114,25 @@ fun HomeRootScreen(
                     ChatScreen(
                         uiState = exampleUiState,
                         onBackPressed = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Route.Settings.route) {
+                    val settingsViewModel = koinViewModel<SettingsViewModel>()
+                    val themeMode by settingsViewModel.themeMode.collectAsState()
+                    val isMaterialYouEnabled by settingsViewModel.isMaterialYouEnabled.collectAsState()
+
+                    SettingsScreen(
+                        navController = navController,
+                        settingsViewModel = settingsViewModel,
+                        currentThemeMode = themeMode,
+                        isMaterialYouEnabled = isMaterialYouEnabled,
+                        onThemeModeChanged = { newThemeMode ->
+                            settingsViewModel.setThemeMode(newThemeMode)
+                        },
+                        onMaterialYouChanged = { enabled ->
+                            settingsViewModel.setMaterialYouEnabled(enabled)
+                        }
                     )
                 }
 
