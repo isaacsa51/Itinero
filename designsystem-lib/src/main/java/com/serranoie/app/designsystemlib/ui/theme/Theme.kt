@@ -2,7 +2,6 @@ package com.serranoie.app.designsystemlib.ui.theme
 
 import android.app.Activity
 import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -18,7 +17,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 // Generated using MaterialKolor Builder version 1.0.1 (101)
-// https://materialkolor.com/?color_seed=FF68A500&dark_mode=true&selected_preset_id=res-0
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -260,19 +258,14 @@ fun ItineroTheme(
     // Determine the color scheme based on Material You availability and preference
     val colorScheme = if (materialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         if (darkTheme) {
-            Log.d("ItineroTheme", "Selecting dynamicDarkColorScheme (Material You)")
             dynamicDarkColorScheme(context)
         } else {
-            Log.d("ItineroTheme", "Selecting dynamicLightColorScheme (Material You)")
             dynamicLightColorScheme(context)
         }
     } else {
-        // Fallback to static theme
         if (darkTheme) {
-            Log.d("ItineroTheme", "Selecting static darkScheme")
             darkScheme
         } else {
-            Log.d("ItineroTheme", "Selecting static lightScheme")
             lightScheme
         }
     }

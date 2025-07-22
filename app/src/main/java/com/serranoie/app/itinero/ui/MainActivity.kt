@@ -17,17 +17,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,7 +30,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -72,66 +66,42 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KoinAndroidContext {
-                // Collect theme states from SettingsViewModel
+                navController = rememberNavController()
+
+                var isReady by remember { mutableStateOf(false) }
+                var startDestination by remember { mutableStateOf("") }
+                val isConnected by networkObserver.isConnectedFlow.collectAsState(initial = true)
+
+                splashScreen.setKeepOnScreenCondition { !isReady }
+
+                LaunchedEffect(Unit) {
+                    startDestination = determineStartDestination()
+                    isReady = true
+                }
+
                 val isDarkTheme by settingsViewModel.isDarkTheme.collectAsState()
                 val isMaterialYou by settingsViewModel.isMaterialYouEnabled.collectAsState()
 
-                // Add a LaunchedEffect to log state changes
-                LaunchedEffect(isDarkTheme, isMaterialYou) {
-                    Log.d(
-                        "MainActivity",
-                        "State changed - isDarkTheme: $isDarkTheme, isMaterialYou: $isMaterialYou"
-                    )
-                }
-
-                Log.d(
-                    "MainActivity",
-                    "Recomposing with - isDarkTheme: $isDarkTheme, isMaterialYou: $isMaterialYou"
-                )
-
                 ItineroTheme(
-                    darkTheme = isDarkTheme,
-                    materialYou = isMaterialYou
+                    darkTheme = isDarkTheme, materialYou = isMaterialYou
                 ) {
-                    val layoutDirection = LocalLayoutDirection.current
-                    val systemBarInsets = WindowInsets.systemBars.asPaddingValues()
-                    val startPadding = systemBarInsets.calculateStartPadding(layoutDirection)
-                    val endPadding = systemBarInsets.calculateEndPadding(layoutDirection)
-
-                    navController = rememberNavController()
-
-                    var isReady by remember { mutableStateOf(false) }
-                    var startDestination by remember { mutableStateOf("") }
-                    val isConnected by networkObserver.isConnectedFlow.collectAsState(initial = true)
-
-                    splashScreen.setKeepOnScreenCondition { !isReady }
-
-                    LaunchedEffect(Unit) {
-                        startDestination = determineStartDestination()
-                        isReady = true
-                    }
-
-                    Surface(
-                        modifier = Modifier
-                            .padding(
-                                PaddingValues(
-                                    start = startPadding,
-                                    end = endPadding,
-                                    bottom = systemBarInsets.calculateBottomPadding(),
-                                    top = systemBarInsets.calculateTopPadding()
-                                )
-                            )
-                            .imePadding()
-                            .fillMaxSize(),
-                    ) {
-                        Column {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize()
+                    ) { innerPadding ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                                .consumeWindowInsets(innerPadding)
+                        ) {
                             NetworkStatusBar(isConnected = isConnected)
-
                             if (startDestination.isNotEmpty()) {
-                                NavGraph(
-                                    navController = navController,
-                                    startDestination = startDestination
-                                )
+                                Box {
+                                    NavGraph(
+                                        navController = navController,
+                                        startDestination = startDestination
+                                    )
+                                }
                             }
                         }
                     }
