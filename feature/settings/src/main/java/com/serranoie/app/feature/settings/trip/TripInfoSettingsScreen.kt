@@ -39,7 +39,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
-import com.serranoie.app.designsystemlib.ui.theme.component.LocationField
+import com.serranoie.app.designsystemlib.ui.theme.component.LocationInput
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.UpdateTrip
@@ -162,7 +162,7 @@ fun TripInfoSettingsScreen(
                 leadingIcon = Icons.Default.Numbers
             )
 
-            LocationField(
+            LocationInput(
                 value = location,
                 label = "Accommodation location",
                 modifier = Modifier.fillMaxWidth(),

@@ -67,7 +67,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
 import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
-import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
@@ -391,7 +391,7 @@ private fun ExpenseDetailsCard(
                                         .padding(bottom = mediumPadding)
                                 ) {
                                     Text(
-                                        text = "Your share: ${formatCurrency(currentUserDebtor.amount.toString())}",
+                                        text = "Your share: ${formatCurrency(currentUserDebtor.amount)}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.padding(bottom = 8.dp)
@@ -492,7 +492,7 @@ private fun RemainingToPaySection(owesItems: List<OwesData>, currentUserDebtor: 
                 )
 
                 Text(
-                    text = formatCurrency(remainingAmount.toString()),
+                    text = formatCurrency(remainingAmount),
                     style = MaterialTheme.typography.bodyLargeEmphasized,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold,
@@ -690,7 +690,7 @@ fun OwesItem(
             }
 
             Text(
-                text = formatCurrency(amount.toString()),
+                text = formatCurrency(amount),
                 style = MaterialTheme.typography.bodyMediumEmphasized,
                 fontWeight = if (isOwed && !hasPaid) FontWeight.Normal else FontWeight.Bold,
                 textAlign = TextAlign.End,
@@ -735,7 +735,7 @@ private fun CollapsedExpenseHeader(
                         style = MaterialTheme.typography.titleLargeEmphasized
                     )
                     Text(
-                        text = formatCurrency(expenseState.amount),
+                        text = formatCurrency(expenseState.amount.toDouble()),
                         style = MaterialTheme.typography.labelLargeEmphasized,
                     )
                 }
@@ -772,7 +772,7 @@ fun ExpandedHeader(
 
                     Text(
                         modifier = modifier.shimmerable(),
-                        text = formatCurrency(expenseState.amount),
+                        text = formatCurrency(expenseState.amount.toDouble()),
                         style = MaterialTheme.typography.displaySmallEmphasized,
                     )
                 }

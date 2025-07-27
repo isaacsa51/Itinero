@@ -34,7 +34,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import com.serranoie.app.designsystemlib.ui.utils.Constants.RECORD_BUTTON_ALPHA_IDLE
+import com.serranoie.app.designsystemlib.ui.utils.Constants.RECORD_BUTTON_ALPHA_RECORDING
+import com.serranoie.app.designsystemlib.ui.utils.Constants.RECORD_BUTTON_ANIMATION_DURATION
+import com.serranoie.app.designsystemlib.ui.utils.Constants.RECORD_BUTTON_COLOR_ANIMATION_DURATION
+import com.serranoie.app.designsystemlib.ui.utils.Constants.RECORD_BUTTON_SCALE_IDLE
+import com.serranoie.app.designsystemlib.ui.utils.Constants.RECORD_BUTTON_SCALE_RECORDING
+import com.serranoie.app.designsystemlib.ui.utils.Constants.recordButtonMinHeight
+import com.serranoie.app.designsystemlib.ui.utils.Constants.recordButtonMinSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.recordButtonPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.recordButtonSwipeThreshold
+import com.serranoie.app.designsystemlib.ui.utils.Constants.recordButtonVerticalThreshold
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -53,15 +63,15 @@ fun RecordButton(
     val scale = transition.animateFloat(
         transitionSpec = { spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow) },
         label = "record-scale",
-        targetValueByState = { rec -> if (rec) 2f else 1f }
+        targetValueByState = { rec -> if (rec) RECORD_BUTTON_SCALE_RECORDING else RECORD_BUTTON_SCALE_IDLE }
     )
     val containerAlpha = transition.animateFloat(
-        transitionSpec = { tween(2000) },
+        transitionSpec = { tween(RECORD_BUTTON_ANIMATION_DURATION) },
         label = "record-scale",
-        targetValueByState = { rec -> if (rec) 1f else 0f }
+        targetValueByState = { rec -> if (rec) RECORD_BUTTON_ALPHA_RECORDING else RECORD_BUTTON_ALPHA_IDLE }
     )
     val iconColor = transition.animateColor(
-        transitionSpec = { tween(200) },
+        transitionSpec = { tween(RECORD_BUTTON_COLOR_ANIMATION_DURATION) },
         label = "record-scale",
         targetValueByState = { rec ->
             if (rec) contentColorFor(LocalContentColor.current)
@@ -99,8 +109,8 @@ fun RecordButton(
                 contentDescription = "Record",
                 tint = iconColor.value,
                 modifier = modifier
-                    .sizeIn(minWidth = 56.dp, minHeight = 6.dp)
-                    .padding(18.dp)
+                    .sizeIn(minWidth = recordButtonMinSize, minHeight = recordButtonMinHeight)
+                    .padding(recordButtonPadding)
                     .clickable { }
                     .voiceRecordingGesture(
                         horizontalSwipeProgress = swipeOffset,
@@ -122,8 +132,8 @@ private fun Modifier.voiceRecordingGesture(
     onStartRecording: () -> Boolean = { false },
     onFinishRecording: () -> Unit = {},
     onCancelRecording: () -> Unit = {},
-    swipeToCancelThreshold: Dp = 200.dp,
-    verticalThreshold: Dp = 80.dp,
+    swipeToCancelThreshold: Dp = recordButtonSwipeThreshold,
+    verticalThreshold: Dp = recordButtonVerticalThreshold,
 ): Modifier = this
     .pointerInput(Unit) { detectTapGestures { onClick() } }
     .pointerInput(Unit) {

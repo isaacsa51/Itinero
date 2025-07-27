@@ -35,14 +35,17 @@ class SettingsViewModel(private val context: Context) : ViewModel() {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     // Store listener as a strong reference to prevent garbage collection
-    private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
-        val themeModeValue = getThemeMode()
-        val materialYouEnabledValue = getMaterialYouEnabled()
-        val darkThemeValue = getDarkTheme()
+    private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            KEY_THEME_MODE -> {
+                _themeMode.value = getThemeMode()
+                _isDarkTheme.value = getDarkTheme()
+            }
 
-        _themeMode.value = themeModeValue
-        _isMaterialYouEnabled.value = materialYouEnabledValue
-        _isDarkTheme.value = darkThemeValue
+            KEY_MATERIAL_YOU -> {
+                _isMaterialYouEnabled.value = getMaterialYouEnabled()
+            }
+        }
     }
 
     private val _themeMode = MutableStateFlow(getThemeMode())
@@ -128,12 +131,11 @@ class SettingsViewModel(private val context: Context) : ViewModel() {
             val packageName = context.packageName
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 packageManager.getPackageInfo(
-                    packageName,
-                    PackageManager.PackageInfoFlags.of(0)
+                    packageName, PackageManager.PackageInfoFlags.of(0)
                 ).versionName ?: "Unknown"
             } else {
-                @Suppress("DEPRECATION")
-                packageManager.getPackageInfo(packageName, 0).versionName ?: "Unknown"
+                @Suppress("DEPRECATION") packageManager.getPackageInfo(packageName, 0).versionName
+                    ?: "Unknown"
             }
         } catch (e: Exception) {
             Log.e("SettingsViewModel", "Failed to get app version", e)

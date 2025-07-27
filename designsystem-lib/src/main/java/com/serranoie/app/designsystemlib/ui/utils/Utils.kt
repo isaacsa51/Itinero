@@ -38,11 +38,10 @@ object Utils {
         }
     }
 
-    fun formatCurrency(price: String): String {
+    fun formatCurrency(price: Double): String {
         val format = java.text.NumberFormat.getCurrencyInstance(Locale.getDefault())
         return try {
-            val numericPrice = price.toDoubleOrNull() ?: 0.0
-            format.format(numericPrice)
+            format.format(price)
         } catch (e: Exception) {
             "$ $price" // Fallback to simple dollar formatting
         }
@@ -65,9 +64,5 @@ object Utils {
         if (date == null) return ""
         val targetFormat = SimpleDateFormat("dd MMMM yyyy, hh:mm a", Locale.getDefault())
         return targetFormat.format(date)
-    }
-
-    fun formatPrice(price: Double): String {
-        return String.format(Locale.getDefault(), "%.2f", price)
     }
 }

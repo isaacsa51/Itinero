@@ -67,6 +67,7 @@ fun MarqueeText(
     linHeight: TextUnit = TextUnit.Unspecified,
     overflow: TextOverflow = TextOverflow.Clip,
     softWrap: Boolean = true,
+    maxLines: Int = 1,
     onTextLayout: ((TextLayoutResult) -> Unit)? = null,
     style: TextStyle = LocalTextStyle.current
 ) {
@@ -85,7 +86,7 @@ fun MarqueeText(
             lineHeight = linHeight,
             overflow = overflow,
             softWrap = softWrap,
-            maxLines = 1,
+            maxLines = maxLines,
             onTextLayout = onTextLayout,
             style = style
         )
@@ -93,9 +94,16 @@ fun MarqueeText(
 
     var offset by remember { mutableStateOf(0) }
     val textLayoutInfoState = remember { mutableStateOf<TextLayoutInfo?>(null) }
+    var shouldUseMarquee by remember { mutableStateOf(false) }
+
     LaunchedEffect(textLayoutInfoState.value) {
         val textLayoutInfo = textLayoutInfoState.value ?: return@LaunchedEffect
-        if (textLayoutInfo.textWidth <= textLayoutInfo.containerWidth) return@LaunchedEffect
+        if (textLayoutInfo.textWidth <= textLayoutInfo.containerWidth) {
+            shouldUseMarquee = false
+            return@LaunchedEffect
+        }
+
+        shouldUseMarquee = true
         val duration = 3200 * textLayoutInfo.textWidth / textLayoutInfo.containerWidth
         val delay = 1000L
 
@@ -135,11 +143,14 @@ fun MarqueeText(
 
         var secondPlaceableWithOffset: Pair<Placeable, Int>? = null
         if (mainText.width <= constraints.maxWidth) {
+            // Text fits within container - use regular Text behavior
             mainText = subcompose(MarqueeLayers.SecondaryText) {
                 createText(Modifier.fillMaxWidth())
             }.first().measure(constraints)
             textLayoutInfoState.value = null
+            shouldUseMarquee = false
         } else {
+            // Text overflows - use marquee behavior
             val spacing = constraints.maxWidth * 2 / 3
             textLayoutInfoState.value = TextLayoutInfo(
                 textWidth = mainText.width + spacing,
@@ -154,9 +165,9 @@ fun MarqueeText(
             }
             gradient = subcompose(MarqueeLayers.EdgesGradient) {
                 Row {
-                    GradientEdge(startColor = gradientEdgeColor, endColor = Color.Transparent)
-                    Spacer(modifier = Modifier.weight(1f))
                     GradientEdge(startColor = Color.Transparent, endColor = gradientEdgeColor)
+                    Spacer(modifier = Modifier.weight(1f))
+                    GradientEdge(startColor = gradientEdgeColor, endColor = Color.Transparent)
                 }
             }.first().measure(constraints = constraints.copy(maxHeight = mainText.height))
         }
@@ -169,7 +180,10 @@ fun MarqueeText(
             secondPlaceableWithOffset?.let {
                 it.first.place(it.second, 0)
             }
-            gradient?.place(0, 0)
+            // Only place gradient when marquee is actually needed
+            if (shouldUseMarquee) {
+                gradient?.place(0, 0)
+            }
         }
     }
 }

@@ -13,7 +13,6 @@ package com.serranoie.app.designsystemlib.ui.theme.component.card
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +44,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.animateVisibility
+import com.serranoie.app.designsystemlib.ui.utils.bounceClick
+import com.serranoie.app.designsystemlib.ui.utils.designBorder
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 
 /**
  * A reusable chat bubble component that displays messages with proper styling
@@ -99,6 +108,7 @@ fun ChatBubble(
             color = bubbleColor,
             shape = bubbleShape,
             modifier = Modifier
+                .bounceClick { onMessageClick(message) }
         ) {
             ChatBubbleContent(
                 message = message,
@@ -109,10 +119,10 @@ fun ChatBubble(
         }
 
         imageRes?.let { image ->
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(extraSmallPadding))
             Surface(
                 color = bubbleColor,
-                shape = bubbleShape
+                shape = bubbleShape,
             ) {
                 Image(
                     painter = painterResource(image),
@@ -126,12 +136,14 @@ fun ChatBubble(
         }
 
         if (isUserMe && showTimestamp) {
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(extraSmallPadding))
             Text(
                 text = timestamp,
                 style = MaterialTheme.typography.bodySmallEmphasized,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier
+                    .standardPadding(horizontal = smallPadding, vertical = 0.dp)
+                    .animateVisibility(isVisible = showTimestamp)
             )
         }
     }
@@ -173,10 +185,10 @@ fun ChatBubbleWithAvatar(
                 ChatAvatar(
                     authorName = authorName,
                     onClick = { onAvatarClick(authorName) },
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = smallPadding)
                 )
             } else {
-                Spacer(modifier = Modifier.width(48.dp))
+                Spacer(modifier = Modifier.width(iconSize * 2)) // Avatar size + padding
             }
         }
 
@@ -197,7 +209,9 @@ fun ChatBubbleWithAvatar(
                     style = MaterialTheme.typography.labelMediumEmphasized,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 4.dp, start = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = extraSmallPadding, start = smallPadding)
+                        .animateVisibility(isVisible = showAuthor)
                 )
             }
 
@@ -232,7 +246,7 @@ fun ChatConversation(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(smallPadding)
     ) {
         messages.forEachIndexed { index, message ->
             val isUserMe = message.authorId == currentUserId
@@ -293,10 +307,11 @@ private fun InitialsAvatar(
 
     Box(
         modifier = modifier
-            .size(40.dp)
+            .size(iconSize * 2) // Using iconSize constant for consistency
             .clip(CircleShape)
             .background(backgroundColor)
-            .border(1.dp, borderColor, CircleShape),
+            .designBorder(width = borderStrokeWidth, color = borderColor)
+            .bounceClick { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -393,7 +408,10 @@ private fun ChatBubbleContent(
     ClickableText(
         text = styledMessage,
         style = MaterialTheme.typography.bodyMedium.copy(color = contentColor),
-        modifier = Modifier.padding(12.dp),
+        modifier = Modifier.standardPadding(
+            horizontal = basePadding * 0.75f, // Slightly less than base padding
+            vertical = basePadding * 0.75f
+        ),
         onClick = { offset ->
             // Handle clicks on the message
             onMessageClick(message)
@@ -409,9 +427,19 @@ private fun ChatBubbleContent(
  */
 private fun getChatBubbleShape(isUserMe: Boolean): Shape =
     if (isUserMe) {
-        RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp)
+        RoundedCornerShape(
+            topStart = commonCornerRadius * 2.5f,
+            topEnd = extraSmallPadding,
+            bottomStart = commonCornerRadius * 2.5f,
+            bottomEnd = commonCornerRadius * 2.5f
+        )
     } else {
-        RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
+        RoundedCornerShape(
+            topStart = extraSmallPadding,
+            topEnd = commonCornerRadius * 2.5f,
+            bottomStart = commonCornerRadius * 2.5f,
+            bottomEnd = commonCornerRadius * 2.5f
+        )
     }
 
 /**
@@ -466,14 +494,16 @@ fun CompactChatBubble(
     Surface(
         color = bubbleColor,
         shape = getChatBubbleShape(isUserMe),
-        modifier = modifier
     ) {
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = contentColor,
             maxLines = maxLines,
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.standardPadding(
+                horizontal = basePadding * 0.75f,
+                vertical = basePadding * 0.75f
+            )
         )
     }
 }
@@ -582,34 +612,6 @@ private fun ChatBubblePreview() {
                     isUserMe = false,
                     timestamp = "10:42 AM",
                     showTimestamp = false
-                )
-            }
-
-            // Compact Chat Bubbles
-            Text(
-                text = "Compact Chat Bubbles",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                CompactChatBubble(
-                    message = "This is a compact bubble for lists and previews with limited lines",
-                    isUserMe = false,
-                    maxLines = 2,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                CompactChatBubble(
-                    message = "Short compact message",
-                    isUserMe = true,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f)
                 )
             }
         }

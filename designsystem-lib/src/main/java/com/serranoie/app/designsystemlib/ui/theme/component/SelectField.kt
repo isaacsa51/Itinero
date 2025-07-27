@@ -25,8 +25,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldContentPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldElevation
+import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldIconSpacing
+import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldLabelBottomPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldLabelStartPadding
 
 /**
  * A custom field for selections like dropdowns and date pickers that looks like
@@ -53,14 +61,17 @@ fun SelectField(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                modifier = Modifier.padding(
+                    start = selectFieldLabelStartPadding,
+                    bottom = selectFieldLabelBottomPadding
+                )
             )
         }
 
         Surface(
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, borderColor),
-            tonalElevation = 4.dp,
+            shape = RoundedCornerShape(commonCornerRadius),
+            border = BorderStroke(borderStrokeWidth, borderColor),
+            tonalElevation = selectFieldElevation,
             color = containerColor ?: Color.Transparent,
             modifier = Modifier.clickable(
                 enabled = enabled,
@@ -71,7 +82,7 @@ fun SelectField(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(selectFieldContentPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 leadingIcon?.let {
@@ -79,11 +90,11 @@ fun SelectField(
                         imageVector = it,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(iconSize)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(selectFieldIconSpacing))
 
                 Text(
                     text = value,
@@ -93,7 +104,7 @@ fun SelectField(
                 )
 
                 if (trailingIcon != null) {
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(selectFieldIconSpacing))
                     trailingIcon()
                 }
             }
@@ -105,7 +116,7 @@ fun SelectField(
 @Composable
 private fun SelectFieldPreview() {
     PreviewWrapper {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(basePadding)) {
             SelectField(
                 value = "Food",
                 onSelect = { },
@@ -114,7 +125,7 @@ private fun SelectFieldPreview() {
                 leadingIcon = androidx.compose.material.icons.Icons.Default.Restaurant
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(basePadding))
 
             SelectField(
                 value = "2023-07-15",

@@ -7,8 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,6 +48,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basicElevation
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.bounceClick
+import com.serranoie.app.designsystemlib.ui.utils.designBorder
+import com.serranoie.app.designsystemlib.ui.utils.elevationShadow
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 
 /**
  * A customizable expandable card component that can show/hide content.
@@ -66,7 +74,6 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
  * @param tonalElevation Tonal elevation for the card's surface
  * @param titleStyle Text style for the title
  * @param showDivider Whether to show a divider between header and content
- * @param useRippleEffect Whether to show a ripple effect when clicking
  * @param headerContent Optional custom header content
  * @param content The content to be shown when expanded
  */
@@ -79,15 +86,21 @@ fun ExpandableCard(
     headerIcon: ImageVector? = null,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    cardShape: Shape = RoundedCornerShape(8.dp),
-    borderStroke: BorderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    tonalElevation: Dp = 4.dp,
+    cardShape: Shape = RoundedCornerShape(commonCornerRadius),
+    borderStroke: BorderStroke? = BorderStroke(
+        borderStrokeWidth,
+        MaterialTheme.colorScheme.outlineVariant
+    ),
+    tonalElevation: Dp = basicElevation,
     titleStyle: TextStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
     showDivider: Boolean = false,
     headerContent: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    val rotationAngle by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        label = "expandArrowRotation"
+    )
 
     Surface(
         modifier = modifier
@@ -95,25 +108,33 @@ fun ExpandableCard(
             .clip(cardShape)
             .then(
                 if (borderStroke != null) {
-                    Modifier.border(borderStroke, cardShape)
+                    Modifier.designBorder(
+                        width = borderStroke.width,
+                        color = borderStroke.brush as? Color
+                            ?: MaterialTheme.colorScheme.outlineVariant
+                    )
                 } else {
                     Modifier
                 }
             )
-            .clickable {
-                onExpandedChange(!isExpanded)
-            }, color = containerColor, tonalElevation = tonalElevation
+            .bounceClick { onExpandedChange(!isExpanded) }
+            .elevationShadow(elevation = tonalElevation),
+        color = containerColor,
+        tonalElevation = tonalElevation
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.standardPadding()) {
             if (headerContent != null) {
                 headerContent()
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (headerIcon != null) {
                         Icon(
-                            imageVector = headerIcon, contentDescription = null, tint = contentColor
+                            imageVector = headerIcon,
+                            contentDescription = null,
+                            tint = contentColor,
+                            modifier = Modifier.size(iconSize)
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(basePadding))
                     }
 
                     Text(
@@ -127,7 +148,9 @@ fun ExpandableCard(
                         imageVector = Icons.Filled.KeyboardArrowDown,
                         tint = contentColor,
                         contentDescription = if (isExpanded) "Collapse" else "Expand",
-                        modifier = Modifier.graphicsLayer(rotationZ = rotationAngle)
+                        modifier = Modifier
+                            .size(iconSize)
+                            .graphicsLayer(rotationZ = rotationAngle)
                     )
                 }
             }
@@ -140,12 +163,12 @@ fun ExpandableCard(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 12.dp)
-                        .defaultMinSize(minHeight = 24.dp)
+                        .padding(top = smallPadding * 1.5f)
+                        .defaultMinSize(minHeight = iconSize)
                 ) {
                     if (showDivider && isExpanded) {
                         androidx.compose.material3.HorizontalDivider(
-                            modifier = Modifier.padding(bottom = 12.dp),
+                            modifier = Modifier.padding(bottom = smallPadding * 1.5f),
                             color = contentColor.copy(alpha = 0.2f)
                         )
                     }
@@ -163,18 +186,18 @@ private fun ExpandableSectionPreview() {
     PreviewWrapper {
         var isExpanded by remember { mutableStateOf(true) }
 
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.standardPadding()) {
             ExpandableCard(
                 title = "Trip Details",
                 isExpanded = isExpanded,
                 onExpandedChange = { isExpanded = it }) {
                 Text(
                     text = "This is the expandable content area. You can put any composable here.",
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = smallPadding)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(basePadding))
 
             var isSecondExpanded by remember { mutableStateOf(true) }
 
@@ -190,15 +213,16 @@ private fun ExpandableSectionPreview() {
                 Text("You have 3 unread notifications")
 
                 Button(
-                    onClick = { }, modifier = Modifier
+                    onClick = { }, 
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(top = smallPadding)
                 ) {
                     Text("Clear All")
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(basePadding))
 
             var isThirdExpanded by remember { mutableStateOf(true) }
 
@@ -209,16 +233,17 @@ private fun ExpandableSectionPreview() {
                 headerIcon = Icons.Default.Place,
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                cardShape = RoundedCornerShape(16.dp),
-                tonalElevation = 4.dp,
+                cardShape = RoundedCornerShape(commonCornerRadius * 2),
+                tonalElevation = basicElevation,
                 titleStyle = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp
+                    fontWeight = FontWeight.ExtraBold, 
+                    letterSpacing = 0.5.sp
                 )
             ) {
                 Text(
                     text = "123 Main Street, Springfield",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = smallPadding)
                 )
 
                 Text(
@@ -228,7 +253,7 @@ private fun ExpandableSectionPreview() {
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(basePadding))
 
             var isFourthExpanded by remember { mutableStateOf(false) }
 
@@ -245,7 +270,7 @@ private fun ExpandableSectionPreview() {
                             imageVector = Icons.Default.Settings,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(iconSize)
                         )
 
                         Text(
@@ -254,11 +279,12 @@ private fun ExpandableSectionPreview() {
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 12.dp)
+                                .standardPadding(horizontal = smallPadding * 1.5f, vertical = 0.dp)
                         )
 
                         CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp), strokeWidth = 2.dp
+                            modifier = Modifier.size(basePadding), 
+                            strokeWidth = 2.dp
                         )
                     }
                 }) {
@@ -268,7 +294,7 @@ private fun ExpandableSectionPreview() {
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(smallPadding))
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
@@ -277,7 +303,7 @@ private fun ExpandableSectionPreview() {
                         Text("Save")
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(smallPadding))
 
                     Button(
                         onClick = { }, modifier = Modifier.weight(1f)

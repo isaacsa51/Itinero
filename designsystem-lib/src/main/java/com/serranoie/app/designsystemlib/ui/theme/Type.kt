@@ -6,31 +6,23 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
-import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.font.FontWeight
 import com.serranoie.app.designsystemlib.R
 
-// Set of Material typography styles to start with
-val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
-
 val bodyFontFamily = FontFamily(
-    Font(R.font.archivo_variablefont)
+    Font(R.font.ibmplexsans)
 )
 
 val displayFontFamily = FontFamily(
-    Font(R.font.chivo_variablefont)
+    Font(R.font.archivo_variablefont)
 )
-
 
 @OptIn(ExperimentalTextApi::class)
 val displayLargeFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(600f),
+            FontVariation.weight(750),
+            FontVariation.width(150f),
         )
     )
 )
@@ -39,7 +31,7 @@ val displayLargeFontFamily = FontFamily(
 val displayMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
+            FontVariation.weight(750),
             FontVariation.width(150f),
         )
     )
@@ -49,7 +41,7 @@ val displayMediumFontFamily = FontFamily(
 val displaySmallFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
+            FontVariation.weight(750),
             FontVariation.width(150f),
         )
     )
@@ -59,8 +51,8 @@ val displaySmallFontFamily = FontFamily(
 val headlineLargeFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(120f)
+            FontVariation.weight(600),
+            FontVariation.width(150f),
         )
     )
 )
@@ -69,7 +61,7 @@ val headlineLargeFontFamily = FontFamily(
 val headlineMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
+            FontVariation.weight(600),
             FontVariation.width(150f),
         )
     )
@@ -79,7 +71,7 @@ val headlineMediumFontFamily = FontFamily(
 val headlineSmallFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
+            FontVariation.weight(600),
             FontVariation.width(150f),
         )
     )
@@ -89,7 +81,7 @@ val headlineSmallFontFamily = FontFamily(
 val titleLargeFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
+            FontVariation.weight(600),
             FontVariation.width(150f),
         )
     )
@@ -99,7 +91,7 @@ val titleLargeFontFamily = FontFamily(
 val titleMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
+            FontVariation.weight(600),
             FontVariation.width(150f),
         )
     )
@@ -109,7 +101,7 @@ val titleMediumFontFamily = FontFamily(
 val titleSmallFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
+            FontVariation.weight(600),
             FontVariation.width(150f),
         )
     )
@@ -119,8 +111,8 @@ val titleSmallFontFamily = FontFamily(
 val labelLargeFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(200f),
+            FontVariation.weight(400),
+            FontVariation.width(150f),
         )
     )
 )
@@ -129,7 +121,7 @@ val labelLargeFontFamily = FontFamily(
 val labelMediumFontFamily = FontFamily(
     Font(
         R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.weight(600),
+            FontVariation.weight(400),
             FontVariation.width(150f),
         )
     )
@@ -148,9 +140,8 @@ val labelSmallFontFamily = FontFamily(
 @OptIn(ExperimentalTextApi::class)
 val bodyLargeFontFamily = FontFamily(
     Font(
-        R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
+        R.font.ibmplexsans, variationSettings = FontVariation.Settings(
             FontVariation.weight(500),
-            FontVariation.width(200f),
         )
     )
 )
@@ -158,8 +149,8 @@ val bodyLargeFontFamily = FontFamily(
 @OptIn(ExperimentalTextApi::class)
 val bodyMediumFontFamily = FontFamily(
     Font(
-        R.font.archivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.width(600f),
+        R.font.ibmplexsans, variationSettings = FontVariation.Settings(
+            FontVariation.weight(500),
         )
     )
 )
@@ -167,8 +158,8 @@ val bodyMediumFontFamily = FontFamily(
 @OptIn(ExperimentalTextApi::class)
 val bodySmallFontFamily = FontFamily(
     Font(
-        R.font.chivo_variablefont, variationSettings = FontVariation.Settings(
-            FontVariation.width(200f),
+        R.font.ibmplexsans, variationSettings = FontVariation.Settings(
+            FontVariation.weight(500),
         )
     )
 )

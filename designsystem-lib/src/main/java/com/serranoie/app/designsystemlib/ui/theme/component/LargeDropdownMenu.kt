@@ -24,9 +24,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -44,11 +43,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.designsystemlib.ui.theme.UiUtils.ALPHA_DISABLED
 import com.serranoie.app.designsystemlib.ui.theme.UiUtils.ALPHA_FULL
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.dropdownMenuEndPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.dropdownMenuIconPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.dropdownMenuIconTopPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.dropdownMenuItemPadding
 
 class LargeDropdownMenu {
     @SuppressLint("NotConstructor")
@@ -87,14 +90,14 @@ class LargeDropdownMenu {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(end = 12.dp)
+                    .padding(end = dropdownMenuEndPadding)
             ) {
                 Icon(
-                    imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    imageVector = if (expanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
                     contentDescription = if (expanded) "Collapse" else "Expand",
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .padding(end = 4.dp),
+                        .padding(end = dropdownMenuIconPadding, top = dropdownMenuIconTopPadding),
                     tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outline
                 )
             }
@@ -113,40 +116,38 @@ class LargeDropdownMenu {
             Dialog(
                 onDismissRequest = { expanded = false },
             ) {
-                ItineroTheme {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                    ) {
-                        val listState = rememberLazyListState()
-                        if (selectedIndex > -1) {
-                            LaunchedEffect("ScrollToSelected") {
-                                listState.scrollToItem(index = selectedIndex)
+                Surface(
+                    shape = RoundedCornerShape(commonCornerRadius),
+                ) {
+                    val listState = rememberLazyListState()
+                    if (selectedIndex > -1) {
+                        LaunchedEffect("ScrollToSelected") {
+                            listState.scrollToItem(index = selectedIndex)
+                        }
+                    }
+
+                    LazyColumn(modifier = Modifier.fillMaxWidth(), state = listState) {
+                        if (notSetLabel != null) {
+                            item {
+                                LargeDropdownMenuItem(
+                                    text = notSetLabel,
+                                    selected = false,
+                                    enabled = false,
+                                    onClick = { },
+                                )
                             }
                         }
-
-                        LazyColumn(modifier = Modifier.fillMaxWidth(), state = listState) {
-                            if (notSetLabel != null) {
-                                item {
-                                    LargeDropdownMenuItem(
-                                        text = notSetLabel,
-                                        selected = false,
-                                        enabled = false,
-                                        onClick = { },
-                                    )
-                                }
+                        itemsIndexed(items) { index, item ->
+                            val selectedItem = index == selectedIndex
+                            drawItem(
+                                item, selectedItem, true
+                            ) {
+                                onItemSelected(index, item)
+                                expanded = false
                             }
-                            itemsIndexed(items) { index, item ->
-                                val selectedItem = index == selectedIndex
-                                drawItem(
-                                    item, selectedItem, true
-                                ) {
-                                    onItemSelected(index, item)
-                                    expanded = false
-                                }
 
-                                if (index < items.lastIndex) {
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                                }
+                            if (index < items.lastIndex) {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = basePadding))
                             }
                         }
                     }
@@ -170,10 +171,12 @@ fun LargeDropdownMenuItem(
     }
 
     CompositionLocalProvider(LocalContentColor provides contentColor) {
-        Box(modifier = Modifier
-            .clickable(enabled) { onClick() }
-            .fillMaxWidth()
-            .padding(16.dp)) {
+        Box(
+            modifier = Modifier
+                .clickable(enabled) { onClick() }
+                .fillMaxWidth()
+                .padding(dropdownMenuItemPadding)
+        ) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,

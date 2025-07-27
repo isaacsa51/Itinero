@@ -32,16 +32,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import androidx.core.net.toUri
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.locationInputIconAlpha
+import com.serranoie.app.designsystemlib.ui.utils.Constants.locationInputIconSpacing
+import com.serranoie.app.designsystemlib.ui.utils.Constants.locationInputLabelBottomPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.locationInputLabelStartPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.locationInputRowVerticalPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 
 /**
  * A custom field that displays location information and opens Google Maps when clicked.
  */
 @Composable
-fun LocationField(
+fun LocationInput(
     value: String,
     label: String,
     modifier: Modifier = Modifier,
@@ -61,7 +72,10 @@ fun LocationField(
             text = label,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+            modifier = Modifier.padding(
+                start = locationInputLabelStartPadding,
+                bottom = locationInputLabelBottomPadding
+            )
         )
 
         if (isEditing) {
@@ -82,19 +96,23 @@ fun LocationField(
                     },
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
+                        .padding(
+                            end = smallPadding,
+                            top = smallPadding
+                        )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Map,
                         contentDescription = "Save and View in Maps",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(iconSize)
                     )
                 }
             }
         } else {
             Surface(
-                shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.dp, borderColor),
+                shape = RoundedCornerShape(commonCornerRadius),
+                border = BorderStroke(borderStrokeWidth, borderColor),
                 modifier = Modifier.clickable(
                     enabled = enabled && value.isNotEmpty(),
                     indication = null,
@@ -110,36 +128,40 @@ fun LocationField(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(
+                            horizontal = basePadding,
+                            vertical = locationInputRowVerticalPadding
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = leadingIcon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = locationInputIconAlpha),
+                        modifier = Modifier.size(iconSize)
                     )
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(locationInputIconSpacing))
 
-                    Text(
+                    MarqueeText(
                         text = value,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(locationInputIconSpacing))
                     
                     IconButton(onClick = { 
                         editValue = value
-                        isEditing = true 
+                        isEditing = true
                     }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit Location",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(iconSize)
                         )
                     }
                 }
@@ -153,16 +175,17 @@ fun LocationField(
 private fun LocationFieldPreview() {
     PreviewWrapper {
         Column(Modifier.padding(16.dp)) {
-            LocationField(
+            LocationInput(
                 value = "123 Main St, New York, NY 10001",
                 label = "Accommodation Location"
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
-            LocationField(
+            LocationInput(
                 value = "",
-                label = "Empty Location (Disabled)"
+                label = "Empty Location (Disabled)",
+                enabled = false
             )
         }
     }

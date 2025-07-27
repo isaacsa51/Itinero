@@ -1,7 +1,6 @@
 package com.serranoie.app.designsystemlib.ui.theme.component.card
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,11 +29,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.indicatorSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallIconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.subtleElevation
 import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
-import java.util.Locale
+import com.serranoie.app.designsystemlib.ui.utils.bounceClick
+import com.serranoie.app.designsystemlib.ui.utils.designBorder
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 
 /**
  * Same outline card but focused on displaying expense details.
@@ -67,14 +75,13 @@ fun ExpenseCard(
     onClick: () -> Unit = {}
 ) {
     ICard(
-        modifier = modifier,
-        tonalElevation = 2.dp,
+        modifier = modifier.bounceClick { onClick() },
         color = CardDefaults.cardColors(containerColor = cardBackgroundColor).containerColor,
         borderColor = borderColor,
         content = {
             Row(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .standardPadding()
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -109,39 +116,45 @@ private fun ExpenseInfo(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier, verticalAlignment = Alignment.CenterVertically
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(iconSize + basePadding)
+                .clip(RoundedCornerShape(commonCornerRadius))
                 .background(iconBackgroundColor)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.33f),
-                    shape = RoundedCornerShape(8.dp)
-                ), contentAlignment = Alignment.Center
+                .designBorder(
+                    width = borderStrokeWidth,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.33f)
+                ),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = "Expense icon",
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(iconSize)
             )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(smallPadding + extraSmallPadding))
 
         Column(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = expenseName, style = MaterialTheme.typography.titleMediumEmphasized.copy(
+                text = expenseName,
+                style = MaterialTheme.typography.titleMediumEmphasized.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
-                ), maxLines = 1, overflow = TextOverflow.Ellipsis
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "$membersCount members", style = MaterialTheme.typography.bodyMedium.copy(
+                text = "$membersCount members",
+                style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.secondary
                 )
             )
@@ -152,10 +165,14 @@ private fun ExpenseInfo(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ExpenseAmount(
-    isCompleted: Boolean, isYours: Boolean, amountOwed: Double, modifier: Modifier = Modifier
+    isCompleted: Boolean,
+    isYours: Boolean,
+    amountOwed: Double,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier, horizontalAlignment = Alignment.End
+        modifier = modifier,
+        horizontalAlignment = Alignment.End
     ) {
         val secondaryTextColor = MaterialTheme.colorScheme.secondary.copy(0.75f)
 
@@ -164,13 +181,14 @@ private fun ExpenseAmount(
                 isCompleted -> "Settled!"
                 isYours -> "They owe you"
                 else -> "You owe"
-            }, style = MaterialTheme.typography.bodySmallEmphasized.copy(
+            },
+            style = MaterialTheme.typography.bodySmallEmphasized.copy(
                 color = secondaryTextColor,
                 fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal
             )
         )
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(extraSmallPadding))
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (isCompleted) {
@@ -187,17 +205,21 @@ private fun CompletedIndicator() {
     Box(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp)
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(commonCornerRadius)
             )
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(8.dp)
+            .designBorder(
+                width = borderStrokeWidth,
+                color = MaterialTheme.colorScheme.primary
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp), contentAlignment = Alignment.Center
+            .standardPadding(
+                horizontal = smallPadding,
+                vertical = extraSmallPadding
+            ),
+        contentAlignment = Alignment.Center
     ) {
         Icon(
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier.size(smallIconSize),
             imageVector = Icons.Rounded.Check,
             contentDescription = "Payment completed",
             tint = MaterialTheme.colorScheme.primary
@@ -207,23 +229,31 @@ private fun CompletedIndicator() {
 
 @Composable
 private fun AmountIndicator(amountOwed: Double) {
+    val formattedAmount = formatCurrency(amountOwed)
+
     Box(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(8.dp)
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = RoundedCornerShape(commonCornerRadius)
             )
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.error,
-                shape = RoundedCornerShape(8.dp)
+            .designBorder(
+                width = borderStrokeWidth,
+                color = MaterialTheme.colorScheme.error
             )
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .standardPadding(
+                horizontal = smallPadding,
+                vertical = extraSmallPadding
+            )
     ) {
         Text(
-            text = formatCurrency(amountOwed.toString()),
+            text = formattedAmount,
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer
-            )
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -232,7 +262,7 @@ private fun AmountIndicator(amountOwed: Double) {
 @Composable
 private fun OutlinedCardPreview() {
     PreviewWrapper {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.standardPadding()) {
             ExpenseCard(
                 expenseName = "Dinner at La Taquería",
                 membersCount = 4,
@@ -240,17 +270,17 @@ private fun OutlinedCardPreview() {
                 icon = Icons.Default.Restaurant
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             ExpenseCard(
-                expenseName = "Movie Tickets",
-                membersCount = 3,
-                amountOwed = 32.50,
+                expenseName = "Movie Tickets and extra information from this expense with a very long title that should be truncated",
+                membersCount = 15,
+                amountOwed = 999999.99,
                 isYours = true,
                 icon = Icons.Default.ConfirmationNumber
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             ExpenseCard(
                 expenseName = "Groceries",
@@ -260,10 +290,10 @@ private fun OutlinedCardPreview() {
                 icon = Icons.Default.Restaurant
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             ExpenseCard(
-                expenseName = "Uber ride",
+                expenseName = "Uber ride with extra description that is way too long for the available space and should be truncated",
                 membersCount = 3,
                 amountOwed = 12.80,
                 isYours = true,

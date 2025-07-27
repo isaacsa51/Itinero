@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
-import com.serranoie.app.designsystemlib.ui.theme.component.AIShimmer
+import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
 import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroughText
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.BottomSheetContent
@@ -44,12 +44,13 @@ import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInputType
 import com.serranoie.app.designsystemlib.ui.theme.component.FlexibleListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.LargeDropdownMenu
 import com.serranoie.app.designsystemlib.ui.theme.component.ListItem
+import com.serranoie.app.designsystemlib.ui.theme.component.LocationInput
 import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItem
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.designsystemlib.ui.theme.component.RecordButton
-import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubble
@@ -58,7 +59,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatConversatio
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
 import com.serranoie.app.designsystemlib.ui.theme.component.card.CompactChatBubble
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
-import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import java.time.LocalDate
 import java.util.Date
 
@@ -599,6 +600,7 @@ fun InteractiveComponentsShowcase() {
 fun InputComponentsShowcase() {
     var selectedDateTime by remember { mutableStateOf<Date?>(Date()) }
     var selectedDropdownIndex by remember { mutableStateOf(-1) }
+    var selectedLocation by remember { mutableStateOf("") }
 
     val dropdownItems = listOf("Option 1", "Option 2", "Option 3", "Option 4")
     val dropdown = remember { LargeDropdownMenu() }
@@ -633,6 +635,33 @@ fun InputComponentsShowcase() {
             onDateTimeSelected = { selectedDateTime = it },
             label = "Time Only: ",
             inputType = DateTimeInputType.TIME
+        )
+
+        HorizontalDivider()
+
+        // Location Field
+        Text(
+            text = "Location Field",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        LocationInput(
+            value = selectedLocation,
+            onValueChange = { selectedLocation = it },
+            label = "Enter Location"
+        )
+
+        LocationInput(
+            value = "Times Square, New York, NY 10036",
+            onValueChange = { },
+            label = "Hotel Location"
+        )
+
+        LocationInput(
+            value = "",
+            onValueChange = { },
+            label = "Empty Location"
         )
 
         HorizontalDivider()

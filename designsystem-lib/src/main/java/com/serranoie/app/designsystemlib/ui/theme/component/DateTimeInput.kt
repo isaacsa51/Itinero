@@ -42,11 +42,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.utils.Constants.DISABLED_ALPHA
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.dateTimeInputIconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.dateTimeInputIconSpacing
 import com.serranoie.app.designsystemlib.ui.utils.Utils.dateToString
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -103,10 +105,8 @@ fun DateTimeInput(
     var showTimePicker by remember { mutableStateOf(false) }
 
     val displayText = remember(selectedDateTime, inputType) {
-        if (placeholder != null) {
-            placeholder
-        } else {
-            when (inputType) {
+        placeholder
+            ?: when (inputType) {
                 DateTimeInputType.DATE -> {
                     // Show only date format: "23 July 2025"
                     val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
@@ -124,7 +124,6 @@ fun DateTimeInput(
                     dateToString(currentDateTime)
                 }
             }
-        }
     }
 
     ICard(
@@ -150,14 +149,14 @@ fun DateTimeInput(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(dateTimeInputIconSize),
                     tint = if (enabled) {
                         MaterialTheme.colorScheme.outline
                     } else {
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                        MaterialTheme.colorScheme.outline.copy(alpha = DISABLED_ALPHA)
                     }
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(dateTimeInputIconSpacing))
             }
 
             Text(
@@ -166,7 +165,7 @@ fun DateTimeInput(
                 color = if (enabled) {
                     MaterialTheme.colorScheme.outline
                 } else {
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                    MaterialTheme.colorScheme.outline.copy(alpha = DISABLED_ALPHA)
                 },
             )
         }
@@ -287,8 +286,8 @@ private fun DateTimeInputPreview() {
     
     PreviewWrapper {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(basePadding),
+            verticalArrangement = Arrangement.spacedBy(basePadding)
         ) {
             // Default DateTimeInput with both date and time (BOTH)
             DateTimeInput(

@@ -13,8 +13,6 @@ package com.serranoie.app.designsystemlib.ui.theme.component.card
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -38,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,9 +49,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basicElevation
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
+import com.serranoie.app.designsystemlib.ui.utils.bounceClick
+import com.serranoie.app.designsystemlib.ui.utils.designBorder
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
@@ -72,7 +79,6 @@ data class SwipeActionsConfig(
  * @param isCompleted Whether the card is marked as completed
  * @param onSwipe Callback when the card is swiped (only used in swipeable variant)
  * @param shape The shape of the card
- * @param tonalElevation The tonal elevation of the card
  * @param color The background color of the card (used with Surface for proper tonal elevation)
  * @param borderWidth The width of the border around the card
  * @param borderColor The color of the border around the card
@@ -93,10 +99,9 @@ fun ICard(
     modifier: Modifier = Modifier,
     isCompleted: Boolean = false,
     onSwipe: (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(8.dp),
-    tonalElevation: Dp = 4.dp,
+    shape: Shape = RoundedCornerShape(commonCornerRadius),
     color: Color = if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-    borderWidth: Dp = 1.dp,
+    borderWidth: Dp = borderStrokeWidth,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     swipeable: Boolean = false,
     dragThreshold: Float = 150f,
@@ -117,9 +122,12 @@ fun ICard(
                         .fillMaxWidth()
                         .background(
                             color = headerColor,
-                            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                            shape = RoundedCornerShape(
+                                topStart = commonCornerRadius,
+                                topEnd = commonCornerRadius
+                            )
                         )
-                        .padding(16.dp)
+                        .standardPadding()
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -158,7 +166,6 @@ fun ICard(
             onSwipe = onSwipe,
             shape = shape,
             color = color,
-            tonalElevation = tonalElevation,
             borderWidth = borderWidth,
             borderColor = borderColor,
             dragThreshold = dragThreshold,
@@ -170,12 +177,9 @@ fun ICard(
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .border(
-                    width = borderWidth, color = borderColor, shape = shape
-                )
-                .clickable(onClick = onClick),
+                .designBorder(width = borderWidth, color = borderColor)
+                .bounceClick { onClick() },
             shape = shape,
-            tonalElevation = tonalElevation,
             color = color
         ) {
             cardContent()
@@ -189,17 +193,16 @@ private fun ISwipeableCard(
     modifier: Modifier = Modifier,
     isCompleted: Boolean = false,
     onSwipe: () -> Unit,
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = RoundedCornerShape(commonCornerRadius * 2),
     color: Color = MaterialTheme.colorScheme.surface,
-    tonalElevation: Dp = 4.dp,
-    borderWidth: Dp = 1.dp,
+    borderWidth: Dp = borderStrokeWidth,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     dragThreshold: Float = 150f,
     swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit,
     onClick: () -> Unit
 ) {
-    val offsetXState = remember { mutableStateOf(0f) }
+    val offsetXState = remember { mutableFloatStateOf(0f) }
     val localIsCompletedState = remember { mutableStateOf(isCompleted) }
 
     // Use swipeActionsConfig if provided, otherwise use default behavior
@@ -212,11 +215,11 @@ private fun ISwipeableCard(
 
     // Animation states
     val scaleState = animateFloatAsState(
-        targetValue = if (offsetXState.value.absoluteValue > effectiveThreshold) 0.95f else 1f,
+        targetValue = if (offsetXState.floatValue.absoluteValue > effectiveThreshold) 0.95f else 1f,
         label = "scale"
     )
 
-    val bgColor = if (offsetXState.value.absoluteValue > effectiveThreshold) {
+    val bgColor = if (offsetXState.floatValue.absoluteValue > effectiveThreshold) {
         backgroundColorConfig
     } else {
         Color.Transparent
@@ -224,14 +227,14 @@ private fun ISwipeableCard(
 
     // Background check icon visibility
     val iconAlphaState = animateFloatAsState(
-        targetValue = if (offsetXState.value.absoluteValue > effectiveThreshold) 1f else 0f,
+        targetValue = if (offsetXState.floatValue.absoluteValue > effectiveThreshold) 1f else 0f,
         label = "iconAlpha"
     )
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = extraSmallPadding)
     ) {
         // Background that appears during swipe
         Box(
@@ -271,12 +274,9 @@ private fun ISwipeableCard(
                         offsetXState.value = 0f
                     }
                 )
-                .border(
-                    width = borderWidth, color = borderColor, shape = shape
-                )
-                .clickable(onClick = onClick),
+                .designBorder(width = borderWidth, color = borderColor)
+                .bounceClick { onClick() },
             shape = shape,
-            tonalElevation = tonalElevation,
             color = color
         ) {
             content()
@@ -294,7 +294,7 @@ private fun ExpenseCard(
     icon: ImageVector
 ) {
     ICard(isCompleted = isCompleted, swipeable = false, content = {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.standardPadding()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -312,10 +312,13 @@ private fun ExpenseCard(
                 )
             }
             Text(
-                text = expenseName, style = MaterialTheme.typography.titleMedium
+                text = expenseName,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "$${String.format("%.2f", amountOwed)} • $membersCount people",
+                text = "${formatCurrency(amountOwed)} • $membersCount people",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -327,12 +330,13 @@ private fun ExpenseCard(
 @Composable
 private fun OutlinedCardPreview() {
     PreviewWrapper {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.standardPadding()) {
             // Regular non-swipeable card without header
             ICard(isCompleted = false, swipeable = false, content = {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.standardPadding()) {
                     Text(
-                        text = "Basic Card", style = MaterialTheme.typography.titleMedium
+                        text = "Basic Card",
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = "This is a simple card without header",
@@ -341,7 +345,7 @@ private fun OutlinedCardPreview() {
                 }
             }, onClick = { })
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Card with colorful header
             ICard(
@@ -351,7 +355,7 @@ private fun OutlinedCardPreview() {
                 headerColor = MaterialTheme.colorScheme.primaryContainer,
                 headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 content = {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.standardPadding()) {
                         Text(
                             text = "This card has a colorful header",
                             style = MaterialTheme.typography.bodyMedium
@@ -360,7 +364,7 @@ private fun OutlinedCardPreview() {
                 },
                 onClick = { })
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Swipeable card with header
             ICard(
@@ -370,7 +374,7 @@ private fun OutlinedCardPreview() {
                 headerTitle = "Swipeable Card",
                 headerIcon = Icons.Default.Done,
                 content = {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.standardPadding()) {
                         Text(
                             text = "Swipe me to mark as completed",
                             style = MaterialTheme.typography.bodyMedium
@@ -379,7 +383,7 @@ private fun OutlinedCardPreview() {
                 },
                 onClick = { })
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Swipeable card with custom SwipeActionsConfig
             ICard(
@@ -396,7 +400,7 @@ private fun OutlinedCardPreview() {
                     stayDismissed = false,
                     onDismiss = { /* Custom dismiss action */ }),
                 content = {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.standardPadding()) {
                         Text(
                             text = "Swipe me with custom config",
                             style = MaterialTheme.typography.bodyMedium
@@ -405,7 +409,7 @@ private fun OutlinedCardPreview() {
                 },
                 onClick = { })
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Completed swipeable card with header
             ICard(
@@ -414,7 +418,7 @@ private fun OutlinedCardPreview() {
                 swipeable = true,
                 headerTitle = "Completed Card",
                 content = {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.standardPadding()) {
                         Text(
                             text = "This card is already marked as completed",
                             style = MaterialTheme.typography.bodyMedium
@@ -423,7 +427,7 @@ private fun OutlinedCardPreview() {
                 },
                 onClick = { })
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Regular expense card (current user owes money)
             ExpenseCard(
@@ -433,7 +437,7 @@ private fun OutlinedCardPreview() {
                 icon = Icons.Default.Restaurant
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Expense card where others owe the user
             ExpenseCard(
@@ -444,7 +448,7 @@ private fun OutlinedCardPreview() {
                 icon = Icons.Default.ConfirmationNumber
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Completed expense card
             ExpenseCard(
@@ -455,11 +459,11 @@ private fun OutlinedCardPreview() {
                 icon = Icons.Default.Restaurant
             )
 
-            Spacer(modifier = Modifier.padding(8.dp))
+            Spacer(modifier = Modifier.padding(smallPadding))
 
             // Completed expense card that was yours
             ExpenseCard(
-                expenseName = "Uber ride",
+                expenseName = "Uber ride with a very long name that should be truncated",
                 membersCount = 3,
                 amountOwed = 12.80,
                 isYours = true,

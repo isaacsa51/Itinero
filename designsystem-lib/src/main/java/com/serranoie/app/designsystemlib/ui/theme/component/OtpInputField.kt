@@ -1,7 +1,11 @@
 package com.serranoie.app.designsystemlib.ui.theme.component
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,20 +20,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.OTP_DEFAULT_COUNT
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.otpCharCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.otpCharPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.otpCharSpacing
+import com.serranoie.app.designsystemlib.ui.utils.Constants.otpCharWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.otpDashVerticalPadding
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OtpInputField(
     modifier: Modifier = Modifier,
     otpText: String,
-    otpCount: Int = 5,
+    otpCount: Int = OTP_DEFAULT_COUNT,
     enabled: Boolean = true,
     onOtpTextChange: (String, Boolean) -> Unit
 ) {
@@ -43,8 +53,10 @@ fun OtpInputField(
         modifier = modifier,
         value = TextFieldValue(otpText, selection = TextRange(otpText.length)),
         onValueChange = {
-            if (enabled && it.text.length <= otpCount) {
-                onOtpTextChange.invoke(it.text, it.text.length == otpCount)
+            // Only allow digits and limit to otpCount characters
+            val filteredText = it.text.filter { char -> char.isDigit() }.take(otpCount)
+            if (enabled && filteredText.length <= otpCount) {
+                onOtpTextChange.invoke(filteredText, filteredText.length == otpCount)
             }
         },
         enabled = enabled,
@@ -56,7 +68,10 @@ fun OtpInputField(
                 prefix.forEachIndexed { _, char ->
                     if (char == '-') {
                         Text(
-                            modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(
+                                horizontal = 0.dp,
+                                vertical = otpDashVerticalPadding
+                            ),
                             text = char.toString(),
                             style = MaterialTheme.typography.headlineSmallEmphasized,
                             color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
@@ -65,20 +80,20 @@ fun OtpInputField(
                     } else {
                         Text(
                             modifier = Modifier
-                                .width(28.dp)
+                                .width(otpCharWidth)
                                 .border(
-                                    1.dp,
+                                    borderStrokeWidth,
                                     if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                    RoundedCornerShape(4.dp)
+                                    RoundedCornerShape(otpCharCornerRadius)
                                 )
-                                .padding(4.dp),
+                                .padding(otpCharPadding),
                             text = char.toString(),
                             style = MaterialTheme.typography.headlineSmallEmphasized,
                             color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                             textAlign = TextAlign.Center
                         )
                     }
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(otpCharSpacing))
                 }
 
                 repeat(otpCount) { index ->
@@ -87,7 +102,7 @@ fun OtpInputField(
                         text = otpText,
                         enabled = enabled
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(otpCharSpacing))
                 }
             }
         }
@@ -102,24 +117,25 @@ private fun CharView(
     enabled: Boolean
 ) {
     val isFocused = text.length == index
+    val hasFilled = index < text.length
     val char = when {
-        index == text.length -> "0"
+        index == text.length && enabled -> "X" // Show X for focused empty position
         index > text.length -> ""
         else -> text[index].toString()
     }
     Text(
         modifier = Modifier
-            .width(28.dp)
+            .width(otpCharWidth)
             .border(
-                1.dp, when {
-                    isFocused && enabled -> MaterialTheme.colorScheme.primary
+                borderStrokeWidth, when {
+                    (isFocused || hasFilled) && enabled -> MaterialTheme.colorScheme.primary
                     else -> MaterialTheme.colorScheme.outline
-                }, RoundedCornerShape(4.dp)
+                }, RoundedCornerShape(otpCharCornerRadius)
             )
-            .padding(4.dp),
+            .padding(otpCharPadding),
         text = char,
         style = MaterialTheme.typography.headlineSmallEmphasized,
-        color = if (isFocused && enabled) {
+        color = if ((isFocused || hasFilled) && enabled) {
             MaterialTheme.colorScheme.primary
         } else {
             MaterialTheme.colorScheme.outline
@@ -133,7 +149,7 @@ private fun CharView(
 fun OtpDisplayField(
     modifier: Modifier = Modifier,
     otpText: String,
-    otpCount: Int = 5
+    otpCount: Int = OTP_DEFAULT_COUNT
 ) {
     Row(
         modifier = modifier,
@@ -144,7 +160,10 @@ fun OtpDisplayField(
         prefix.forEachIndexed { _, char ->
             if (char == '-') {
                 Text(
-                    modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
+                    modifier = Modifier.padding(
+                        horizontal = 0.dp,
+                        vertical = otpDashVerticalPadding
+                    ),
                     text = char.toString(),
                     style = MaterialTheme.typography.headlineSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
@@ -153,20 +172,20 @@ fun OtpDisplayField(
             } else {
                 Text(
                     modifier = Modifier
-                        .width(28.dp)
+                        .width(otpCharWidth)
                         .border(
-                            1.dp,
+                            borderStrokeWidth,
                             MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(4.dp)
+                            RoundedCornerShape(otpCharCornerRadius)
                         )
-                        .padding(4.dp),
+                        .padding(otpCharPadding),
                     text = char.toString(),
                     style = MaterialTheme.typography.headlineSmallEmphasized,
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
             }
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(otpCharSpacing))
         }
 
         // Display the OTP digits
@@ -174,20 +193,20 @@ fun OtpDisplayField(
         displayText.forEachIndexed { index, char ->
             Text(
                 modifier = Modifier
-                    .width(28.dp)
+                    .width(otpCharWidth)
                     .border(
-                        1.dp,
+                        borderStrokeWidth,
                         MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(4.dp)
+                        RoundedCornerShape(otpCharCornerRadius)
                     )
-                    .padding(4.dp),
+                    .padding(otpCharPadding),
                 text = if (char == ' ') "" else char.toString(),
                 style = MaterialTheme.typography.headlineSmallEmphasized,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
             )
             if (index < otpCount - 1) {
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(otpCharSpacing))
             }
         }
     }

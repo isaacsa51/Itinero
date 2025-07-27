@@ -68,9 +68,9 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
-import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
-import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.MemberStatus
 import com.serranoie.itinero.core.domain.model.MembershipStatus

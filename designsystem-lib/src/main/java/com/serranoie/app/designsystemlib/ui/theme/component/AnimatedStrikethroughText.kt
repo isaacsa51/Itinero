@@ -30,6 +30,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
+import com.serranoie.app.designsystemlib.ui.utils.Constants.STRIKETHROUGH_CHAR_DURATION
+import com.serranoie.app.designsystemlib.ui.utils.Constants.STRIKETHROUGH_MAX_DURATION
 
 @Composable
 fun AnimatedStrikethroughText(
@@ -37,7 +39,12 @@ fun AnimatedStrikethroughText(
     modifier: Modifier = Modifier,
     isVisible: Boolean = true,
     animateOnHide: Boolean = true,
-    spec: AnimationSpec<Int> = tween(minOf(text.length * 30, 600), easing = FastOutLinearInEasing),
+    spec: AnimationSpec<Int> = tween(
+        minOf(
+            text.length * STRIKETHROUGH_CHAR_DURATION,
+            STRIKETHROUGH_MAX_DURATION
+        ), easing = FastOutLinearInEasing
+    ),
     strikethroughStyle: SpanStyle = SpanStyle(),
     textStyle: TextStyle = LocalTextStyle.current
 ) {

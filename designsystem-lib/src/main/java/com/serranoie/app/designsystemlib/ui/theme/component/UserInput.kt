@@ -41,12 +41,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.InsertPhoto
 import androidx.compose.material.icons.outlined.Mood
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -89,10 +86,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue
 
@@ -113,7 +110,9 @@ enum class EmojiStickerSelector {
 @ComponentPreview
 @Composable
 fun UserInputPreview() {
-    UserInput(onMessageSent = {})
+    PreviewWrapper {
+        UserInput(onMessageSent = {})
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -304,20 +303,17 @@ private fun UserInputSelector(
         )
 
         // Send button
-        Button(
+        ITextButton(
+            onClick = onMessageSent,
             modifier = Modifier.height(36.dp),
             enabled = sendMessageEnabled,
-            onClick = onMessageSent,
-            colors = buttonColors,
-            border = border,
-            contentPadding = PaddingValues(0.dp),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(
-                text = "Send",
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
+            text = {
+                Text(
+                    text = "Send",
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        )
     }
 }
 
@@ -519,14 +515,6 @@ private fun RecordingIndicator(swipeOffset: () -> Float) {
                 .background(Color.Red)
         )
 
-//        Text(
-//            duration.toComponents { minutes, seconds, _ ->
-//                val min = minutes.toString().padStart(2, '0')
-//                val sec = seconds.toString().padStart(2, '0')
-//                "$min:$sec"
-//            },
-//            Modifier.alignByBaseline()
-//        )
         Box(
             Modifier
                 .fillMaxSize()

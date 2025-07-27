@@ -35,6 +35,13 @@ import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
+import com.serranoie.app.designsystemlib.ui.utils.Constants.DISABLED_OUTLINED_BUTTON_BORDER_ALPHA
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.buttonHeight
+import com.serranoie.app.designsystemlib.ui.utils.Constants.buttonIconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.buttonLargeHeight
+import com.serranoie.app.designsystemlib.ui.utils.Constants.buttonSmallHeight
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
 
 enum class ButtonImportance {
     Primary, Secondary, Tertiary, Error
@@ -46,9 +53,9 @@ fun IButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(size = commonCornerRadius),
     importance: ButtonImportance = ButtonImportance.Primary,
-    height: Dp = 48.dp,
+    height: Dp = buttonHeight,
     content: @Composable RowScope.() -> Unit,
 ) {
     Button(
@@ -69,9 +76,9 @@ fun IButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(size = commonCornerRadius),
     importance: ButtonImportance = ButtonImportance.Primary,
-    height: Dp = 48.dp
+    height: Dp = buttonHeight
 ) {
     IButton(
         onClick = onClick,
@@ -124,9 +131,9 @@ fun IIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: ImageVector,
-    shape: Shape = RoundedCornerShape(size = 8.dp),
+    shape: Shape = RoundedCornerShape(size = commonCornerRadius),
     colors: ButtonColors = ButtonDefaults.buttonColors(),
-    height: Dp = 48.dp
+    height: Dp = buttonHeight
 ) {
     Button(
         onClick = onClick,
@@ -137,7 +144,9 @@ fun IIconButton(
         contentPadding = PaddingValues(0.dp)
     ) {
         Icon(
-            imageVector = leadingIcon, contentDescription = null, modifier = Modifier.size(24.dp)
+            imageVector = leadingIcon,
+            contentDescription = null,
+            modifier = Modifier.size(buttonIconSize)
         )
     }
 }
@@ -148,11 +157,11 @@ fun IOutlineButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(size = commonCornerRadius),
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     importance: ButtonImportance = ButtonImportance.Primary,
     backgroundColor: Color = MaterialTheme.colorScheme.background,
-    height: Dp = 48.dp,
+    height: Dp = buttonHeight,
     content: @Composable RowScope.() -> Unit,
 ) {
     OutlinedButton(
@@ -160,7 +169,7 @@ fun IOutlineButton(
         modifier = modifier.height(height),
         enabled = enabled,
         border = BorderStroke(
-            width = IButtonDefaults.OutlinedButtonBorderWidth,
+            width = borderStrokeWidth,
             color = borderColorForImportance(importance, enabled),
         ),
         contentPadding = contentPadding,
@@ -177,9 +186,9 @@ fun IOutlineButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable() (() -> Unit)? = null,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(size = commonCornerRadius),
     importance: ButtonImportance = ButtonImportance.Primary,
-    height: Dp = 48.dp
+    height: Dp = buttonHeight
 ) {
     IOutlineButton(
         onClick = onClick,
@@ -219,19 +228,19 @@ private fun outlinedButtonColorsForImportance(
 private fun borderColorForImportance(importance: ButtonImportance, enabled: Boolean): Color {
     return when (importance) {
         ButtonImportance.Primary -> if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurface.copy(
-            alpha = 0.38f
+            alpha = DISABLED_OUTLINED_BUTTON_BORDER_ALPHA
         )
 
         ButtonImportance.Secondary -> if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurface.copy(
-            alpha = 0.38f
+            alpha = DISABLED_OUTLINED_BUTTON_BORDER_ALPHA
         )
 
         ButtonImportance.Tertiary -> if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onSurface.copy(
-            alpha = 0.38f
+            alpha = DISABLED_OUTLINED_BUTTON_BORDER_ALPHA
         )
 
         ButtonImportance.Error -> if (enabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(
-            alpha = 0.38f
+            alpha = DISABLED_OUTLINED_BUTTON_BORDER_ALPHA
         )
     }
 }
@@ -243,7 +252,7 @@ fun ITextButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable() (() -> Unit)? = null,
-    height: Dp = 48.dp
+    height: Dp = buttonHeight
 ) {
     val ITextButtonColors = textButtonColors(
         contentColor = MaterialTheme.colorScheme.primary,
@@ -255,7 +264,7 @@ fun ITextButton(
         modifier = modifier.height(height),
         enabled = enabled,
         colors = ITextButtonColors,
-        shape = RoundedCornerShape(size = 8.dp),
+        shape = RoundedCornerShape(size = commonCornerRadius),
     ) {
         IButtonContent(
             text = text,
@@ -271,7 +280,7 @@ private fun IButtonContent(
     leadingIcon: @Composable (() -> Unit)? = null,
 ) {
     if (leadingIcon != null) {
-        Box(Modifier.sizeIn(maxHeight = ButtonDefaults.IconSize)) {
+        Box(Modifier.sizeIn(maxHeight = buttonIconSize)) {
             leadingIcon()
         }
     }
@@ -306,14 +315,14 @@ fun TravelerButtonPreview() {
                 onClick = {},
                 text = { Text("Small Button") },
                 importance = ButtonImportance.Secondary,
-                height = 32.dp
+                height = buttonSmallHeight
             )
 
             IButton(
                 onClick = {},
                 text = { Text("Large Button") },
                 importance = ButtonImportance.Tertiary,
-                height = 56.dp
+                height = buttonLargeHeight
             )
 
             IButton(
@@ -340,14 +349,14 @@ fun TravelerOutlineButtonPreview() {
                 onClick = {},
                 text = { Text("Small Outline") },
                 importance = ButtonImportance.Secondary,
-                height = 36.dp
+                height = buttonSmallHeight
             )
 
             IOutlineButton(
                 onClick = {},
                 text = { Text("Large Outline") },
                 importance = ButtonImportance.Tertiary,
-                height = 52.dp
+                height = buttonLargeHeight
             )
 
             IOutlineButton(
@@ -385,10 +394,4 @@ fun TravelerLeadingIconPreview() {
     }
 }
 
-object IButtonDefaults {
-    // OutlinedButton border color doesn't respect disabled state by default
-    const val DISABLED_OUTLINED_BUTTON_BORDER_ALPHA = 0.12f
-
-    // OutlinedButton default border width isn't exposed via ButtonDefaults
-    val OutlinedButtonBorderWidth = 1.dp
-}
+object IButtonDefaults

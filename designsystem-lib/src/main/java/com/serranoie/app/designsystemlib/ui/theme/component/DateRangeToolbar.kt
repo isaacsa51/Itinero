@@ -12,9 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.DATE_RANGE_TOOLBAR_DEFAULT_WEIGHT
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -39,11 +41,11 @@ fun RowScope.DateRangeToolbar(
     dayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd"),
     monthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM"),
     dayTextStyle: TextStyle = MaterialTheme.typography.bodyLargeEmphasized,
-    monthTextStyle: TextStyle = MaterialTheme.typography.labelSmallEmphasized,
+    monthTextStyle: TextStyle = MaterialTheme.typography.labelSmallEmphasized.copy(fontWeight = FontWeight.Medium),
     dayColor: Color = MaterialTheme.colorScheme.onSurface,
     monthColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    weight: Float = 0.15f
+    weight: Float = DATE_RANGE_TOOLBAR_DEFAULT_WEIGHT
 ) {
     Column(
         modifier = modifier.weight(weight),
@@ -53,7 +55,6 @@ fun RowScope.DateRangeToolbar(
             text = date.format(dayFormatter),
             style = dayTextStyle,
             color = dayColor,
-            fontWeight = FontWeight.Bold
         )
         Text(
             text = date.format(monthFormatter).uppercase(),
@@ -70,7 +71,7 @@ private fun DateRangeToolbarPreview() {
     
     PreviewWrapper {
         androidx.compose.foundation.layout.Row(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.standardPadding()
         ) {
             DateRangeToolbar(date = today)
             

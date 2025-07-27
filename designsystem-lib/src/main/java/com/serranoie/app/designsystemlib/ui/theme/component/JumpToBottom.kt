@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,16 +43,13 @@ fun JumpToBottom(
         }
     }
     if (bottomOffset > 0.dp) {
-        ExtendedFloatingActionButton(
-            icon = {
+        FloatingActionButton(
+            content = {
                 Icon(
                     imageVector = Icons.Filled.ArrowDownward,
                     modifier = Modifier.height(18.dp),
                     contentDescription = null
                 )
-            },
-            text = {
-                Text(text = "Go to bottom")
             },
             onClick = onClicked,
             containerColor = MaterialTheme.colorScheme.surface,

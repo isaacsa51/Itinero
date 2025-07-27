@@ -3,7 +3,9 @@ package com.serranoie.app.designsystemlib.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -16,21 +18,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Generated using MaterialKolor Builder version 1.0.1 (101)
-
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,
     onPrimaryContainer = onPrimaryContainerLight,
+    primaryFixed = primaryFixed,
+    onPrimaryFixed = onPrimaryFixed,
+    primaryFixedDim = primaryFixedDim,
+    onPrimaryFixedVariant = onPrimaryFixedVariant,
     secondary = secondaryLight,
     onSecondary = onSecondaryLight,
     secondaryContainer = secondaryContainerLight,
     onSecondaryContainer = onSecondaryContainerLight,
+    secondaryFixed = secondaryFixed,
+    onSecondaryFixed = onSecondaryFixed,
+    secondaryFixedDim = secondaryFixedDim,
+    onSecondaryFixedVariant = onSecondaryFixedVariant,
     tertiary = tertiaryLight,
     onTertiary = onTertiaryLight,
     tertiaryContainer = tertiaryContainerLight,
     onTertiaryContainer = onTertiaryContainerLight,
+    tertiaryFixed = tertiaryFixed,
+    onTertiaryFixed = onTertiaryFixed,
+    tertiaryFixedDim = tertiaryFixedDim,
+    onTertiaryFixedVariant = onTertiaryFixedVariant,
     error = errorLight,
     onError = onErrorLight,
     errorContainer = errorContainerLight,
@@ -61,14 +73,26 @@ private val darkScheme = darkColorScheme(
     onPrimary = onPrimaryDark,
     primaryContainer = primaryContainerDark,
     onPrimaryContainer = onPrimaryContainerDark,
+    primaryFixed = primaryFixed,
+    onPrimaryFixed = onPrimaryFixed,
+    primaryFixedDim = primaryFixedDim,
+    onPrimaryFixedVariant = onPrimaryFixedVariant,
     secondary = secondaryDark,
     onSecondary = onSecondaryDark,
     secondaryContainer = secondaryContainerDark,
     onSecondaryContainer = onSecondaryContainerDark,
+    secondaryFixed = secondaryFixed,
+    onSecondaryFixed = onSecondaryFixed,
+    secondaryFixedDim = secondaryFixedDim,
+    onSecondaryFixedVariant = onSecondaryFixedVariant,
     tertiary = tertiaryDark,
     onTertiary = onTertiaryDark,
     tertiaryContainer = tertiaryContainerDark,
     onTertiaryContainer = onTertiaryContainerDark,
+    tertiaryFixed = tertiaryFixed,
+    onTertiaryFixed = onTertiaryFixed,
+    tertiaryFixedDim = tertiaryFixedDim,
+    onTertiaryFixedVariant = onTertiaryFixedVariant,
     error = errorDark,
     onError = onErrorDark,
     errorContainer = errorContainerDark,
@@ -94,7 +118,7 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
-private val mediumContrastLightColorScheme = lightColorScheme(
+/*private val mediumContrastLightColorScheme = lightColorScheme(
     primary = primaryLightMediumContrast,
     onPrimary = onPrimaryLightMediumContrast,
     primaryContainer = primaryContainerLightMediumContrast,
@@ -244,8 +268,9 @@ private val highContrastDarkColorScheme = darkColorScheme(
     surfaceContainer = surfaceContainerDarkHighContrast,
     surfaceContainerHigh = surfaceContainerHighDarkHighContrast,
     surfaceContainerHighest = surfaceContainerHighestDarkHighContrast,
-)
+)*/
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ItineroTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -281,6 +306,7 @@ fun ItineroTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        motionScheme = MotionScheme.expressive(),
         typography = ItineroTypography,
         content = content,
     )

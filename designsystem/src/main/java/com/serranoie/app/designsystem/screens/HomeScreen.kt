@@ -1,6 +1,7 @@
 package com.serranoie.app.designsystem.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,8 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IFilledSmallerTextField
@@ -46,6 +47,9 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystemlib.ui.theme.component.ISmallerTextField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
+import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
+import com.serranoie.app.designsystemlib.ui.theme.component.OtpInputField
+import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -82,14 +86,20 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         AtomicSection(title = "04 Input Field ") {
             InputFieldShowcase()
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 05 - Select Field
+        AtomicSection(title = "05 Select Field ") {
+            SelectFieldShowcase()
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AtomicSection(
-    title: String,
-    content: @Composable () -> Unit
+    title: String, content: @Composable () -> Unit
 ) {
     Column {
         Text(
@@ -98,7 +108,7 @@ fun AtomicSection(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        
+
         Surface(
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -119,9 +129,7 @@ fun AtomicSection(
 fun TypographyShowcase() {
     val typographyStyles = listOf(
         "Display Large" to MaterialTheme.typography.displayLarge,
-        "Display Large Emphasized" to MaterialTheme.typography.displayLargeEmphasized.copy(
-            fontWeight = FontWeight.Black
-        ),
+        "Display Large Emphasized" to MaterialTheme.typography.displayLargeEmphasized,
         "Display Medium" to MaterialTheme.typography.displayMedium,
         "Display Medium Emphasized" to MaterialTheme.typography.displayMediumEmphasized,
         "Display Small" to MaterialTheme.typography.displaySmall,
@@ -161,20 +169,24 @@ fun TypographyShowcase() {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = name,
-                        style = style
+                        text = name, style = style, modifier = Modifier.basicMarquee()
                     )
                 }
                 Text(
                     text = "Aa",
                     style = style,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .basicMarquee()
                 )
             }
         }
 
-        Text(text = "To insert a different font weight to an emphasized text, use function copy()", style = MaterialTheme.typography.labelSmall)
+        Text(
+            text = "To insert a different font weight to an emphasized text, use function copy()",
+            style = MaterialTheme.typography.labelSmall
+        )
     }
 }
 
@@ -257,13 +269,10 @@ fun ColorVariantGroup(
                 .fillMaxWidth()
                 .height(100.dp)
                 .background(
-                    color = mainColor,
-                    shape = RoundedCornerShape(8.dp)
+                    color = mainColor, shape = RoundedCornerShape(8.dp)
                 )
                 .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant,
-                    RoundedCornerShape(8.dp)
+                    1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp)
                 )
         ) {
             Text(
@@ -279,8 +288,7 @@ fun ColorVariantGroup(
 
         // Variants row
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // Container
             ColorVariantBox(
@@ -321,22 +329,16 @@ fun ColorVariantGroup(
 
 @Composable
 fun ColorVariantBox(
-    color: Color,
-    onColor: Color,
-    label: String,
-    modifier: Modifier = Modifier
+    color: Color, onColor: Color, label: String, modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .height(60.dp)
             .background(
-                color = color,
-                shape = RoundedCornerShape(6.dp)
+                color = color, shape = RoundedCornerShape(6.dp)
             )
             .border(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant,
-                RoundedCornerShape(6.dp)
+                1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp)
             )
     ) {
         Text(
@@ -362,8 +364,7 @@ fun SurfaceAndBackgroundColors() {
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // Surface
             ColorVariantBox(
@@ -391,8 +392,7 @@ fun SurfaceAndBackgroundColors() {
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             // Background
             ColorVariantBox(
@@ -430,10 +430,9 @@ fun ButtonShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IButton(
                 onClick = { },
@@ -448,10 +447,9 @@ fun ButtonShowcase() {
                 modifier = Modifier.weight(1f)
             )
         }
-        
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IButton(
                 onClick = { },
@@ -469,8 +467,7 @@ fun ButtonShowcase() {
 
         // Disabled State
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IButton(
                 onClick = { },
@@ -496,10 +493,9 @@ fun ButtonShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IOutlineButton(
                 onClick = { },
@@ -514,10 +510,9 @@ fun ButtonShowcase() {
                 modifier = Modifier.weight(1f)
             )
         }
-        
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IOutlineButton(
                 onClick = { },
@@ -535,8 +530,7 @@ fun ButtonShowcase() {
 
         // Disabled and With Icon
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IOutlineButton(
                 onClick = { },
@@ -562,10 +556,9 @@ fun ButtonShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             ITextButton(
                 onClick = { },
@@ -588,15 +581,12 @@ fun ButtonShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IIconButton(
-                onClick = { },
-                leadingIcon = Icons.Default.Favorite,
-                modifier = Modifier.weight(1f)
+                onClick = { }, leadingIcon = Icons.Default.Favorite, modifier = Modifier.weight(1f)
             )
             IIconButton(
                 onClick = { },
@@ -612,7 +602,7 @@ fun ButtonShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             IButton(
                 onClick = { },
@@ -645,6 +635,7 @@ fun InputFieldShowcase() {
     var passwordValue by remember { mutableStateOf("") }
     var smallerTextValue by remember { mutableStateOf("") }
     var filledSmallerTextValue by remember { mutableStateOf("") }
+    var otpValue by remember { mutableStateOf("") }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // Standard Text Fields
@@ -653,7 +644,7 @@ fun InputFieldShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         ITextField(
             value = textFieldValue,
             onValueChange = { textFieldValue = it },
@@ -687,11 +678,9 @@ fun InputFieldShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         IPasswordField(
-            value = passwordValue,
-            onValueChange = { passwordValue = it },
-            label = "Password"
+            value = passwordValue, onValueChange = { passwordValue = it }, label = "Password"
         )
 
         HorizontalDivider()
@@ -702,10 +691,9 @@ fun InputFieldShowcase() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             ISmallerTextField(
                 value = smallerTextValue,
@@ -714,7 +702,7 @@ fun InputFieldShowcase() {
                 leadingIcon = Icons.Default.Person,
                 modifier = Modifier.weight(1f)
             )
-            
+
             IFilledSmallerTextField(
                 value = filledSmallerTextValue,
                 onValueChange = { filledSmallerTextValue = it },
@@ -725,8 +713,7 @@ fun InputFieldShowcase() {
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             ISmallerTextField(
                 value = "Disabled",
@@ -736,7 +723,7 @@ fun InputFieldShowcase() {
                 enabled = false,
                 modifier = Modifier.weight(1f)
             )
-            
+
             IFilledSmallerTextField(
                 value = "Disabled filled",
                 onValueChange = { },
@@ -746,6 +733,98 @@ fun InputFieldShowcase() {
                 modifier = Modifier.weight(1f)
             )
         }
+
+        HorizontalDivider()
+
+        // OTP Fields
+        Text(
+            text = "OTP Fields",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        // Interactive OTP Input
+        OtpInputField(
+            otpText = otpValue,
+            onOtpTextChange = { otp, _ -> otpValue = otp },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Pre-filled OTP Input
+        OtpInputField(
+            otpText = "12345",
+            onOtpTextChange = { _, _ -> },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Disabled OTP Input
+        OtpInputField(
+            otpText = "72429",
+            onOtpTextChange = { _, _ -> },
+            enabled = false,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Display-only OTP Field
+        OtpDisplayField(
+            otpText = "98765",
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun SelectFieldShowcase() {
+    var selectedOption by remember { mutableStateOf("Select category") }
+    var selectedDate by remember { mutableStateOf("Select date") }
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Select Fields",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        // Category selection with title header
+        SelectField(
+            value = selectedOption,
+            onSelect = { selectedOption = "Food" },
+            label = "Category",
+            leadingIcon = Icons.Default.Favorite,
+            titleHeader = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Date selection without title header  
+        SelectField(
+            value = selectedDate,
+            onSelect = { selectedDate = "2023-12-25" },
+            label = "Date",
+            leadingIcon = Icons.Default.Person,
+            titleHeader = false,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Disabled state
+        SelectField(
+            value = "Disabled field",
+            onSelect = { },
+            label = "Disabled",
+            leadingIcon = Icons.Default.Settings,
+            enabled = false,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // With different container color
+        SelectField(
+            value = "Custom container",
+            onSelect = { },
+            label = "Custom Style",
+            leadingIcon = Icons.Default.Phone,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            borderColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

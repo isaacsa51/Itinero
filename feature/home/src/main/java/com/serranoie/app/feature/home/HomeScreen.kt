@@ -32,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -59,13 +61,13 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.theme.component.AIShimmer
+import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
 import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
-import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
-import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 import java.time.DateTimeException
@@ -424,7 +426,7 @@ fun HomeScreenShimmer(
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
-                        androidx.compose.material3.HorizontalDivider()
+                        HorizontalDivider()
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Row(
@@ -764,7 +766,7 @@ fun DestinationCard(
 
             Text(
                 text = country,
-                style = MaterialTheme.typography.displayMediumEmphasized,
+                style = MaterialTheme.typography.displayMediumEmphasized.copy(fontWeight = FontWeight.Black),
                 modifier = Modifier.shimmerable(
                     startColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
                     endColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -38,8 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.designsystemlib.ui.theme.component.JumpToBottom
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
@@ -176,8 +175,7 @@ fun ChatScreen(
                     scope.launch {
                         scrollState.scrollToItem(0)
                     }
-                },
-                modifier = Modifier.imePadding()
+                }
             )
         }
     }
@@ -193,16 +191,24 @@ fun ChannelNameBar(
 ) {
     TopAppBar(
         title = {
-            Column {
-                Text(
-                    text = channelName,
-                    style = MaterialTheme.typography.titleMediumEmphasized
-                )
-                Text(
-                    text = "$channelMembers members",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = channelName,
+                        style = MaterialTheme.typography.titleMediumEmphasized
+                    )
+                    Text(
+                        text = "$channelMembers members",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         },
         navigationIcon = {

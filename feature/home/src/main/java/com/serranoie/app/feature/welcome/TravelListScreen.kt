@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
-import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
-import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.app.feature.TravelUiState
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip

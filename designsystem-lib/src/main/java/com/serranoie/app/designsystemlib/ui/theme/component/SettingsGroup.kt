@@ -1,5 +1,10 @@
 package com.serranoie.app.designsystemlib.ui.theme.component
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +44,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupContainerPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupDividerPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupElevation
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupExpandedPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupIconSpacing
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupItemPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupItemSpacing
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupSmallCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupTitleBottomPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.settingsGroupVerticalPadding
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 
 /**
  * A flexible settings group container that can hold any composable content.
@@ -57,22 +74,26 @@ fun FlexibleListGroup(
     outline: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+    Column(
+        modifier = modifier
+            .standardPadding()
+            .padding(vertical = settingsGroupVerticalPadding)
+    ) {
         title?.let {
             Text(
                 text = it,
                 color = MaterialTheme.colorScheme.outline,
                 style = MaterialTheme.typography.labelLargeEmphasized,
-                modifier = Modifier.padding(bottom = smallPadding)
+                modifier = Modifier.padding(bottom = settingsGroupTitleBottomPadding)
             )
         }
 
         Surface(
-            shape = RoundedCornerShape(8.dp),
-            tonalElevation = 4.dp,
+            shape = RoundedCornerShape(commonCornerRadius),
+            tonalElevation = settingsGroupElevation,
             color = MaterialTheme.colorScheme.surfaceContainer,
             border = if (outline) BorderStroke(
-                1.dp, MaterialTheme.colorScheme.outlineVariant
+                borderStrokeWidth, MaterialTheme.colorScheme.outlineVariant
             ) else null,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -107,13 +128,13 @@ fun ListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
-                .padding(16.dp),
+                .padding(settingsGroupItemPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             leadingIcon?.invoke()
 
             if (leadingIcon != null) {
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(settingsGroupIconSpacing))
             }
 
             Column(modifier = Modifier.weight(1f)) {
@@ -140,7 +161,7 @@ fun ListItem(
         }
 
         if (showDivider) {
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(modifier = Modifier.padding(settingsGroupDividerPadding))
         }
     }
 }
@@ -159,7 +180,7 @@ fun CustomSettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 20.dp),
+            .padding(settingsGroupItemPadding),
         verticalAlignment = Alignment.CenterVertically,
         content = content
     )
@@ -179,17 +200,17 @@ fun PaddedListGroup(
     title: String? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column(modifier = modifier.padding(16.dp)) {
+    Column(modifier = modifier.padding(settingsGroupContainerPadding)) {
         title?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.labelLargeEmphasized,
-                modifier = Modifier.padding(bottom = 10.dp)
+                modifier = Modifier.padding(bottom = settingsGroupTitleBottomPadding)
             )
         }
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(settingsGroupItemSpacing)
         ) {
             content()
         }
@@ -216,29 +237,39 @@ fun PaddedListItem(
     outline: Boolean = true
 ) {
     val shape = when (position) {
-        PaddedListItemPosition.First -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-        PaddedListItemPosition.Last -> RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
-        PaddedListItemPosition.Single -> RoundedCornerShape(8.dp)
-        PaddedListItemPosition.Middle -> RoundedCornerShape(1.dp)
+        PaddedListItemPosition.First -> RoundedCornerShape(
+            topStart = commonCornerRadius,
+            topEnd = commonCornerRadius
+        )
+
+        PaddedListItemPosition.Last -> RoundedCornerShape(
+            bottomStart = commonCornerRadius,
+            bottomEnd = commonCornerRadius
+        )
+
+        PaddedListItemPosition.Single -> RoundedCornerShape(commonCornerRadius)
+        PaddedListItemPosition.Middle -> RoundedCornerShape(settingsGroupSmallCornerRadius)
     }
 
     Surface(
         shape = shape,
-        tonalElevation = 4.dp,
+        tonalElevation = settingsGroupElevation,
         color = MaterialTheme.colorScheme.surfaceContainer,
         border = if (outline) BorderStroke(
-            1.dp, MaterialTheme.colorScheme.outlineVariant
+            borderStrokeWidth, MaterialTheme.colorScheme.outlineVariant
         ) else null,
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
     ) {
-        Row(modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .clickable { onClick() }
+                .padding(settingsGroupItemPadding),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(imageVector = icon, contentDescription = null)
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(settingsGroupIconSpacing))
             Column {
                 Text(text = title, style = MaterialTheme.typography.bodyLarge)
                 subtitle?.let {
@@ -268,28 +299,38 @@ fun CustomPaddedListItem(
     content: @Composable RowScope.() -> Unit
 ) {
     val shape = when (position) {
-        PaddedListItemPosition.First -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-        PaddedListItemPosition.Last -> RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
-        PaddedListItemPosition.Single -> RoundedCornerShape(8.dp)
-        PaddedListItemPosition.Middle -> RoundedCornerShape(1.dp)
+        PaddedListItemPosition.First -> RoundedCornerShape(
+            topStart = commonCornerRadius,
+            topEnd = commonCornerRadius
+        )
+
+        PaddedListItemPosition.Last -> RoundedCornerShape(
+            bottomStart = commonCornerRadius,
+            bottomEnd = commonCornerRadius
+        )
+
+        PaddedListItemPosition.Single -> RoundedCornerShape(commonCornerRadius)
+        PaddedListItemPosition.Middle -> RoundedCornerShape(settingsGroupSmallCornerRadius)
     }
 
     Surface(
         shape = shape,
-        tonalElevation = 4.dp,
+        tonalElevation = settingsGroupElevation,
         color = MaterialTheme.colorScheme.surfaceContainer,
         border = if (outline) BorderStroke(
-            1.dp, MaterialTheme.colorScheme.outlineVariant
+            borderStrokeWidth, MaterialTheme.colorScheme.outlineVariant
         ) else null,
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
     ) {
-        Row(modifier = Modifier
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 20.dp),
+        Row(
+            modifier = Modifier
+                .clickable { onClick() }
+                .padding(settingsGroupItemPadding),
             verticalAlignment = Alignment.CenterVertically,
-            content = content)
+            content = content
+        )
     }
 }
 
@@ -312,18 +353,26 @@ fun CustomPaddedExpandableItem(
     expandedContent: @Composable ColumnScope.() -> Unit
 ) {
     val shape = when (position) {
-        PaddedListItemPosition.First -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-        PaddedListItemPosition.Last -> RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
-        PaddedListItemPosition.Single -> RoundedCornerShape(8.dp)
-        PaddedListItemPosition.Middle -> RoundedCornerShape(1.dp)
+        PaddedListItemPosition.First -> RoundedCornerShape(
+            topStart = commonCornerRadius,
+            topEnd = commonCornerRadius
+        )
+
+        PaddedListItemPosition.Last -> RoundedCornerShape(
+            bottomStart = commonCornerRadius,
+            bottomEnd = commonCornerRadius
+        )
+
+        PaddedListItemPosition.Single -> RoundedCornerShape(commonCornerRadius)
+        PaddedListItemPosition.Middle -> RoundedCornerShape(settingsGroupSmallCornerRadius)
     }
 
     Surface(
         shape = shape,
-        tonalElevation = 4.dp,
+        tonalElevation = settingsGroupElevation,
         color = MaterialTheme.colorScheme.surfaceContainer,
         border = if (outline) BorderStroke(
-            1.dp,
+            borderStrokeWidth,
             MaterialTheme.colorScheme.outlineVariant
         ) else null,
         modifier = Modifier
@@ -332,16 +381,22 @@ fun CustomPaddedExpandableItem(
     ) {
         Column {
             // Default content - always clickable
-            Row(modifier = Modifier
-                .clickable { onToggleExpanded() }
-                .padding(horizontal = 16.dp, vertical = 20.dp),
+            Row(
+                modifier = Modifier
+                    .clickable { onToggleExpanded() }
+                    .padding(settingsGroupItemPadding),
                 verticalAlignment = Alignment.CenterVertically,
-                content = defaultContent)
+                content = defaultContent
+            )
 
             // Expanded content - only shown when expanded
-            if (isExpanded) {
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(settingsGroupExpandedPadding),
                     content = expandedContent
                 )
             }
@@ -392,7 +447,7 @@ fun FlexibleSettingsGroupPreview() {
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(settingsGroupIconSpacing))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Custom Item with Icon",
@@ -410,13 +465,13 @@ fun FlexibleSettingsGroupPreview() {
                         )
                     }
 
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(modifier = Modifier.padding(settingsGroupDividerPadding))
 
                     // Any other composable can go here
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(settingsGroupItemPadding)
                     ) {
                         Text(
                             text = "You can put any composable content here!",
@@ -449,7 +504,7 @@ fun FlexibleSettingsGroupPreview() {
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(settingsGroupIconSpacing))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Advanced Settings",
@@ -528,7 +583,7 @@ fun PaddedListGroupPreview() {
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(settingsGroupIconSpacing))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Custom Padded Item",
@@ -582,7 +637,7 @@ fun PaddedListGroupPreview() {
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(settingsGroupIconSpacing))
                             Text(
                                 text = "You can put any composable content here when expanded.",
                                 style = MaterialTheme.typography.bodySmall,

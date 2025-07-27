@@ -2,7 +2,9 @@ package com.serranoie.app.designsystemlib.ui.theme.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,10 +43,21 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.DISABLED_ALPHA
+import com.serranoie.app.designsystemlib.ui.utils.Constants.PLACEHOLDER_ALPHA
+import com.serranoie.app.designsystemlib.ui.utils.Constants.PRIMARY_ALPHA
+import com.serranoie.app.designsystemlib.ui.utils.Constants.SURFACE_DISABLED_ALPHA
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldHorizontalPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldIconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldIconSpacing
+import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldSmallHeight
+import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldVerticalPadding
 
 @Composable
 fun ITextField(
@@ -56,9 +69,9 @@ fun ITextField(
     leadingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    fontStyle: TextStyle? = MaterialTheme.typography.labelLarge
+    fontStyle: TextStyle? = MaterialTheme.typography.bodyLarge
 ) {
     OutlinedTextField(
         value = value,
@@ -73,11 +86,11 @@ fun ITextField(
         modifier = modifier.fillMaxWidth(),
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
+            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
             unfocusedBorderColor = borderColor,
             unfocusedLabelColor = MaterialTheme.colorScheme.outline,
             unfocusedPrefixColor = MaterialTheme.colorScheme.outline,
-            focusedPrefixColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
+            focusedPrefixColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
             unfocusedLeadingIconColor = MaterialTheme.colorScheme.outline,
             focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
             unfocusedTrailingIconColor = MaterialTheme.colorScheme.outline,
@@ -97,7 +110,7 @@ fun IFilledTextField(
     leadingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant
 ) {
     TextField(
@@ -123,7 +136,7 @@ fun IPasswordField(
     label: String,
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
@@ -150,11 +163,11 @@ fun IPasswordField(
         modifier = modifier.fillMaxWidth(),
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
+            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
             unfocusedBorderColor = borderColor,
             unfocusedLabelColor = MaterialTheme.colorScheme.outline,
             unfocusedPrefixColor = MaterialTheme.colorScheme.outline,
-            focusedPrefixColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
+            focusedPrefixColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
             unfocusedLeadingIconColor = MaterialTheme.colorScheme.outline,
             focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
             unfocusedTrailingIconColor = MaterialTheme.colorScheme.outline,
@@ -163,45 +176,6 @@ fun IPasswordField(
     )
 }
 
-@Composable
-@Preview
-fun ITextFieldPreview() {
-    PreviewWrapper {
-        ITextField(
-            value = "Example Text",
-            onValueChange = {},
-            label = "Username",
-            placeholder = "Enter your username",
-            leadingIcon = Icons.Default.Person,
-        )
-    }
-}
-
-@Composable
-@Preview
-fun IFilledTextFieldPreview() {
-    PreviewWrapper {
-        IFilledTextField(
-            value = "Example Text",
-            onValueChange = {},
-            label = "Username",
-            placeholder = "Enter your username",
-            leadingIcon = Icons.Default.Person,
-        )
-    }
-}
-
-@Composable
-@Preview
-fun IPasswordFieldPreview() {
-    PreviewWrapper {
-        IPasswordField(
-            value = "password123",
-            onValueChange = {},
-            label = "Password",
-        )
-    }
-}
 
 @Composable
 fun ISmallerTextField(
@@ -213,7 +187,7 @@ fun ISmallerTextField(
     trailingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
     enabled: Boolean = true
@@ -228,50 +202,47 @@ fun ISmallerTextField(
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         textStyle = LocalTextStyle.current.copy(
             color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                alpha = 0.38f
-            ),
-            fontSize = fontSize
+                alpha = DISABLED_ALPHA
+            ), fontSize = fontSize
         ),
         modifier = modifier
-            .height(32.dp)
+            .height(textFieldSmallHeight)
             .background(
                 if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(
-                    alpha = 0.12f
-                ),
-                shape
+                    alpha = SURFACE_DISABLED_ALPHA
+                ), shape
             )
             .border(
                 1.dp,
-                if (enabled) borderColor else borderColor.copy(alpha = 0.12f),
+                if (enabled) borderColor else borderColor.copy(alpha = SURFACE_DISABLED_ALPHA),
                 shape
             )
             .fillMaxWidth(),
         decorationBox = { innerTextField ->
             Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(
+                    horizontal = textFieldHorizontalPadding, vertical = textFieldVerticalPadding
+                ), verticalAlignment = Alignment.CenterVertically
             ) {
                 leadingIcon?.let {
                     Icon(
                         imageVector = it,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(textFieldIconSize),
                         tint = if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.38f
+                            alpha = DISABLED_ALPHA
                         )
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(textFieldIconSpacing))
                 }
 
                 Box(Modifier.weight(1f)) {
                     if (value.isEmpty() && placeholder.isNotEmpty()) {
                         Text(
-                            text = placeholder,
-                            style = LocalTextStyle.current.copy(
-                                color = if (enabled) MaterialTheme.colorScheme.outline.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.38f
-                                ),
-                                fontSize = fontSize
+                            text = placeholder, style = LocalTextStyle.current.copy(
+                                color = if (enabled) MaterialTheme.colorScheme.outline.copy(alpha = PLACEHOLDER_ALPHA) else MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = DISABLED_ALPHA
+                                ), fontSize = fontSize
                             )
                         )
                     }
@@ -279,19 +250,18 @@ fun ISmallerTextField(
                 }
 
                 trailingIcon?.let {
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(textFieldIconSpacing))
                     Icon(
                         imageVector = it,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(textFieldIconSize),
                         tint = if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.38f
+                            alpha = DISABLED_ALPHA
                         )
                     )
                 }
             }
-        }
-    )
+        })
 }
 
 @Composable
@@ -304,7 +274,7 @@ fun IFilledSmallerTextField(
     trailingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    shape: RoundedCornerShape = RoundedCornerShape(size = 8.dp),
+    shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
     enabled: Boolean = true
 ) {
@@ -318,40 +288,42 @@ fun IFilledSmallerTextField(
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         textStyle = LocalTextStyle.current.copy(
             color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                alpha = 0.38f
-            ),
-            fontSize = fontSize
+                alpha = DISABLED_ALPHA
+            ), fontSize = fontSize
         ),
         modifier = modifier
-            .height(32.dp)
+            .height(textFieldSmallHeight)
             .background(
                 if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(
-                    alpha = 0.12f
-                ),
-                shape
+                    alpha = SURFACE_DISABLED_ALPHA
+                ), shape
             )
             .fillMaxWidth(),
         decorationBox = { innerTextField ->
             Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(
+                    horizontal = textFieldHorizontalPadding, vertical = textFieldVerticalPadding
+                ), verticalAlignment = Alignment.CenterVertically
             ) {
                 leadingIcon?.let {
                     Icon(
                         imageVector = it,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        modifier = Modifier.size(textFieldIconSize),
+                        tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = DISABLED_ALPHA
+                        )
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(textFieldIconSpacing))
                 }
 
                 Box(Modifier.weight(1f)) {
                     if (value.isEmpty() && placeholder.isNotEmpty()) {
                         Text(
-                            text = placeholder,
-                            style = LocalTextStyle.current.copy(
-                                color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                            text = placeholder, style = LocalTextStyle.current.copy(
+                                color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                    alpha = PLACEHOLDER_ALPHA
+                                ) else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
                                 fontSize = fontSize
                             )
                         )
@@ -360,43 +332,65 @@ fun IFilledSmallerTextField(
                 }
 
                 trailingIcon?.let {
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(textFieldIconSpacing))
                     Icon(
                         imageVector = it,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(textFieldIconSize),
                         tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.38f
+                            alpha = DISABLED_ALPHA
                         )
                     )
                 }
             }
+        })
+}
+
+
+@ComponentPreview
+@Composable
+private fun ITextFieldPreview() {
+    PreviewWrapper {
+        Column(
+            modifier = Modifier
+                .padding(vertical = smallPadding),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ITextField(
+                value = "Example Text",
+                onValueChange = {},
+                label = "Username",
+                placeholder = "Enter your username",
+                leadingIcon = Icons.Default.Person,
+            )
+
+            IFilledTextField(
+                value = "Example Text",
+                onValueChange = {},
+                label = "Username",
+                placeholder = "Enter your username",
+                leadingIcon = Icons.Default.Person,
+            )
+
+            IPasswordField(
+                value = "password123",
+                onValueChange = {},
+                label = "Password",
+            )
+
+            ISmallerTextField(
+                value = "Sample text",
+                onValueChange = {},
+                placeholder = "Enter text",
+                leadingIcon = Icons.Default.Person,
+            )
+
+            IFilledSmallerTextField(
+                value = "Sample text",
+                onValueChange = {},
+                placeholder = "Enter text",
+                leadingIcon = Icons.Default.Person,
+            )
         }
-    )
-}
-
-@Composable
-@Preview
-fun ISmallerTextFieldPreview() {
-    PreviewWrapper {
-        ISmallerTextField(
-            value = "Sample text",
-            onValueChange = {},
-            placeholder = "Enter text",
-            leadingIcon = Icons.Default.Person,
-        )
-    }
-}
-
-@Composable
-@Preview
-fun IFilledSmallerTextFieldPreview() {
-    PreviewWrapper {
-        IFilledSmallerTextField(
-            value = "Sample text",
-            onValueChange = {},
-            placeholder = "Enter text",
-            leadingIcon = Icons.Default.Person,
-        )
     }
 }

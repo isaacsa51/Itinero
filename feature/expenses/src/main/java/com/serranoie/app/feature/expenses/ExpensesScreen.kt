@@ -43,9 +43,9 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
-import com.serranoie.app.designsystemlib.ui.theme.component.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
-import com.serranoie.app.designsystemlib.ui.theme.component.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.app.feature.expenses.domain.model.Expense
 import com.serranoie.app.feature.expenses.domain.model.UserExpenseSummary
 import com.serranoie.app.feature.expenses.util.ExpenseCategory

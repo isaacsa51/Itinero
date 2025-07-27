@@ -33,7 +33,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.BALANCE_CIRCLE_MAX_RATIO
+import com.serranoie.app.designsystemlib.ui.utils.Constants.BALANCE_CIRCLE_MIN_AMOUNT
+import com.serranoie.app.designsystemlib.ui.utils.Constants.BALANCE_CIRCLE_RATIO_SCALE
+import com.serranoie.app.designsystemlib.ui.utils.Constants.BALANCE_CIRCLE_SIZE_RATIO_THRESHOLD
+import com.serranoie.app.designsystemlib.ui.utils.Constants.balanceCircleDefaultSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.balanceCircleMaxSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.balanceCircleMinSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.balanceCircleOverlapOffset
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 
 /**
  * A reusable component that displays two overlapping circles representing financial balance.
@@ -56,10 +67,10 @@ import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
 fun BalanceCircles(
     youOwe: Double,
     youAreOwed: Double,
-    overlapOffset: Dp = 60.dp,
-    minSize: Dp = 120.dp,
-    maxSize: Dp = 160.dp,
-    defaultSize: Dp = 140.dp,
+    overlapOffset: Dp = balanceCircleOverlapOffset,
+    minSize: Dp = balanceCircleMinSize,
+    maxSize: Dp = balanceCircleMaxSize,
+    defaultSize: Dp = balanceCircleDefaultSize,
     oweColor: Color = MaterialTheme.colorScheme.tertiary,
     owedColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
     oweTextColor: Color = MaterialTheme.colorScheme.surface,
@@ -81,8 +92,7 @@ fun BalanceCircles(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.padding(vertical = 16.dp),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.padding(vertical = basePadding), contentAlignment = Alignment.Center
         ) {
             // Bottom circle (the one that appears behind)
             Box(
@@ -93,8 +103,7 @@ fun BalanceCircles(
                     .background(
                         if (isOweOnTop) owedColor else oweColor
                     )
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+                    .standardPadding(), contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -106,7 +115,7 @@ fun BalanceCircles(
                     )
                     Text(
                         textAlign = TextAlign.Center,
-                        text = formatCurrency(if (isOweOnTop) youAreOwed.toString() else youOwe.toString()),
+                        text = formatCurrency(if (isOweOnTop) youAreOwed else youOwe),
                         style = MaterialTheme.typography.titleMediumEmphasized.copy(
                             color = if (isOweOnTop) owedTextColor else oweTextColor
                         )
@@ -123,8 +132,7 @@ fun BalanceCircles(
                     .background(
                         if (isOweOnTop) oweColor else owedColor
                     )
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
+                    .standardPadding(), contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -134,9 +142,9 @@ fun BalanceCircles(
                             color = if (isOweOnTop) oweTextColor else owedTextColor
                         )
                     )
-                    Text(
+                    MarqueeText(
                         textAlign = TextAlign.Center,
-                        text = formatCurrency(if (isOweOnTop) youOwe.toString() else youAreOwed.toString()),
+                        text = formatCurrency(if (isOweOnTop) youOwe else youAreOwed),
                         style = MaterialTheme.typography.titleMediumEmphasized.copy(
                             color = if (isOweOnTop) oweTextColor else owedTextColor
                         )
@@ -151,39 +159,37 @@ fun BalanceCircles(
  * Calculates the sizes of the circles based on the amounts
  */
 private fun calculateCircleSizes(
-    youOwe: Double,
-    youAreOwed: Double,
-    minSize: Dp,
-    maxSize: Dp,
-    defaultSize: Dp
+    youOwe: Double, youAreOwed: Double, minSize: Dp, maxSize: Dp, defaultSize: Dp
 ): Pair<Dp, Dp> {
-    if (youOwe < 0.01 && youAreOwed < 0.01) {
+    if (youOwe < BALANCE_CIRCLE_MIN_AMOUNT && youAreOwed < BALANCE_CIRCLE_MIN_AMOUNT) {
         return defaultSize to defaultSize
     }
 
     val totalAmount = youOwe + youAreOwed
     val difference = kotlin.math.abs(youOwe - youAreOwed)
 
-    if (difference / totalAmount < 0.1) {
+    if (difference / totalAmount < BALANCE_CIRCLE_SIZE_RATIO_THRESHOLD) {
         return defaultSize to defaultSize
     }
 
     return when {
         youOwe > youAreOwed -> {
-            val ratio = if (youAreOwed > 0) (youOwe / youAreOwed).coerceAtMost(1.5) else 1.5
+            val ratio =
+                if (youAreOwed > 0) (youOwe / youAreOwed).coerceAtMost(BALANCE_CIRCLE_MAX_RATIO) else BALANCE_CIRCLE_MAX_RATIO
             val oweSize =
-                (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
+                (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / BALANCE_CIRCLE_RATIO_SCALE).dp
             val owedSize =
-                (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / 0.5).dp
+                (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / BALANCE_CIRCLE_RATIO_SCALE).dp
             oweSize to owedSize.coerceAtLeast(minSize)
         }
 
         youAreOwed > youOwe -> {
-            val ratio = if (youOwe > 0) (youAreOwed / youOwe).coerceAtMost(1.5) else 1.5
+            val ratio =
+                if (youOwe > 0) (youAreOwed / youOwe).coerceAtMost(BALANCE_CIRCLE_MAX_RATIO) else BALANCE_CIRCLE_MAX_RATIO
             val owedSize =
-                (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / 0.5).dp
+                (defaultSize.value + (maxSize.value - defaultSize.value) * (ratio - 1) / BALANCE_CIRCLE_RATIO_SCALE).dp
             val oweSize =
-                (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / 0.5).dp
+                (defaultSize.value - (defaultSize.value - minSize.value) * (ratio - 1) / BALANCE_CIRCLE_RATIO_SCALE).dp
             oweSize.coerceAtLeast(minSize) to owedSize
         }
 
@@ -196,8 +202,8 @@ private fun calculateCircleSizes(
 private fun BalanceCirclesPreview() {
     PreviewWrapper {
         Column(
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier.padding(16.dp)
+            verticalArrangement = Arrangement.spacedBy(mediumPadding),
+            modifier = Modifier.padding(basePadding)
         ) {
             // Equal amounts
             Text(
@@ -206,8 +212,7 @@ private fun BalanceCirclesPreview() {
                 color = MaterialTheme.colorScheme.primary
             )
             BalanceCircles(
-                youOwe = 100.0,
-                youAreOwed = 100.0
+                youOwe = 100.0, youAreOwed = 100.0
             )
 
             // You owe more
@@ -217,8 +222,7 @@ private fun BalanceCirclesPreview() {
                 color = MaterialTheme.colorScheme.primary
             )
             BalanceCircles(
-                youOwe = 150.0,
-                youAreOwed = 50.0
+                youOwe = 150.0, youAreOwed = 50.0
             )
 
             // You are owed more
@@ -228,8 +232,7 @@ private fun BalanceCirclesPreview() {
                 color = MaterialTheme.colorScheme.primary
             )
             BalanceCircles(
-                youOwe = 25.0,
-                youAreOwed = 200.0
+                youOwe = 25.0, youAreOwed = 200.0
             )
 
             // Zero amounts
@@ -239,8 +242,7 @@ private fun BalanceCirclesPreview() {
                 color = MaterialTheme.colorScheme.primary
             )
             BalanceCircles(
-                youOwe = 0.0,
-                youAreOwed = 0.0
+                youOwe = 0.0, youAreOwed = 0.0
             )
         }
     }

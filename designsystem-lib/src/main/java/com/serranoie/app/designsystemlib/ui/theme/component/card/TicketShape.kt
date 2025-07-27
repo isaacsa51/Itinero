@@ -14,23 +14,27 @@ package com.serranoie.app.designsystemlib.ui.theme.component.card
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.ticketShadowElevation
+import com.serranoie.app.designsystemlib.ui.utils.bounceClick
+import com.serranoie.app.designsystemlib.ui.utils.elevationShadow
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import kotlin.math.floor
 
 class TicketShape(
@@ -140,16 +144,21 @@ fun TicketView(
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     teethWidthDp: Float = 15f,
     teethHeightDp: Float = 3f,
+    onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
+    val ticketShape = TicketShape(teethWidthDp, teethHeightDp)
+
     Box(
         modifier = modifier
-            .shadow(
-                0.dp, shape = TicketShape(teethWidthDp, teethHeightDp), clip = true
-            )
-            .background(backgroundColor)
-            .padding(mediumPadding)
-    ) {
+            .background(backgroundColor, shape = ticketShape)
+            .then(
+                if (onClick != null) {
+                    Modifier.bounceClick { onClick() }
+                } else {
+                    Modifier
+                })
+            .standardPadding()) {
         content()
     }
 }
@@ -158,14 +167,94 @@ fun TicketView(
 @Composable
 private fun SimpleTicketPreview() {
     PreviewWrapper {
-        TicketView(
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-            teethWidthDp = 12f,
-            teethHeightDp = 6f
-        ) {
-            Column {
-                Text("Flight AB123")
-                Text("NYC → LAX")
+        Column(modifier = Modifier.standardPadding()) {
+            // Basic ticket
+            TicketView(
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                teethWidthDp = 12f,
+                teethHeightDp = 6f
+            ) {
+                Column {
+                    Text(
+                        text = "Flight AB123",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "NYC → LAX",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(smallPadding))
+
+            // Clickable ticket with more content
+            TicketView(
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                teethWidthDp = 15f,
+                teethHeightDp = 4f,
+                onClick = { /* Handle ticket click */ }) {
+                Column {
+                    Text(
+                        text = "Concert Ticket",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(smallPadding))
+                    Text(
+                        text = "The Rolling Stones",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "Madison Square Garden",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        text = "Dec 15, 2025 • 8:00 PM",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(smallPadding))
+
+            // Travel ticket
+            TicketView(
+                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+                teethWidthDp = 10f,
+                teethHeightDp = 5f,
+                onClick = { /* Handle travel ticket click */ }) {
+                Column {
+                    Text(
+                        text = "BOARDING PASS",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = "American Airlines",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(smallPadding))
+                    Text(
+                        text = "JFK → LAX",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    Text(
+                        text = "Flight AA1234 • Seat 12A",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                    )
+                }
             }
         }
     }

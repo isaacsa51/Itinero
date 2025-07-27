@@ -33,16 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.preferencesDataStore
-import com.materialkolor.DynamicMaterialTheme
-import com.materialkolor.PaletteStyle
-import com.materialkolor.rememberDynamicMaterialThemeState
 import com.serranoie.app.designsystem.screens.ComponentsScreen
 import com.serranoie.app.designsystem.screens.ExamplesScreen
 import com.serranoie.app.designsystem.screens.HomeScreen
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
-import com.serranoie.app.designsystemlib.ui.theme.ItineroTypography
-import com.serranoie.app.designsystemlib.ui.theme.SeedColor
-import com.serranoie.app.designsystemlib.ui.theme.Tertiary
 
 private val android.content.Context.dataStore by preferencesDataStore("theme_preferences")
 
@@ -75,36 +69,16 @@ fun MainScreen() {
 
     val navigationItems = listOf(
         NavigationItem(
-        label = "Home", icon = Icons.Default.Home, screen = { HomeScreen() }),
+            label = "Home", icon = Icons.Default.Home, screen = { HomeScreen() }),
         NavigationItem(
             label = "Components", icon = Icons.Default.Settings, screen = { ComponentsScreen() }),
         NavigationItem(
             label = "Examples", icon = Icons.Default.Star, screen = { ExamplesScreen() }))
 
-    @Composable
-    fun ThemedContent(content: @Composable () -> Unit) {
-        if (useMaterialYou) {
-            val dynamicThemeState = rememberDynamicMaterialThemeState(
-                isDark = isDarkTheme,
-                style = PaletteStyle.Rainbow,
-                seedColor = SeedColor,
-                tertiary = Tertiary
-            )
-
-            DynamicMaterialTheme(
-                state = dynamicThemeState,
-                typography = ItineroTypography,
-                animate = true,
-                content = content
-            )
-        } else {
-            ItineroTheme(darkTheme = isDarkTheme) {
-                content()
-            }
-        }
-    }
-
-    ThemedContent {
+    ItineroTheme(
+        darkTheme = isDarkTheme,
+        materialYou = useMaterialYou
+    ) {
         Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
             TopAppBar(title = {
                 Text("Itinero Design System")
