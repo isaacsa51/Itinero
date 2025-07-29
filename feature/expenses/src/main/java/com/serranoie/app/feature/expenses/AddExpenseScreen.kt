@@ -1,6 +1,8 @@
 package com.serranoie.app.feature.expenses
 
 import android.util.Log
+import android.view.HapticFeedbackConstants
+import android.view.View
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +35,6 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Percent
 import androidx.compose.material.icons.rounded.SyncAlt
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
@@ -67,6 +68,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,8 +77,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroughText
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
@@ -86,6 +88,15 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IFilledSmallerTextFi
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.LargeDropdownMenu
 import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.largePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Utils.toggleFeedback
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
 import com.serranoie.app.feature.expenses.util.icon
 import java.time.Instant
@@ -187,12 +198,12 @@ fun AddExpenseScreen(
                     }
                 },
                 actions = {
-                    Button(
+                    IButton(
                         onClick = { onSaveExpense() },
                         enabled = !expenseState.isSaving,
                         modifier = Modifier
-                            .heightIn(ButtonDefaults.ExtraSmallContainerHeight)
-                            .padding(end = 8.dp),
+                            .padding(end = smallPadding),
+                        height = ButtonDefaults.ExtraSmallContainerHeight,
                         contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.ExtraSmallContainerHeight)
                     ) {
                         if (expenseState.isSaving) {
@@ -220,7 +231,7 @@ fun AddExpenseScreen(
                 .padding(paddingValues)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(smallPadding)
         ) {
             item {
                 ExpenseBasicDetailsSection(
@@ -296,8 +307,8 @@ fun ExpenseBasicDetailsSection(
 ) {
 
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.padding(horizontal = basePadding, vertical = 0.dp),
+        verticalArrangement = Arrangement.spacedBy(smallPadding)
     ) {
         ITextField(
             modifier = Modifier.fillMaxWidth(),
@@ -381,10 +392,10 @@ fun ExpenseBasicDetailsSection(
                         Icon(
                             imageVector = item.icon(),
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(iconSize),
                             tint = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(mediumPadding))
                         Text(
                             text = item.displayName,
                             color = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current
@@ -409,8 +420,10 @@ fun PaymentDetailsSection(
     onExtraInfoChange: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier.padding(horizontal = basePadding, vertical = 0.dp)
     ) {
+        val view = LocalView.current
+
         Text(
             text = "PAYMENT DETAILS",
             style = MaterialTheme.typography.labelLargeEmphasized,
@@ -432,7 +445,7 @@ fun PaymentDetailsSection(
                     Box(modifier = Modifier
                         .fillMaxWidth()
                         .clickable(enabled) { onClick() }
-                        .padding(16.dp)) {
+                        .padding(mediumPadding)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -440,10 +453,10 @@ fun PaymentDetailsSection(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(iconSize),
                                 tint = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(mediumPadding))
                             Text(
                                 text = person,
                                 style = MaterialTheme.typography.titleSmall,
@@ -455,7 +468,7 @@ fun PaymentDetailsSection(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             Row(
                 Modifier.fillMaxWidth(),
@@ -466,18 +479,23 @@ fun PaymentDetailsSection(
                     paymentOptions.indexOf(paymentMethod).takeIf { it >= 0 } ?: 0
 
                 val customShapes = ToggleButtonShapes(
-                    shape = RoundedCornerShape(8.dp),
-                    pressedShape = RoundedCornerShape(16.dp),
-                    checkedShape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(commonCornerRadius),
+                    pressedShape = RoundedCornerShape(basePadding),
+                    checkedShape = RoundedCornerShape(basePadding)
                 )
 
                 paymentOptions.forEachIndexed { index, method ->
                     ToggleButton(
                         checked = selectedPaymentIndex == index,
-                        onCheckedChange = { if (it) onPaymentMethodChange(method) },
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                onPaymentMethodChange(method)
+                                view.toggleFeedback()
+                            }
+                        },
                         modifier = Modifier
                             .weight(1f)
-                            .height(48.dp),
+                            .height(basePadding * 3),
                         shapes = customShapes,
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.surface,
@@ -486,7 +504,7 @@ fun PaymentDetailsSection(
                             checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
                         ),
                         border = BorderStroke(
-                            width = 1.dp,
+                            width = borderStrokeWidth,
                             color = if (selectedPaymentIndex == index) MaterialTheme.colorScheme.primary.copy(
                                 alpha = 0.5f
                             )
@@ -503,7 +521,7 @@ fun PaymentDetailsSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(mediumPadding))
 
         ITextField(
             value = extraInfo,
@@ -515,7 +533,7 @@ fun PaymentDetailsSection(
                 .heightIn(min = 80.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(smallPadding))
 
         IButton(
             onClick = {/*TODO: Launch bottom modal to select media or camera */ },
@@ -525,10 +543,10 @@ fun PaymentDetailsSection(
                     Icon(
                         Icons.Default.PhotoCamera,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(iconSize),
                         tint = LocalContentColor.current
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(smallPadding))
                     Text("Add Receipt")
                 }
             },
@@ -552,13 +570,13 @@ fun SplitDetailsSection(
     isManualAmountValid: Boolean
 ) {
     Column(
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier.padding(horizontal = basePadding, vertical = 0.dp)
     ) {
         Text(
             text = "SPLIT DETAILS",
             style = MaterialTheme.typography.labelLargeEmphasized,
             color = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = smallPadding)
         )
 
         SplitTypeSelector(
@@ -572,7 +590,7 @@ fun SplitDetailsSection(
             backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(mediumPadding),
             ) {
                 SplitMembersHeader(splitType = splitType)
 
@@ -612,6 +630,7 @@ fun SplitDetailsSection(
 fun SplitTypeSelector(
     splitType: SplitType, onSplitTypeChange: (SplitType) -> Unit
 ) {
+    val view = LocalView.current
     val options = listOf("Equal", "Percentage", "Manual")
     val unCheckedIcons = listOf(Icons.Outlined.SyncAlt, Icons.Outlined.Percent, Icons.Outlined.Edit)
     val checkedIcons = listOf(Icons.Rounded.SyncAlt, Icons.Rounded.Percent, Icons.Rounded.Edit)
@@ -628,15 +647,20 @@ fun SplitTypeSelector(
         val modifiers = listOf(Modifier.weight(1f), Modifier.weight(1.5f), Modifier.weight(1f))
 
         val customShapes = ToggleButtonShapes(
-            shape = RoundedCornerShape(5.dp),
-            pressedShape = RoundedCornerShape(12.dp),
-            checkedShape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(commonCornerRadius),
+            pressedShape = RoundedCornerShape(basePadding),
+            checkedShape = RoundedCornerShape(basePadding)
         )
 
         options.forEachIndexed { index, label ->
             ToggleButton(
                 checked = selectedIndex == index,
-                onCheckedChange = { selectedIndex = index },
+                onCheckedChange = { checked ->
+                    if (checked) {
+                        selectedIndex = index
+                        view.toggleFeedback()
+                    }
+                },
                 modifier = modifiers[index],
                 colors = ToggleButtonDefaults.toggleButtonColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -646,13 +670,13 @@ fun SplitTypeSelector(
                 ),
                 shapes = customShapes,
                 border = BorderStroke(
-                    width = 1.dp,
+                    width = borderStrokeWidth,
                     color = if (selectedIndex == index) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                     else MaterialTheme.colorScheme.outlineVariant
                 )
             ) {
                 Column(
-                    modifier = Modifier.height(56.dp),
+                    modifier = Modifier.height(basePadding * 3.5f),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -661,7 +685,7 @@ fun SplitTypeSelector(
                         contentDescription = label
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(extraSmallPadding))
                     Text(
                         text = label, style = MaterialTheme.typography.bodySmall
                     )
@@ -905,7 +929,7 @@ fun NotesSection(
     notes: String, onNotesChange: (String) -> Unit
 ) {
     Column(
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier.padding(horizontal = basePadding, vertical = 0.dp)
     ) {
         Text(
             text = "ADDITIONAL NOTES",
@@ -916,7 +940,7 @@ fun NotesSection(
         ITextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 100.dp),
+                .heightIn(min = largePadding * 2),
             value = notes,
             onValueChange = onNotesChange,
             label = "Notes (Optional)",

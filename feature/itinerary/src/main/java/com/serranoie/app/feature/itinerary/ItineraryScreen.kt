@@ -1,16 +1,18 @@
 package com.serranoie.app.feature.itinerary
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -31,21 +33,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
-import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeActionsConfig
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.largePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import com.serranoie.app.feature.itinerary.util.generateDateRange
 import java.time.LocalDate
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ItineraryScreen(
     navController: NavController,
@@ -109,6 +120,7 @@ fun ItineraryScreen(
                                         description = "Loading description"
                                     )
                                 ),
+                                isLastSection = index == 2,
                                 onActivitySwiped = { _, _ -> }
                             )
                         }
@@ -126,27 +138,38 @@ fun ItineraryScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(32.dp),
+                                    .padding(largePadding - extraSmallPadding),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                Image(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight(0.35F),
+                                    painter = painterResource(id = R.drawable.itinerary_image),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Fit
+                                )
+
                                 Text(
                                     text = "No itinerary items found",
-                                    style = MaterialTheme.typography.headlineSmall,
+                                    style = MaterialTheme.typography.headlineMediumEmphasized,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(smallPadding))
                                 Text(
                                     text = "Add some activities to get started with your trip planning",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
                             }
                         }
                     } else {
-                        items(generateDateRange(startDate, endDate)) { date ->
+                        val dateRange = generateDateRange(startDate, endDate)
+                        itemsIndexed(dateRange) { index, date ->
                             ItineraryDateSection(
                                 date = date,
                                 activities = itinerary[date].orEmpty(),
+                                isLastSection = index == dateRange.size - 1,
                                 onActivitySwiped = { swipedActivity, isCompleting ->
                                     Log.d(
                                         "ITINERO - ItineraryScreen",
@@ -178,6 +201,7 @@ fun ItineraryScreen(
 fun ItineraryDateSection(
     date: LocalDate,
     activities: List<ItineraryItem>,
+    isLastSection: Boolean,
     onActivitySwiped: (ItineraryItem, Boolean) -> Unit,
     onActivityClick: (ItineraryItem) -> Unit = {}
 ) {
@@ -187,7 +211,7 @@ fun ItineraryDateSection(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(end = 16.dp)
+                .padding(end = basePadding)
         ) {
             if (activities.isEmpty()) {
                 Column(
@@ -196,16 +220,22 @@ fun ItineraryDateSection(
                 ) {
                     Text(
                         text = "NO ITEMS ADDED AT THIS DATE",
-                        style = MaterialTheme.typography.labelMediumEmphasized,
+                        style = MaterialTheme.typography.labelSmallEmphasized,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        modifier = Modifier.padding(vertical = 16.dp),
+                        modifier = Modifier.standardPadding(
+                            horizontal = 0.dp,
+                            vertical = basePadding
+                        ),
                     )
                 }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp), thickness = 1.dp
-                )
+                if (!isLastSection) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = smallPadding),
+                        thickness = borderStrokeWidth
+                    )
+                }
             } else {
-                activities.forEach { activity ->
+                activities.forEachIndexed { index, activity ->
                     ICard(
                         swipeable = true,
                         isCompleted = activity.isCompleted,
@@ -234,9 +264,9 @@ fun ItineraryDateSection(
                         },
                         content = {
                             Column(
-                                modifier = Modifier.padding(
-                                    horizontal = 24.dp,
-                                    vertical = 8.dp
+                                modifier = Modifier.standardPadding(
+                                    horizontal = mediumPadding,
+                                    vertical = smallPadding
                                 )
                             ) {
                                 Text(
@@ -259,19 +289,21 @@ fun ItineraryDateSection(
                         onClick = { onActivityClick(activity) }
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(smallPadding))
                 }
 
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        thickness = 1.dp
-                    )
-                }
+                if (!isLastSection) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = smallPadding),
+                            thickness = borderStrokeWidth
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(smallPadding))
+                }
             }
         }
     }

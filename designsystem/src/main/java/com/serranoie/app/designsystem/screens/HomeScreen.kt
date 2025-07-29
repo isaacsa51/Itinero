@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.DevicePreview
@@ -50,6 +51,11 @@ import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpInputField
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.utils.Utils.confirmFeedback
+import com.serranoie.app.designsystemlib.ui.utils.Utils.errorFeedback
+import com.serranoie.app.designsystemlib.ui.utils.Utils.strongHapticFeedback
+import com.serranoie.app.designsystemlib.ui.utils.Utils.toggleFeedback
+import com.serranoie.app.designsystemlib.ui.utils.Utils.weakHapticFeedback
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -92,6 +98,13 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         // 05 - Select Field
         AtomicSection(title = "05 Select Field ") {
             SelectFieldShowcase()
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 06 - Feedback Tester
+        AtomicSection(title = "06 Feedback Tester") {
+            FeedbackTester()
         }
     }
 }
@@ -825,6 +838,64 @@ fun SelectFieldShowcase() {
             borderColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+fun FeedbackTester() {
+    val view = LocalView.current
+
+    // Define the feedback functions and their labels
+    val feedbackFunctions = listOf(
+        listOf(
+            "Toggle" to { view.toggleFeedback() },
+            "Strong" to { view.strongHapticFeedback() }
+        ),
+        listOf(
+            "Weak" to { view.weakHapticFeedback() },
+            "Confirm" to { view.confirmFeedback() }
+        ),
+        listOf(
+            "Segment Tick" to { view.toggleFeedback() },
+            "Clock Tick" to { view.toggleFeedback() }
+        ),
+        listOf(
+            "Keyboard Tap" to { view.toggleFeedback() },
+            "Long" to { view.toggleFeedback() }
+        ),
+        listOf(
+            "Long Press" to { view.toggleFeedback() },
+            "Missing Action" to { view.errorFeedback() }
+        ),
+        listOf(
+            "Gesture" to { view.toggleFeedback() },
+            "Segment Tick" to { view.confirmFeedback() }
+        )
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Tap any button to test different haptic feedback types",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        // Create 6 rows with 2 buttons each, each using different feedback
+        feedbackFunctions.forEachIndexed { rowIndex, row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                row.forEachIndexed { _, (label, feedbackAction) ->
+                    IButton(
+                        onClick = { feedbackAction() },
+                        text = { Text(label) },
+                        importance =ButtonImportance.Secondary,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
     }
 }
 

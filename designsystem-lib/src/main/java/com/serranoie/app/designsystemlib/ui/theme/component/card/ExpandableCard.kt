@@ -54,7 +54,7 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
 import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
-import com.serranoie.app.designsystemlib.ui.utils.bounceClick
+import com.serranoie.app.designsystemlib.ui.utils.clickableWithoutRipple
 import com.serranoie.app.designsystemlib.ui.utils.designBorder
 import com.serranoie.app.designsystemlib.ui.utils.elevationShadow
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
@@ -88,8 +88,7 @@ fun ExpandableCard(
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     cardShape: Shape = RoundedCornerShape(commonCornerRadius),
     borderStroke: BorderStroke? = BorderStroke(
-        borderStrokeWidth,
-        MaterialTheme.colorScheme.outlineVariant
+        borderStrokeWidth, MaterialTheme.colorScheme.outlineVariant
     ),
     tonalElevation: Dp = basicElevation,
     titleStyle: TextStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -98,8 +97,7 @@ fun ExpandableCard(
     content: @Composable () -> Unit,
 ) {
     val rotationAngle by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        label = "expandArrowRotation"
+        targetValue = if (isExpanded) 180f else 0f, label = "expandArrowRotation"
     )
 
     Surface(
@@ -117,16 +115,22 @@ fun ExpandableCard(
                     Modifier
                 }
             )
-            .bounceClick { onExpandedChange(!isExpanded) }
             .elevationShadow(elevation = tonalElevation),
         color = containerColor,
         tonalElevation = tonalElevation
     ) {
         Column(modifier = Modifier.standardPadding()) {
+            val currentIsExpanded = isExpanded
             if (headerContent != null) {
-                headerContent()
+                Column(
+                    modifier = Modifier.clickableWithoutRipple { onExpandedChange(!currentIsExpanded) }) {
+                    headerContent()
+                }
             } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickableWithoutRipple {
+                        onExpandedChange(!currentIsExpanded)
+                    }) {
                     if (headerIcon != null) {
                         Icon(
                             imageVector = headerIcon,
@@ -213,7 +217,7 @@ private fun ExpandableSectionPreview() {
                 Text("You have 3 unread notifications")
 
                 Button(
-                    onClick = { }, 
+                    onClick = { /*TODO*/ },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = smallPadding)
@@ -236,8 +240,7 @@ private fun ExpandableSectionPreview() {
                 cardShape = RoundedCornerShape(commonCornerRadius * 2),
                 tonalElevation = basicElevation,
                 titleStyle = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.ExtraBold, 
-                    letterSpacing = 0.5.sp
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp
                 )
             ) {
                 Text(
@@ -283,8 +286,7 @@ private fun ExpandableSectionPreview() {
                         )
 
                         CircularProgressIndicator(
-                            modifier = Modifier.size(basePadding), 
-                            strokeWidth = 2.dp
+                            modifier = Modifier.size(basePadding), strokeWidth = 2.dp
                         )
                     }
                 }) {
@@ -298,7 +300,7 @@ private fun ExpandableSectionPreview() {
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
-                        onClick = { }, modifier = Modifier.weight(1f)
+                        onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)
                     ) {
                         Text("Save")
                     }
@@ -306,7 +308,7 @@ private fun ExpandableSectionPreview() {
                     Spacer(modifier = Modifier.width(smallPadding))
 
                     Button(
-                        onClick = { }, modifier = Modifier.weight(1f)
+                        onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)
                     ) {
                         Text("Reset")
                     }

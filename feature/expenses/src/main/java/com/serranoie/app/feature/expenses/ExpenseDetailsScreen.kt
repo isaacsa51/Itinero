@@ -1103,14 +1103,6 @@ fun ExpenseDetailSkeleton() {
 
 @DevicePreview
 @Composable
-private fun SkeletonPreview() {
-    PreviewWrapper {
-        ExpenseDetailSkeleton()
-    }
-}
-
-@DevicePreview
-@Composable
 private fun ExpenseDetailsScreenPreview() {
     PreviewWrapper {
         val owesItems = listOf(

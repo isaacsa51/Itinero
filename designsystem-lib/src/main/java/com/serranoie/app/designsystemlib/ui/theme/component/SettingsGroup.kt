@@ -205,6 +205,7 @@ fun PaddedListGroup(
             Text(
                 text = it,
                 style = MaterialTheme.typography.labelLargeEmphasized,
+                color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.padding(bottom = settingsGroupTitleBottomPadding)
             )
         }

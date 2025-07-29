@@ -188,7 +188,7 @@ fun SettingsScreen(
                             text = "Enable Material You", style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            text = "Apply Material You colors based from your wallpaper to your app (Android 12+)",
+                            text = "Apply Material You colors based from your wallpaper into the app (Android 12+)",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }

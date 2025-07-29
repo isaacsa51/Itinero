@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 object Constants {
 
     // Spacing & Padding
-    val extraSmallPadding = 6.dp
+    val extraSmallPadding = 4.dp
     val smallPadding = 8.dp
     val basePadding = 16.dp
     val mediumPadding = 24.dp
@@ -148,4 +148,7 @@ object Constants {
     val slideToConfirmDoneIconSize = 44.dp
     const val SLIDE_TO_CONFIRM_ANIMATION_DURATION = 300
     const val SLIDE_TO_CONFIRM_THRESHOLD = 0.3f
+
+    const val ALPHA_DISABLED = 0.3f
+    const val ALPHA_FULL = 1f
 }

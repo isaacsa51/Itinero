@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,8 +27,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -61,19 +58,24 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
 import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
-import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
+import com.serranoie.app.designsystemlib.ui.utils.Constants
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.clickableWithoutRipple
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 data class TripDateInfo(
     val status: TripStatus, val displayText: String, val subtitle: String
@@ -268,23 +270,24 @@ fun HomeScreen(
 fun HomeScreenShimmer(
     paddingValues: PaddingValues
 ) {
+    var shimmerExpanded by remember { mutableStateOf(false) }
+
     ShimmerProvider(isLoading = true) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .standardPadding()
         ) {
-            // Real DestinationCard with shimmer content
             DestinationCard(
                 country = "Loading destination...", tripInfo = null
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Constants.basePadding))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(Constants.mediumPadding)
             ) {
                 InfoCard(
                     title = "Travel date",
@@ -305,25 +308,25 @@ fun HomeScreenShimmer(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Constants.basePadding))
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = Constants.basePadding)
             ) {
                 Text(
                     text = "Summary",
                     style = MaterialTheme.typography.headlineSmallEmphasized,
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(smallPadding))
                 Text(
                     text = "Loading trip summary information...",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.shimmerable()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(smallPadding))
 
                 Text(
                     text = "Loading trip summary information...",
@@ -333,7 +336,7 @@ fun HomeScreenShimmer(
                         .shimmerable()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(smallPadding))
 
                 Text(
                     text = "Loading trip summary information...",
@@ -341,7 +344,7 @@ fun HomeScreenShimmer(
                     modifier = Modifier.shimmerable()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(smallPadding))
 
                 Text(
                     text = "Loading trip summary information...",
@@ -351,7 +354,7 @@ fun HomeScreenShimmer(
                         .shimmerable()
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(Constants.largePadding))
 
                 Text(
                     text = "Loading trip summary information...",
@@ -361,7 +364,7 @@ fun HomeScreenShimmer(
                         .AIShimmer()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(smallPadding))
 
                 Text(
                     text = "Loading trip summary information...",
@@ -372,30 +375,30 @@ fun HomeScreenShimmer(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Constants.basePadding))
 
             Text(
                 text = "Today's Tasks", style = MaterialTheme.typography.headlineSmallEmphasized
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             // Expense Summary Card
             ICard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shimmerable(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(Constants.commonCornerRadius),
                 content = {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.standardPadding()
                     ) {
                         Text(
                             text = "Expense Summary",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(smallPadding))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -425,9 +428,9 @@ fun HomeScreenShimmer(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(smallPadding))
                         HorizontalDivider()
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(smallPadding))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -446,24 +449,24 @@ fun HomeScreenShimmer(
                 },
                 onClick = { })
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(Constants.mediumPadding))
 
             // Today's Itinerary
             ICard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shimmerable(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(Constants.commonCornerRadius),
                 content = {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.standardPadding()
                     ) {
                         Text(
                             text = "Today's Itinerary",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(Constants.mediumPadding))
 
                         // Itinerary Item 1
                         Row(
@@ -490,7 +493,7 @@ fun HomeScreenShimmer(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(Constants.mediumPadding))
 
                         // Itinerary Item 2
                         Row(
@@ -517,7 +520,7 @@ fun HomeScreenShimmer(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(Constants.mediumPadding))
 
                         // Itinerary Item 3
                         Row(
@@ -547,19 +550,19 @@ fun HomeScreenShimmer(
                 },
                 onClick = { })
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Constants.basePadding))
 
             Text(
                 text = "Accommodation",
                 style = MaterialTheme.typography.headlineSmallEmphasized,
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             ExpandableCard(
                 title = "Details",
-                isExpanded = false,
-                onExpandedChange = { },
+                isExpanded = shimmerExpanded,
+                onExpandedChange = { shimmerExpanded = it },
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 showDivider = true
@@ -571,7 +574,7 @@ fun HomeScreenShimmer(
                     modifier = Modifier.shimmerable()
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(smallPadding))
 
                 Text(
                     text = "ADDRESS",
@@ -588,7 +591,7 @@ fun HomeScreenShimmer(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Constants.basePadding))
 
             // Travel Information section with shimmer
             TravelInfoCardShimmer()
@@ -596,7 +599,6 @@ fun HomeScreenShimmer(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenContent(
     navController: NavHostController,
@@ -616,7 +618,7 @@ fun HomeScreenContent(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
-                .padding(16.dp)
+                .standardPadding()
         ) {
             TripDetailsContent(
                 navController = navController, trip = trip
@@ -639,7 +641,7 @@ fun HomeScreenEmptyOrError(
     ) {
         Text(text = message, style = MaterialTheme.typography.bodyLarge)
         onRetry?.let {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Constants.basePadding))
             Button(onClick = it) {
                 Text("Retry")
             }
@@ -654,6 +656,8 @@ fun TripDetailsContent(
 ) {
     var isExpanded by remember { mutableStateOf(true) }
 
+    println("DEBUG: TripDetailsContent recomposed with isExpanded = $isExpanded")
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -661,10 +665,11 @@ fun TripDetailsContent(
             country = trip.destination, tripInfo = trip
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Constants.basePadding))
 
         Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(smallPadding)
         ) {
             val dateInfo = calculateTripDateInfo(trip.startDate, trip.endDate)
             InfoCard(
@@ -673,7 +678,7 @@ fun TripDetailsContent(
                 subtitle = dateInfo.subtitle,
                 modifier = Modifier
                     .weight(1f)
-                    .height(100.dp),
+                    .height(100.dp)
             )
 
             PeopleInfoCard(
@@ -685,28 +690,31 @@ fun TripDetailsContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Constants.basePadding))
 
         SummarySection(
             onClick = { }, tripInfo = trip
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Constants.basePadding))
 
         TodayTasksSection()
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Constants.basePadding))
 
         Text(
             text = "Accommodation", style = MaterialTheme.typography.headlineSmallEmphasized
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(smallPadding))
 
         ExpandableCard(
             title = "Details",
             isExpanded = isExpanded,
-            onExpandedChange = { isExpanded = it },
+            onExpandedChange = { newValue ->
+                println("DEBUG: TripDetailsContent ExpandableCard onExpandedChange called: $isExpanded -> $newValue")
+                isExpanded = newValue
+            },
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             contentColor = MaterialTheme.colorScheme.onSurface,
             showDivider = true
@@ -717,10 +725,10 @@ fun TripDetailsContent(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             Text(
-                text = "Address",
+                text = "Address".uppercase(Locale.getDefault()),
                 style = MaterialTheme.typography.labelSmallEmphasized,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
@@ -732,7 +740,7 @@ fun TripDetailsContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(Constants.basePadding))
 
         TravelInfoCard(navController, trip)
     }
@@ -743,45 +751,44 @@ fun TripDetailsContent(
 fun DestinationCard(
     country: String, tripInfo: Trip?
 ) {
-    Card(
+    ICard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        shape = RoundedCornerShape(Constants.extraSmallPadding + smallPadding),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        content = {
+            Column(
+                modifier = Modifier.padding(Constants.basePadding)
             ) {
-                Text(
-                    text = "Destination",
-                    style = MaterialTheme.typography.labelSmallEmphasized,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Destination".uppercase(Locale.getDefault()),
+                        style = MaterialTheme.typography.labelSmallEmphasized,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
 
-            Text(
-                text = country,
-                style = MaterialTheme.typography.displayMediumEmphasized.copy(fontWeight = FontWeight.Black),
-                modifier = Modifier.shimmerable(
-                    startColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
-                    endColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            tripInfo?.groupName?.let {
                 Text(
-                    text = it,
-                    style = MaterialTheme.typography.labelLargeEmphasized,
-                    modifier = Modifier.shimmerable()
+                    text = country,
+                    style = MaterialTheme.typography.displayMediumEmphasized.copy(fontWeight = FontWeight.Black),
+                    modifier = Modifier.shimmerable(
+                        startColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
+                        endColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                    )
                 )
+                Spacer(modifier = Modifier.height(Constants.extraSmallPadding))
+                tripInfo?.groupName?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelLargeEmphasized,
+                        modifier = Modifier.shimmerable()
+                    )
+                }
             }
-        }
-    }
+        })
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -794,13 +801,12 @@ fun InfoCard(
 ) {
     ICard(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
         content = {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.standardPadding()
             ) {
                 Text(
-                    text = title,
+                    text = title.uppercase(Locale.getDefault()),
                     style = MaterialTheme.typography.labelSmallEmphasized,
                     color = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.shimmerable()
@@ -818,7 +824,6 @@ fun InfoCard(
                 )
             }
         },
-        onClick = { },
     )
 }
 
@@ -836,13 +841,12 @@ fun PeopleInfoCard(
 ) {
     ICard(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
         content = {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.standardPadding()
             ) {
                 Text(
-                    text = "People",
+                    text = "People".uppercase(Locale.getDefault()),
                     style = MaterialTheme.typography.labelSmallEmphasized,
                     color = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.shimmerable()
@@ -853,7 +857,7 @@ fun PeopleInfoCard(
                     modifier = Modifier.shimmerable()
                 )
                 Row(
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = Constants.extraSmallPadding),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (confirmedCount <= 0) {
@@ -872,7 +876,6 @@ fun PeopleInfoCard(
                 }
             }
         },
-        onClick = { },
     )
 }
 
@@ -913,7 +916,7 @@ fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
             leadingIcon = Icons.Rounded.SupervisedUserCircle,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(vertical = Constants.extraSmallPadding)
                 .shimmerable()
         )
 
@@ -924,16 +927,16 @@ fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
             leadingIcon = Icons.Rounded.SupervisedUserCircle,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(vertical = Constants.extraSmallPadding)
                 .shimmerable()
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(vertical = Constants.extraSmallPadding)
                 .shimmerable(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(Constants.mediumPadding)
         ) {
             SelectField(
                 value = tripInfo.accommodation.checkIn,
@@ -974,20 +977,20 @@ fun SummarySection(
 ) {
     Column(modifier = Modifier
         .fillMaxWidth()
-        .clickable { onClick() }
-        .padding(horizontal = 16.dp)) {
+        .clickableWithoutRipple { onClick() }
+        .padding(horizontal = Constants.basePadding)) {
         Text(
             text = "Summary",
             style = MaterialTheme.typography.headlineSmallEmphasized,
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(smallPadding))
         Text(
             text = tripInfo.summary,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.shimmerable()
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(smallPadding))
         Text(
             text = "AI summary generated by Gemini would be here for the moment...",
             style = MaterialTheme.typography.bodyMedium,
@@ -1004,158 +1007,140 @@ fun TodayTasksSection() {
         Text(
             text = "Today's Tasks", style = MaterialTheme.typography.headlineSmallEmphasized
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(smallPadding))
 
-        ICard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), content = {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Expense Summary",
-                    style = MaterialTheme.typography.titleMediumEmphasized,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+        ICard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(Constants.commonCornerRadius),
+            content = {
+                Column(
+                    modifier = Modifier.standardPadding()
                 ) {
                     Text(
-                        text = "Breakfast", style = MaterialTheme.typography.bodyMedium
+                        text = "Yesterday Expenses",
+                        style = MaterialTheme.typography.titleMediumEmphasized,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    Text(
-                        text = "$25.00",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Spacer(modifier = Modifier.height(smallPadding))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Breakfast", style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "$25.00",
+                            style = MaterialTheme.typography.labelMediumEmphasized,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Transportation", style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "$15.50",
+                            style = MaterialTheme.typography.labelMediumEmphasized,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(smallPadding))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(smallPadding))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Total Yesterday", style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "$40.50",
+                            style = MaterialTheme.typography.titleMediumEmphasized,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
+            },
+            onClick = { })
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Transportation", style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "$15.50",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                androidx.compose.material3.HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Total Yesterday", style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = "$40.50",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        }, onClick = { })
-
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(Constants.mediumPadding))
 
         // Today's Itinerary
-        ICard(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), content = {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Today's Itinerary",
-                    style = MaterialTheme.typography.titleMediumEmphasized,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Itinerary Item 1
-                Row(
-                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
+        ICard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(Constants.commonCornerRadius),
+            content = {
+                Column(
+                    modifier = Modifier.standardPadding()
                 ) {
                     Text(
-                        text = "10:00 AM",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.width(80.dp)
+                        text = "Today's Itinerary",
+                        style = MaterialTheme.typography.titleMediumEmphasized,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    Column(
-                        modifier = Modifier.weight(1f)
+                    Spacer(modifier = Modifier.height(Constants.mediumPadding))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
                     ) {
                         Text(
-                            text = "Visit Local Market", style = MaterialTheme.typography.bodyMedium
+                            text = "10:00 AM",
+                            style = MaterialTheme.typography.labelMediumEmphasized,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(80.dp)
                         )
-                        Text(
-                            text = "Explore traditional crafts and local foods",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Visit Local Market",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Explore traditional crafts and local foods",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(Constants.mediumPadding))
 
-                // Itinerary Item 2
-                Row(
-                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = "2:00 PM",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.width(80.dp)
-                    )
-                    Column(
-                        modifier = Modifier.weight(1f)
+                    // Itinerary Item 2
+                    Row(
+                        modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
                     ) {
                         Text(
-                            text = "Museum Tour", style = MaterialTheme.typography.bodyMedium
+                            text = "2:00 PM",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(80.dp)
                         )
-                        Text(
-                            text = "Guided tour of the city's history museum",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Museum Tour", style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Guided tour of the city's history museum",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Itinerary Item 3
-                Row(
-                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = "7:00 PM",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.width(80.dp)
-                    )
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "Dinner Reservation", style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "Traditional cuisine at La Bella Vista",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }, onClick = { })
+            },
+            onClick = { })
     }
 }
 
@@ -1185,7 +1170,7 @@ fun TravelInfoCardShimmer() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(vertical = Constants.extraSmallPadding)
                 .shimmerable()
         ) {
             SelectField(
@@ -1200,7 +1185,7 @@ fun TravelInfoCardShimmer() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(vertical = Constants.extraSmallPadding)
                 .shimmerable()
         ) {
             SelectField(
@@ -1215,9 +1200,9 @@ fun TravelInfoCardShimmer() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
+                .padding(vertical = Constants.extraSmallPadding)
                 .shimmerable(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(Constants.mediumPadding)
         ) {
             Box(
                 modifier = Modifier

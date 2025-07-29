@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,11 +30,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystemlib.ui.theme.UiUtils.MediumPadding1
 import com.serranoie.app.designsystemlib.ui.theme.component.IIconButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
+import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnboardItem(
     modifier: Modifier = Modifier, page: Page, pagerState: PagerState, onFinished: () -> Unit
@@ -66,7 +68,7 @@ fun OnboardItem(
                 Image(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.30F),
+                        .fillMaxHeight(0.45F),
                     painter = painterResource(id = page.image),
                     contentDescription = null,
                     contentScale = ContentScale.Fit
@@ -75,12 +77,12 @@ fun OnboardItem(
                 Text(
                     modifier = Modifier.padding(horizontal = 30.dp),
                     text = page.title,
-                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.displaySmallEmphasized.copy(fontWeight = FontWeight.Bold),
                 )
                 Text(
                     modifier = Modifier.padding(horizontal = 30.dp),
                     text = page.description,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
 
@@ -98,7 +100,7 @@ fun OnboardItem(
                                 pagerState.animateScrollToPage(pagerState.currentPage - 1)
                             }
                         },
-                        modifier = Modifier.padding(end = MediumPadding1),
+                        modifier = Modifier.padding(end = mediumPadding),
                         text = { Text("Back") },
                         leadingIcon = null,
                     )

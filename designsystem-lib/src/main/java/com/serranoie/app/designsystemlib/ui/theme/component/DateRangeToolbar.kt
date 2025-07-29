@@ -41,9 +41,9 @@ fun RowScope.DateRangeToolbar(
     dayFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd"),
     monthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM"),
     dayTextStyle: TextStyle = MaterialTheme.typography.bodyLargeEmphasized,
-    monthTextStyle: TextStyle = MaterialTheme.typography.labelSmallEmphasized.copy(fontWeight = FontWeight.Medium),
+    monthTextStyle: TextStyle = MaterialTheme.typography.labelSmallEmphasized.copy(fontWeight = FontWeight.Bold),
     dayColor: Color = MaterialTheme.colorScheme.onSurface,
-    monthColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    monthColor: Color = MaterialTheme.colorScheme.onSurface,
     horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     weight: Float = DATE_RANGE_TOOLBAR_DEFAULT_WEIGHT
 ) {

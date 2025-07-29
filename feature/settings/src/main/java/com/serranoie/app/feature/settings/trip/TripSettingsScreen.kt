@@ -1,7 +1,6 @@
 package com.serranoie.app.feature.settings.trip
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -30,6 +29,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,8 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedExpandableItem
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
@@ -68,9 +69,15 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
-import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.MemberStatus
 import com.serranoie.itinero.core.domain.model.MembershipStatus
@@ -119,15 +126,15 @@ fun TripSettingsScreen(
     Scaffold(topBar = {
         MediumTopAppBar(
             title = {
-                Text("Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }, navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Go back"
-                    )
-                }
-            }, scrollBehavior = scrollBehavior
+            Text("Trip Settings", maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }, navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            }
+        }, scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
         LazyColumn(
@@ -145,13 +152,9 @@ fun TripSettingsScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(mediumPadding))
             }
 
-            Log.d(
-                "ITINERO - TripSettingsScreen",
-                "membersUiState: $membersUiState, currentUserMembershipStatus: $currentUserMembershipStatus"
-            )
             if (currentUserMembershipStatus?.isOwner == true) {
                 item {
                     GroupManagementSection(
@@ -167,17 +170,16 @@ fun TripSettingsScreen(
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(mediumPadding))
                 }
             }
 
-            // Danger Zone
             item {
                 DangerZoneSection(currentUserMembershipStatus = currentUserMembershipStatus)
             }
 
             item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(mediumPadding))
             }
         }
     }
@@ -186,9 +188,10 @@ fun TripSettingsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
-    ICard(modifier = Modifier.padding(16.dp), isCompleted = false, swipeable = false, content = {
-        Column(modifier = Modifier.padding(16.dp)) {
+    ICard(modifier = Modifier.standardPadding(), isCompleted = false, swipeable = false, content = {
+        Column(modifier = Modifier.padding(basePadding + extraSmallPadding)) {
             Text(
+                modifier = Modifier.padding(top = basePadding),
                 text = "ITINERO GROUP CODE",
                 style = MaterialTheme.typography.labelLargeEmphasized
             )
@@ -196,17 +199,17 @@ private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
             OtpDisplayField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .standardPadding(horizontal = 0.dp, vertical = basePadding),
                 otpText = formattedCode
             )
 
             qrBitmap?.let { bitmap ->
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(basePadding))
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
+                        .padding(smallPadding)
                         .shimmerable(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -216,19 +219,19 @@ private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
                         modifier = Modifier
                             .size(200.dp)
                             .background(
-                                color = Color.White, shape = RoundedCornerShape(8.dp)
+                                color = Color.White, shape = RoundedCornerShape(commonCornerRadius)
                             )
-                            .padding(8.dp)
+                            .padding(smallPadding)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
 
             Text(
                 text = "What's this code/QR for?",
                 style = MaterialTheme.typography.bodyLargeEmphasized,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = smallPadding)
             )
 
             Text(
@@ -246,7 +249,7 @@ private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-    }, onClick = { })
+    })
 }
 
 @Composable
@@ -257,9 +260,12 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
                 navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
             }, position = PaddedListItemPosition.First
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Trip Name", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Trip Name",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 trip?.groupName?.let {
                     Text(text = it, style = MaterialTheme.typography.bodyMedium)
                 }
@@ -275,9 +281,12 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
                 navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
             }, position = PaddedListItemPosition.Middle
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Trip Dates", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Trip Dates",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Text(
                     text = if (trip != null) "${trip.startDate} - ${trip.endDate}" else "Not set",
                     style = MaterialTheme.typography.bodyMedium
@@ -294,9 +303,12 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
                 navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
             }, position = PaddedListItemPosition.Middle
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Accommodation Name", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Accommodation Name",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Text(
                     text = trip?.accommodation?.name ?: "Not set",
                     style = MaterialTheme.typography.bodyMedium
@@ -313,9 +325,12 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
                 navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
             }, position = PaddedListItemPosition.Middle
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Accommodation Location", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Accommodation Location",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Text(
                     text = trip?.accommodation?.location ?: "Not set",
                     style = MaterialTheme.typography.bodyMedium
@@ -332,9 +347,12 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
                 navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
             }, position = PaddedListItemPosition.Last
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Accommodation Number", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = "Accommodation Number",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Text(
                     text = trip?.accommodation?.phone ?: "Not set",
                     style = MaterialTheme.typography.bodyMedium
@@ -373,9 +391,9 @@ private fun GroupManagementSection(
         CustomPaddedListItem(
             onClick = { /* Handle invite action */ }, position = PaddedListItemPosition.First
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Invite New Member", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Invite New Member", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold))
                 Text(
                     text = "Share invitation code with others",
                     style = MaterialTheme.typography.bodySmall,
@@ -398,11 +416,11 @@ private fun GroupManagementSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .standardPadding(horizontal = basePadding, vertical = 0.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Manage Members", style = MaterialTheme.typography.bodyLarge)
+                        Text(text = "Manage Members", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold))
                         Text(
                             text = "Review pending invitations and members",
                             style = MaterialTheme.typography.bodySmall,
@@ -433,8 +451,7 @@ private fun GroupManagementSection(
                         },
                         onRemoveMember = { member, onRemove, onError ->
                             onRemoveMember(tripId, member.id, onRemove, onError)
-                        }
-                    )
+                        })
                 }
             })
 
@@ -442,9 +459,9 @@ private fun GroupManagementSection(
             onClick = { /* Navigate to transfer ownership */ },
             position = PaddedListItemPosition.Last
         ) {
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Transfer Ownership", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Transfer Ownership", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold))
                 Text(
                     text = "Change the trip administrator",
                     style = MaterialTheme.typography.bodySmall,
@@ -470,25 +487,27 @@ private fun MembersListContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp, start = 12.dp, end = 12.dp)
+            .padding(
+                top = smallPadding * 1.5f, start = smallPadding * 1.5f, end = smallPadding * 1.5f
+            )
     ) {
         when (membersUiState) {
             is TripMembersUiState.Loading -> {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .standardPadding()
                 ) {
                     repeat(3) { index ->
                         ShimmerProvider {
                             MemberItemCard(
                                 member = TripMember(
-                                    id = index,
-                                    name = "Loading Member",
-                                    surname = "Loading Surname",
-                                    email = "loading@example.com",
-                                    status = MemberStatus.PENDING
-                                ), onAccept = {}, onReject = {}, onRemove = {})
+                                id = index,
+                                name = "Loading Member",
+                                surname = "Loading Surname",
+                                email = "loading@example.com",
+                                status = MemberStatus.PENDING
+                            ), onAccept = {}, onReject = {}, onRemove = {})
                         }
                     }
                 }
@@ -500,17 +519,25 @@ private fun MembersListContent(
                         text = "No members found",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.standardPadding()
                     )
                 } else {
-                    membersUiState.members.forEach { member ->
+                    membersUiState.members.forEachIndexed { index, member ->
                         MemberItemCard(
                             member = member,
                             onAccept = { onAcceptMember(member, {}, {}) },
                             onReject = { onRejectMember(member, {}, {}) },
                             onRemove = { onRemoveMember(member, {}, {}) },
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+
+                        if (membersUiState.members.size > 1 && index < membersUiState.members.size - 1) {
+                           HorizontalDivider(
+                                modifier = Modifier.padding(vertical = smallPadding),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            )
+                        } else if (index < membersUiState.members.size - 1) {
+                            Spacer(modifier = Modifier.height(smallPadding))
+                        }
                     }
                 }
             }
@@ -520,7 +547,7 @@ private fun MembersListContent(
                     text = "Error: ${membersUiState.message}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.standardPadding()
                 )
             }
 
@@ -529,14 +556,13 @@ private fun MembersListContent(
                     text = "Loading members...",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.standardPadding()
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MemberItemCard(
     member: TripMember, onAccept: () -> Unit, onReject: () -> Unit, onRemove: () -> Unit
@@ -544,13 +570,13 @@ private fun MemberItemCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 12.dp)
+            .padding(bottom = smallPadding * 1.5f)
     ) {
         Text(
             text = member.name,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
-                .padding(bottom = 4.dp)
+                .padding(bottom = extraSmallPadding)
                 .shimmerable()
         )
 
@@ -559,7 +585,7 @@ private fun MemberItemCard(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
-                .padding(bottom = 8.dp)
+                .padding(bottom = smallPadding)
                 .shimmerable()
         )
 
@@ -575,7 +601,7 @@ private fun MemberItemCard(
                         importance = ButtonImportance.Error
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(smallPadding))
 
                     IButton(
                         text = { Text("Accept", style = MaterialTheme.typography.labelLarge) },
@@ -604,17 +630,87 @@ private fun MemberItemCard(
     }
 }
 
+@ComponentPreview
+@Composable
+private fun MemberItemCardPreview() {
+    PreviewWrapper {
+        Column(
+            modifier = Modifier.standardPadding(),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(
+                basePadding
+            )
+        ) {
+            Text(
+                text = "Pending Member",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = smallPadding)
+            )
+
+            MemberItemCard(
+                member = TripMember(
+                    id = 1,
+                    name = "John Doe",
+                    surname = "Doe",
+                    email = "john.doe@example.com",
+                    status = MemberStatus.PENDING
+                ),
+                onAccept = {},
+                onReject = {},
+                onRemove = {}
+            )
+
+            Text(
+                text = "Accepted Member",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = smallPadding)
+            )
+
+            MemberItemCard(
+                member = TripMember(
+                    id = 2,
+                    name = "Jane Smith",
+                    surname = "Smith",
+                    email = "jane.smith@example.com",
+                    status = MemberStatus.ACCEPTED
+                ),
+                onAccept = {},
+                onReject = {},
+                onRemove = {}
+            )
+
+            Text(
+                text = "Owner Member",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = smallPadding)
+            )
+
+            MemberItemCard(
+                member = TripMember(
+                    id = 3,
+                    name = "Alice Johnson",
+                    surname = "Johnson",
+                    email = "alice.johnson@example.com",
+                    status = MemberStatus.OWNER
+                ),
+                onAccept = {},
+                onReject = {},
+                onRemove = {}
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DangerZoneSection(currentUserMembershipStatus: MembershipStatus?) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier.standardPadding()) {
         Text(
             text = "DANGER ZONE", style = MaterialTheme.typography.labelLargeEmphasized.copy(
                 fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error
             )
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(basePadding))
 
         IButton(
             text = {
@@ -627,7 +723,7 @@ private fun DangerZoneSection(currentUserMembershipStatus: MembershipStatus?) {
             importance = ButtonImportance.Secondary,
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(smallPadding * 1.5f))
 
         if (currentUserMembershipStatus?.isOwner == true) {
             IButton(
@@ -677,10 +773,7 @@ private fun TripSettingsScreenPreview() {
             qrBitmap = null,
             membersUiState = TripMembersUiState.Idle,
             currentUserMembershipStatus = MembershipStatus(
-                status = "OWNER",
-                isOwner = true,
-                isMember = true,
-                isPending = false
+                status = "OWNER", isOwner = true, isMember = true, isPending = false
             ),
             onGenerateQrCode = {},
             onFetchMembers = {},

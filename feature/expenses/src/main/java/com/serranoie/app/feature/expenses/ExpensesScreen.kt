@@ -1,10 +1,12 @@
 package com.serranoie.app.feature.expenses
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,18 +36,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
-import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.largePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import com.serranoie.app.feature.expenses.domain.model.Expense
 import com.serranoie.app.feature.expenses.domain.model.UserExpenseSummary
 import com.serranoie.app.feature.expenses.util.ExpenseCategory
@@ -68,7 +79,8 @@ fun ExpensesScreen(
     snackbarHostState: SnackbarHostState,
     currentUserId: Int
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val pullToRefreshState = rememberPullToRefreshState()
 
     val isLoading = uiState is ExpensesUiState.Loading
@@ -84,66 +96,59 @@ fun ExpensesScreen(
     val startDate = dateRange.first ?: LocalDate.now()
     val endDate = dateRange.second ?: LocalDate.now()
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            MediumTopAppBar(
-                title = {
-                    Text(
-                        "Expenses", 
-                        maxLines = 1, 
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }, 
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back"
-                        )
-                    }
-                }, 
-                scrollBehavior = scrollBehavior
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, topBar = {
+        MediumTopAppBar(
+            title = {
+            Text(
+                "Expenses", maxLines = 1, overflow = TextOverflow.Ellipsis
             )
-        }
-    ) { paddingValues ->
+        }, navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            }
+        }, scrollBehavior = scrollBehavior
+        )
+    }) { paddingValues ->
         ShimmerProvider(isLoading = isLoading) {
             if (isLoading && expenses.isEmpty()) {
                 ExpensesScreenSkeleton(paddingValues, scrollBehavior)
             } else {
                 PullToRefreshBox(
-                    isRefreshing = isLoading,
-                    onRefresh = onRefresh,
-                    state = pullToRefreshState
+                    isRefreshing = isLoading, onRefresh = onRefresh, state = pullToRefreshState
                 ) {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(paddingValues)
                             .nestedScroll(scrollBehavior.nestedScrollConnection),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(bottom = basePadding)
                     ) {
-                        item {
-                            BalanceCircles(
-                                youOwe = balanceData.first,
-                                youAreOwed = balanceData.second
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "History of expenses",
-                                style = MaterialTheme.typography.headlineSmallEmphasized,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .shimmerable()
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-
                         if (expensesByDate.isEmpty() && !isLoading) {
                             item {
                                 EmptyExpensesState()
                             }
                         } else {
+                            item {
+                                BalanceCircles(
+                                    youOwe = balanceData.first, youAreOwed = balanceData.second
+                                )
+                                Spacer(modifier = Modifier.height(smallPadding))
+                                Text(
+                                    text = "History of expenses",
+                                    style = MaterialTheme.typography.headlineSmallEmphasized,
+                                    modifier = Modifier
+                                        .standardPadding(
+                                            horizontal = basePadding,
+                                            vertical = smallPadding
+                                        )
+                                        .shimmerable()
+                                )
+                                Spacer(modifier = Modifier.height(smallPadding))
+                            }
+
                             val dateRangeList = generateDateRange(startDate, endDate)
                             val sectionsWithExpenses = dateRangeList.filter { date ->
                                 expensesByDate[date]?.isNotEmpty() == true
@@ -158,8 +163,7 @@ fun ExpensesScreen(
                                     isLastSection = isLastSectionWithExpenses,
                                     onExpenseClick = { expenseId ->
                                         onExpenseClick(expenseId)
-                                    }
-                                )
+                                    })
                             }
                         }
                     }
@@ -180,20 +184,20 @@ fun ExpensesDateSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .standardPadding()
     ) {
         DateRangeToolbar(date = date)
 
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 8.dp)
+                .padding(start = smallPadding)
         ) {
             if (expenses.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 24.dp),
+                        .padding(vertical = mediumPadding),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -207,8 +211,13 @@ fun ExpensesDateSection(
                 HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 8.dp, top = 8.dp, end = 12.dp, bottom = 0.dp),
-                    thickness = 1.dp,
+                        .padding(
+                            start = smallPadding,
+                            top = smallPadding,
+                            end = smallPadding * 1.5f,
+                            bottom = 0.dp
+                        ),
+                    thickness = borderStrokeWidth,
                     color = MaterialTheme.colorScheme.outlineVariant
                 )
 
@@ -217,7 +226,7 @@ fun ExpensesDateSection(
                     ExpenseCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = extraSmallPadding),
                         expenseName = item.expenseName,
                         membersCount = item.membersCount,
                         amountOwed = item.amountOwed,
@@ -233,44 +242,47 @@ fun ExpensesDateSection(
                     HorizontalDivider(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 8.dp, top = 8.dp, end = 12.dp, bottom = 0.dp),
-                        thickness = 1.dp,
+                            .padding(
+                                start = smallPadding,
+                                top = smallPadding,
+                                end = smallPadding * 1.5f,
+                                bottom = 0.dp
+                            ),
+                        thickness = borderStrokeWidth,
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
                 }
             }
         }
     }
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = Modifier.height(smallPadding))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ExpensesScreenSkeleton(
-    paddingValues: PaddingValues,
-    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior
+    paddingValues: PaddingValues, scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
-        contentPadding = PaddingValues(bottom = 16.dp)
+        contentPadding = PaddingValues(bottom = basePadding)
     ) {
         item {
             BalanceCircles(
-                youOwe = 0.0,
-                youAreOwed = 0.0
+                youOwe = 0.0, youAreOwed = 0.0
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
             Text(
                 text = "History of expenses",
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .standardPadding(horizontal = basePadding, vertical = smallPadding)
                     .shimmerable()
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
         }
 
         items(3) {
@@ -280,7 +292,10 @@ private fun ExpensesScreenSkeleton(
                         ExpenseCard(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                .standardPadding(
+                                    horizontal = basePadding,
+                                    vertical = extraSmallPadding
+                                )
                                 .shimmerable(),
                             expenseName = "Loading expense...",
                             membersCount = 0,
@@ -290,34 +305,42 @@ private fun ExpensesScreenSkeleton(
                             icon = Icons.Filled.Money
                         ) {}
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(extraSmallPadding))
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(smallPadding))
         }
     }
 }
 
-// TODO: Implement vector images for empty state
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EmptyExpensesState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(32.dp),
+            .padding(largePadding - extraSmallPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Image(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.35F),
+            painter = painterResource(id = R.drawable.expenses_image),
+            contentDescription = null,
+            contentScale = ContentScale.Fit
+        )
+
         Text(
             text = "No expenses yet",
             style = MaterialTheme.typography.headlineMediumEmphasized,
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(smallPadding))
         Text(
             text = "Start tracking your group expenses by creating a new one.",
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -331,11 +354,9 @@ private fun calculateBalanceData(expenses: List<UserExpenseSummary>): Pair<Doubl
 }
 
 private fun groupExpensesByDate(
-    expenses: List<Expense>,
-    currentUserId: Int
+    expenses: List<Expense>, currentUserId: Int
 ): Map<LocalDate, List<ExpenseDisplayItem>> {
-    return expenses.groupBy { parseDate(it.date) }
-        .mapValues { (_, expensesList) ->
+    return expenses.groupBy { parseDate(it.date) }.mapValues { (_, expensesList) ->
             expensesList.map { expense ->
                 val categoryEnum = ExpenseCategory.fromCategoryName(expense.category)
                 ExpenseDisplayItem(

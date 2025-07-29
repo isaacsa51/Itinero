@@ -44,8 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
-import com.serranoie.app.designsystemlib.ui.theme.UiUtils.ALPHA_DISABLED
-import com.serranoie.app.designsystemlib.ui.theme.UiUtils.ALPHA_FULL
+import com.serranoie.app.designsystemlib.ui.utils.Constants.ALPHA_DISABLED
+import com.serranoie.app.designsystemlib.ui.utils.Constants.ALPHA_FULL
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
 import com.serranoie.app.designsystemlib.ui.utils.Constants.dropdownMenuEndPadding

@@ -12,6 +12,7 @@
 package com.serranoie.app.designsystemlib.ui.theme.component.card
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -51,14 +52,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
-import com.serranoie.app.designsystemlib.ui.utils.Constants.basicElevation
 import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
 import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
 import com.serranoie.app.designsystemlib.ui.utils.bounceClick
-import com.serranoie.app.designsystemlib.ui.utils.designBorder
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -91,7 +90,7 @@ data class SwipeActionsConfig(
  * @param headerIconContentDescription Content description for the header icon
  * @param swipeActionsConfig Configuration for swipe actions (if null, uses default swipe behavior)
  * @param content The content of the card
- * @param onClick Callback when the card is clicked
+ * @param onClick Optional callback when the card is clicked (if null, card is not clickable)
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -112,7 +111,7 @@ fun ICard(
     headerIconContentDescription: String? = if (isCompleted) "Completed" else null,
     swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit,
-    onClick: () -> Unit
+    onClick: (() -> Unit)? = null
 ) {
     val cardContent: @Composable () -> Unit = {
         Column {
@@ -175,12 +174,16 @@ fun ICard(
         )
     } else {
         Surface(
-            modifier = modifier
-                .fillMaxWidth()
-                .designBorder(width = borderWidth, color = borderColor)
-                .bounceClick { onClick() },
+            modifier = if (onClick != null) {
+                modifier
+                    .fillMaxWidth()
+                    .bounceClick { onClick() }
+            } else {
+                modifier.fillMaxWidth()
+            },
             shape = shape,
-            color = color
+            color = color,
+            border = BorderStroke(borderWidth, borderColor)
         ) {
             cardContent()
         }
@@ -200,7 +203,7 @@ private fun ISwipeableCard(
     dragThreshold: Float = 150f,
     swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit,
-    onClick: () -> Unit
+    onClick: (() -> Unit)? = null
 ) {
     val offsetXState = remember { mutableFloatStateOf(0f) }
     val localIsCompletedState = remember { mutableStateOf(isCompleted) }
@@ -252,32 +255,57 @@ private fun ISwipeableCard(
         }
 
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset { IntOffset(offsetXState.value.roundToInt(), 0) }
-                .scale(scaleState.value)
-                .alpha(1f)
-                .draggable(
-                    orientation = Orientation.Horizontal,
-                    state = rememberDraggableState { delta ->
-                        // Only allow dragging if not already completed
-                        if (!localIsCompletedState.value) {
-                            offsetXState.value = offsetXState.value + delta
+            modifier = if (onClick != null) {
+                modifier
+                    .fillMaxWidth()
+                    .offset { IntOffset(offsetXState.value.roundToInt(), 0) }
+                    .scale(scaleState.value)
+                    .alpha(1f)
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        state = rememberDraggableState { delta ->
+                            // Only allow dragging if not already completed
+                            if (!localIsCompletedState.value) {
+                                offsetXState.value = offsetXState.value + delta
+                            }
+                        },
+                        onDragStopped = {
+                            if (offsetXState.value.absoluteValue > effectiveThreshold) {
+                                localIsCompletedState.value = true
+                                swipeActionsConfig?.onDismiss?.invoke() ?: onSwipe()
+                            }
+                            // Reset position with animation
+                            offsetXState.value = 0f
                         }
-                    },
-                    onDragStopped = {
-                        if (offsetXState.value.absoluteValue > effectiveThreshold) {
-                            localIsCompletedState.value = true
-                            swipeActionsConfig?.onDismiss?.invoke() ?: onSwipe()
+                    )
+                    .bounceClick { onClick() }
+            } else {
+                modifier
+                    .fillMaxWidth()
+                    .offset { IntOffset(offsetXState.value.roundToInt(), 0) }
+                    .scale(scaleState.value)
+                    .alpha(1f)
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        state = rememberDraggableState { delta ->
+                            // Only allow dragging if not already completed
+                            if (!localIsCompletedState.value) {
+                                offsetXState.value = offsetXState.value + delta
+                            }
+                        },
+                        onDragStopped = {
+                            if (offsetXState.value.absoluteValue > effectiveThreshold) {
+                                localIsCompletedState.value = true
+                                swipeActionsConfig?.onDismiss?.invoke() ?: onSwipe()
+                            }
+                            // Reset position with animation
+                            offsetXState.value = 0f
                         }
-                        // Reset position with animation
-                        offsetXState.value = 0f
-                    }
-                )
-                .designBorder(width = borderWidth, color = borderColor)
-                .bounceClick { onClick() },
+                    )
+            },
             shape = shape,
-            color = color
+            color = color,
+            border = BorderStroke(borderWidth, borderColor)
         ) {
             content()
         }
@@ -323,7 +351,7 @@ private fun ExpenseCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }, onClick = { })
+    })
 }
 
 @ComponentPreview
@@ -343,7 +371,7 @@ private fun OutlinedCardPreview() {
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-            }, onClick = { })
+            })
 
             Spacer(modifier = Modifier.padding(smallPadding))
 
@@ -362,7 +390,7 @@ private fun OutlinedCardPreview() {
                         )
                     }
                 },
-                onClick = { })
+            )
 
             Spacer(modifier = Modifier.padding(smallPadding))
 
@@ -381,7 +409,8 @@ private fun OutlinedCardPreview() {
                         )
                     }
                 },
-                onClick = { })
+                onClick = { /* Handle click */ }
+            )
 
             Spacer(modifier = Modifier.padding(smallPadding))
 
@@ -407,7 +436,8 @@ private fun OutlinedCardPreview() {
                         )
                     }
                 },
-                onClick = { })
+                onClick = { /* Handle click */ }
+            )
 
             Spacer(modifier = Modifier.padding(smallPadding))
 
@@ -425,7 +455,8 @@ private fun OutlinedCardPreview() {
                         )
                     }
                 },
-                onClick = { })
+                onClick = { /* Handle click */ }
+            )
 
             Spacer(modifier = Modifier.padding(smallPadding))
 

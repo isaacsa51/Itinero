@@ -1,5 +1,8 @@
 package com.serranoie.app.designsystemlib.ui.theme.component
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,10 +28,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -42,6 +52,9 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.buttonIconSize
 import com.serranoie.app.designsystemlib.ui.utils.Constants.buttonLargeHeight
 import com.serranoie.app.designsystemlib.ui.utils.Constants.buttonSmallHeight
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Utils.weakHapticFeedback
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 enum class ButtonImportance {
     Primary, Secondary, Tertiary, Error
@@ -56,11 +69,39 @@ fun IButton(
     shape: RoundedCornerShape = RoundedCornerShape(size = commonCornerRadius),
     importance: ButtonImportance = ButtonImportance.Primary,
     height: Dp = buttonHeight,
+    enableHapticFeedback: Boolean = true,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val view = LocalView.current
+    var isPressed by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "buttonBounceScale"
+    )
+
+    val onClickWithFeedback = {
+        if (enabled && enableHapticFeedback) {
+            view.weakHapticFeedback()
+        }
+        onClick()
+    }
+
     Button(
-        onClick = onClick,
-        modifier = modifier.height(height),
+        onClick = {
+            isPressed = true
+            onClickWithFeedback()
+            // Reset pressed state after a short delay
+            coroutineScope.launch {
+                delay(150)
+                isPressed = false
+            }
+        },
+        modifier = modifier
+            .height(height)
+            .scale(scale),
         enabled = enabled,
         contentPadding = contentPadding,
         shape = shape,
@@ -78,7 +119,8 @@ fun IButton(
     leadingIcon: @Composable (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(size = commonCornerRadius),
     importance: ButtonImportance = ButtonImportance.Primary,
-    height: Dp = buttonHeight
+    height: Dp = buttonHeight,
+    enableHapticFeedback: Boolean = true
 ) {
     IButton(
         onClick = onClick,
@@ -91,7 +133,8 @@ fun IButton(
         },
         shape = shape,
         importance = importance,
-        height = height
+        height = height,
+        enableHapticFeedback = enableHapticFeedback
     ) {
         IButtonContent(
             text = text,
@@ -133,11 +176,22 @@ fun IIconButton(
     leadingIcon: ImageVector,
     shape: Shape = RoundedCornerShape(size = commonCornerRadius),
     colors: ButtonColors = ButtonDefaults.buttonColors(),
-    height: Dp = buttonHeight
+    height: Dp = buttonHeight,
+    enableHapticFeedback: Boolean = true
 ) {
+    val view = LocalView.current
+
+    val onClickWithFeedback = {
+        if (enabled && enableHapticFeedback) {
+            view.weakHapticFeedback()
+        }
+        onClick()
+    }
+
     Button(
-        onClick = onClick,
-        modifier = modifier.height(height),
+        onClick = onClickWithFeedback,
+        modifier = modifier
+            .height(height),
         enabled = enabled,
         shape = shape,
         colors = colors,
@@ -162,11 +216,39 @@ fun IOutlineButton(
     importance: ButtonImportance = ButtonImportance.Primary,
     backgroundColor: Color = MaterialTheme.colorScheme.background,
     height: Dp = buttonHeight,
+    enableHapticFeedback: Boolean = true,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val view = LocalView.current
+    var isPressed by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "buttonBounceScale"
+    )
+
+    val onClickWithFeedback = {
+        if (enabled && enableHapticFeedback) {
+            view.weakHapticFeedback()
+        }
+        onClick()
+    }
+
     OutlinedButton(
-        onClick = onClick,
-        modifier = modifier.height(height),
+        onClick = {
+            isPressed = true
+            onClickWithFeedback()
+            // Reset pressed state after a short delay
+            coroutineScope.launch {
+                delay(150)
+                isPressed = false
+            }
+        },
+        modifier = modifier
+            .height(height)
+            .scale(scale),
         enabled = enabled,
         border = BorderStroke(
             width = borderStrokeWidth,
@@ -188,7 +270,8 @@ fun IOutlineButton(
     leadingIcon: @Composable() (() -> Unit)? = null,
     shape: RoundedCornerShape = RoundedCornerShape(size = commonCornerRadius),
     importance: ButtonImportance = ButtonImportance.Primary,
-    height: Dp = buttonHeight
+    height: Dp = buttonHeight,
+    enableHapticFeedback: Boolean = true
 ) {
     IOutlineButton(
         onClick = onClick,
@@ -201,7 +284,8 @@ fun IOutlineButton(
             ButtonDefaults.ContentPadding
         },
         importance = importance,
-        height = height
+        height = height,
+        enableHapticFeedback = enableHapticFeedback
     ) {
         IButtonContent(
             text = text,
@@ -252,16 +336,44 @@ fun ITextButton(
     enabled: Boolean = true,
     text: @Composable () -> Unit,
     leadingIcon: @Composable() (() -> Unit)? = null,
-    height: Dp = buttonHeight
+    height: Dp = buttonHeight,
+    enableHapticFeedback: Boolean = true
 ) {
+    val view = LocalView.current
+    var isPressed by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "buttonBounceScale"
+    )
+
     val ITextButtonColors = textButtonColors(
         contentColor = MaterialTheme.colorScheme.primary,
         disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
     )
 
+    val onClickWithFeedback = {
+        if (enabled && enableHapticFeedback) {
+            view.weakHapticFeedback()
+        }
+        onClick()
+    }
+
     TextButton(
-        onClick = onClick,
-        modifier = modifier.height(height),
+        onClick = {
+            isPressed = true
+            onClickWithFeedback()
+            // Reset pressed state after a short delay
+            coroutineScope.launch {
+                delay(150)
+                isPressed = false
+            }
+        },
+        modifier = modifier
+            .height(height)
+            .scale(scale),
         enabled = enabled,
         colors = ITextButtonColors,
         shape = RoundedCornerShape(size = commonCornerRadius),

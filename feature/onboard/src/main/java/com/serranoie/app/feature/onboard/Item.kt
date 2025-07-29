@@ -11,18 +11,28 @@ data class Page(
 
 val pages = listOf(
     Page(
-        title = "Lorem Ipsum is simply dummy",
-        description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-        image = R.drawable.onboard_intro1
+        title = "Organize your next group trip with ease",
+        description = "Plan itineraries, dates, and accommodations with all members synchronized in one place.",
+        image = R.drawable.onboard_organize
     ),
     Page(
-        title = "Lorem Ipsum is simply dummy",
-        description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-        image = R.drawable.onboard_intro1
+        title = "Shared expenses, itinerary updates and more",
+        description = "Assign tasks, create a baggage list and keep everyone in sync with all the necessary and important information.",
+        image = R.drawable.onboard_schedule
     ),
     Page(
-        title = "Lorem Ipsum is simply dummy",
-        description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-        image = R.drawable.onboard_intro1
+        title = "Smart summary of you itinerary",
+        description = "Visualize every day of your trip with key events automatically generated from your plan.",
+        image = R.drawable.onboard_summary
+    ),
+    Page(
+        title = "Chat with integrated assistance",
+        description = "Communicate with your group and get contextual help through artificial intelligence in every conversation.",
+        image = R.drawable.onboard_assistance
+    ),
+    Page(
+        title = "Useful notifications, not annoying ones.",
+        description = "Get reminders only when they matter: check-ins, departures, transportation, and more.",
+        image = R.drawable.onboard_notif
     )
 )

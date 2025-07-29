@@ -96,7 +96,7 @@ fun NavGraphBuilder.itineraryGraph(
                 navController.popBackStack()
             },
             onCompleted = { },
-        )
+            onBack = { navController.popBackStack() })
     }
 
     composable(Route.EditItinerary.route) { backStackEntry ->
@@ -182,8 +182,7 @@ fun NavGraphBuilder.itineraryGraph(
         }, onCompleted = { id ->
             viewModel.toggleActivityCompletion(groupCode, id)
             viewModel.getActivityById(groupCode, id, forceRefresh = true)
-        }
-        )
+        }, onBack = { navController.popBackStack() })
     }
 }
 

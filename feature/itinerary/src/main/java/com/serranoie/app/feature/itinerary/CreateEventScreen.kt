@@ -12,6 +12,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
@@ -30,24 +31,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -65,12 +74,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
@@ -79,6 +91,12 @@ import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.formatMyDate
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.largePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallIconSize
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -96,6 +114,7 @@ val sampleTask = TaskInfo(
     name = "Visit Café", time = "12:00 PM", location = "Paris, France", summary = "Summary"
 )
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateEventScreen(
     existingItem: ItineraryItem? = null,
@@ -104,6 +123,7 @@ fun CreateEventScreen(
     onDeleteActivity: (id: String) -> Unit = { },
     onCompleted: (id: String) -> Unit = {},
     onSaveComplete: () -> Unit = {},
+    onBack: (() -> Unit),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -139,6 +159,16 @@ fun CreateEventScreen(
     var showMinutesDropdown by remember { mutableStateOf(false) }
 
     val isEditMode = existingItem != null
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    val scrollState = scrollBehavior.state
+    val appBarExpanded by remember {
+        derivedStateOf { scrollState.collapsedFraction < 0.9f }
+    }
+    val expandedAppBarHeight = 180.dp
+    val headerTranslation = (expandedAppBarHeight / 2)
+
+    val scrollStateContent = rememberScrollState()
 
     LaunchedEffect(isEditMode, existingItem) {
         if (isEditMode) {
@@ -161,11 +191,105 @@ fun CreateEventScreen(
         }
     }
 
-    Scaffold { paddingValues ->
+    eventName.ifBlank { "Need help planning your day?" }
+    val dateSubtitle = selectedDateTime?.let { formatMyDate(it) } ?: ""
+
+    Scaffold(
+        topBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                CollapsedEventHeader(
+                    modifier = Modifier,
+                    visible = !appBarExpanded,
+                    eventName = eventName,
+                    dateSubtitle = dateSubtitle,
+                    onBack = onBack,
+                    canSave = eventName.isNotBlank() && eventTime.isNotBlank() && 
+                            eventLocation.isNotBlank() && eventSummary.isNotBlank(),
+                    onSave = {
+                        if (existingItem != null) {
+                            onUpdateActivity(
+                                existingItem.id ?: "",
+                                eventName,
+                                eventTime,
+                                eventLocation,
+                                eventSummary
+                            )
+                        } else {
+                            onCreateActivity(
+                                eventName, eventTime, eventLocation, eventSummary
+                            )
+                        }
+                        onSaveComplete()
+                    }
+                )
+                TopAppBar(
+                    title = {
+                        ExpandedEventHeader(
+                            modifier = Modifier.graphicsLayer {
+                                translationY = scrollState.collapsedFraction * headerTranslation.toPx()
+                            },
+                            visible = appBarExpanded,
+                            eventName = eventName,
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent
+                    ),
+                    scrollBehavior = scrollBehavior,
+                    actions = {
+                        val canSave = eventName.isNotBlank() && eventTime.isNotBlank() && 
+                                eventLocation.isNotBlank() && eventSummary.isNotBlank()
+
+                        if (canSave && appBarExpanded) {
+                            IButton(
+                                onClick = {
+                                    if (canSave) {
+                                        if (existingItem != null) {
+                                            onUpdateActivity(
+                                                existingItem.id ?: "",
+                                                eventName,
+                                                eventTime,
+                                                eventLocation,
+                                                eventSummary
+                                            )
+                                        } else {
+                                            onCreateActivity(
+                                                eventName, eventTime, eventLocation, eventSummary
+                                            )
+                                        }
+                                        onSaveComplete()
+                                    }
+                                },
+                                enabled = canSave,
+                                modifier = Modifier.padding(end = smallPadding),
+                                height = ButtonDefaults.ExtraSmallContainerHeight,
+                                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.ExtraSmallContainerHeight)
+                            ) {
+                                Spacer(
+                                    modifier = Modifier.size(
+                                        ButtonDefaults.iconSpacingFor(
+                                            ButtonDefaults.ExtraSmallContainerHeight
+                                        )
+                                    )
+                                )
+                                Text("Save")
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .verticalScroll(scrollStateContent)
         ) {
             HeaderSection(
                 isEditMode = isEditMode,
@@ -237,7 +361,7 @@ fun CreateEventScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActivityDetailsSection(
     eventName: String,
@@ -251,7 +375,7 @@ private fun ActivityDetailsSection(
 ) {
     Column {
         Text(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.standardPadding(horizontal = basePadding, vertical = smallPadding),
             text = "Activity details".uppercase(Locale.getDefault()),
             style = MaterialTheme.typography.labelLargeEmphasized,
             color = MaterialTheme.colorScheme.outline
@@ -261,32 +385,39 @@ private fun ActivityDetailsSection(
             value = eventName,
             onValueChange = onEventNameChange,
             label = "Event Name",
-            modifier = Modifier.padding(16.dp, 0.dp)
+            modifier = Modifier.standardPadding(horizontal = basePadding, vertical = 0.dp)
         )
 
         DateTimeInput(
             selectedDateTime = selectedDateTime,
             onDateTimeSelected = onDateTimeSelected,
-            modifier = Modifier.padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 4.dp)
+            modifier = Modifier.padding(
+                top = smallPadding * 1.5f,
+                start = basePadding,
+                end = basePadding,
+                bottom = extraSmallPadding
+            )
         )
 
         ITextField(
             value = eventLocation,
             onValueChange = onEventLocationChange,
             label = "Location",
-            modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp, bottom = 4.dp)
+            modifier = Modifier.padding(
+                top = 0.dp, start = basePadding, end = basePadding, bottom = extraSmallPadding
+            )
         )
 
         ITextField(
             value = eventSummary,
             onValueChange = onEventSummaryChange,
             label = "Description",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp)
+            modifier = Modifier.standardPadding(horizontal = basePadding, vertical = 0.dp)
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun HeaderSection(
     isEditMode: Boolean,
@@ -296,7 +427,7 @@ private fun HeaderSection(
     onCardClick: () -> Unit
 ) {
     if (!isEditMode) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.standardPadding()) {
             AnimatedContent(
                 targetState = isEditMode, transitionSpec = {
                     slideInHorizontally(
@@ -308,19 +439,12 @@ private fun HeaderSection(
                 if (!editMode) {
                     Column {
                         Text(
-                            text = "Need help planning your day?",
-                            style = MaterialTheme.typography.headlineLargeEmphasized
-                        )
-
-                        Spacer(modifier = Modifier.padding(8.dp))
-
-                        Text(
                             text = "Take a look at the suggestion below and add it to your itinerary. You can always edit it later.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        Spacer(modifier = Modifier.padding(8.dp))
+                        Spacer(modifier = Modifier.padding(smallPadding))
 
                         Text(
                             text = "AI Text suggestion holder...\n" + "Seems like lately you are traveling around the downtown part of the city, maybe suggest going into a café with a view of the Eiffel Tower?",
@@ -342,9 +466,7 @@ private fun HeaderSection(
         AnimatedVisibility(
             visible = showCard,
             exit = fadeOut(animationSpec = tween(400)) + scaleOut(animationSpec = tween(400)) + slideOutVertically(
-                animationSpec = tween(400), targetOffsetY = { -it }
-            )
-        ) {
+                animationSpec = tween(400), targetOffsetY = { -it })) {
             AnimatedBorderCard(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface)
@@ -359,7 +481,7 @@ private fun HeaderSection(
             )
         }
     } else {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.standardPadding()) {
             AnimatedContent(
                 targetState = existingItem != null, transitionSpec = {
                     slideInHorizontally(
@@ -369,13 +491,6 @@ private fun HeaderSection(
                     )
                 }) { isExisting ->
                 Column {
-                    Text(
-                        text = if (isExisting) "Edit Activity" else "Create Activity",
-                        style = MaterialTheme.typography.headlineLargeEmphasized
-                    )
-
-                    Spacer(modifier = Modifier.padding(4.dp))
-
                     Text(
                         text = if (isExisting) "Update the activity details below" else "Fill in the activity details below",
                         style = MaterialTheme.typography.bodyMedium,
@@ -387,7 +502,7 @@ private fun HeaderSection(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AnimatedBorderCard(
     title: String,
@@ -404,13 +519,13 @@ private fun AnimatedBorderCard(
         )
     )
 
-    val cornerRadius = 10.dp
+    val cornerRadius = commonCornerRadius + 2.dp
     val gradientColors =
         listOf(Color(0xFFC26A92), Color(0xFF4A8DD8), Color(0xFF784CF0), Color(0xFF4A8DD8))
 
     Box(
         modifier = modifier
-            .padding(16.dp)
+            .standardPadding()
             .drawBehind {
                 val centerX = size.width / 2f
                 val centerY = size.height / 2f
@@ -497,15 +612,15 @@ private fun AnimatedBorderCard(
                     style = MaterialTheme.typography.headlineSmallEmphasized,
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(18.dp)
+                    modifier = Modifier.padding(basePadding + 2.dp)
                 )
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                        .standardPadding(),
+                    verticalArrangement = Arrangement.spacedBy(smallIconSize - 8.dp)
                 ) {
                     InfoRow(icon = Icons.Default.Schedule, text = time)
                     InfoRow(icon = Icons.Default.Place, text = location)
@@ -525,7 +640,7 @@ fun InfoRow(
         Icon(
             imageVector = icon, contentDescription = null, tint = Color.Gray
         )
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(smallIconSize - 8.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
@@ -534,7 +649,7 @@ fun InfoRow(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ReminderSection(
     visible: Boolean,
@@ -556,9 +671,9 @@ private fun ReminderSection(
             initialOffsetX = { -it }, animationSpec = tween(500)
         )
     ) {
-        Column(modifier = Modifier.padding(16.dp, 0.dp)) {
+        Column(modifier = Modifier.standardPadding(horizontal = basePadding, vertical = 0.dp)) {
             Text(
-                modifier = Modifier.padding(vertical = 8.dp),
+                modifier = Modifier.padding(vertical = smallPadding),
                 text = "Reminder".uppercase(Locale.getDefault()),
                 style = MaterialTheme.typography.labelLargeEmphasized,
                 color = MaterialTheme.colorScheme.outline
@@ -566,10 +681,9 @@ private fun ReminderSection(
 
             ICard(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                onClick = { onShowMinutesDropdownChange(true) },
+                shape = RoundedCornerShape(commonCornerRadius),
                 content = {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.standardPadding()) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -581,11 +695,11 @@ private fun ReminderSection(
                             Text(
                                 text = "Remind me at event time",
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(start = 8.dp)
+                                modifier = Modifier.padding(start = smallPadding)
                             )
                         }
 
-                        Spacer(modifier = Modifier.padding(4.dp))
+                        Spacer(modifier = Modifier.padding(extraSmallPadding))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -597,7 +711,7 @@ private fun ReminderSection(
                             Text(
                                 text = "Custom reminder",
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(start = 8.dp)
+                                modifier = Modifier.padding(start = smallPadding)
                             )
                         }
 
@@ -609,7 +723,9 @@ private fun ReminderSection(
                             Column(
                                 modifier = Modifier
                                     .padding(
-                                        start = 40.dp, top = 8.dp, bottom = 8.dp
+                                        start = largePadding + extraSmallPadding,
+                                        top = smallPadding,
+                                        bottom = smallPadding
                                     )
                                     .fillMaxWidth()
                             ) {
@@ -619,11 +735,11 @@ private fun ReminderSection(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
-                                Spacer(modifier = Modifier.padding(4.dp))
+                                Spacer(modifier = Modifier.padding(extraSmallPadding))
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(smallPadding),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Box(modifier = Modifier.weight(1f, false)) {
@@ -631,12 +747,12 @@ private fun ReminderSection(
                                             modifier = Modifier.clickable {
                                                 onShowHoursDropdownChange(true)
                                             },
-                                            shape = RoundedCornerShape(4.dp),
+                                            shape = RoundedCornerShape(extraSmallPadding),
                                             onClick = { onShowHoursDropdownChange(true) },
                                             content = {
                                                 Text(
                                                     text = if (customReminderHours == 0) "0 hours" else "$customReminderHours hour${if (customReminderHours > 1) "s" else ""}",
-                                                    modifier = Modifier.padding(8.dp),
+                                                    modifier = Modifier.padding(smallPadding),
                                                     style = MaterialTheme.typography.bodySmall
                                                 )
                                             })
@@ -671,12 +787,12 @@ private fun ReminderSection(
                                             modifier = Modifier.clickable {
                                                 onShowMinutesDropdownChange(true)
                                             },
-                                            shape = RoundedCornerShape(4.dp),
+                                            shape = RoundedCornerShape(extraSmallPadding),
                                             onClick = { onShowMinutesDropdownChange(true) },
                                             content = {
                                                 Text(
                                                     text = "$customReminderMinutes minute${if (customReminderMinutes > 1) "s" else ""}",
-                                                    modifier = Modifier.padding(8.dp),
+                                                    modifier = Modifier.padding(smallPadding),
                                                     style = MaterialTheme.typography.bodySmall
                                                 )
                                             })
@@ -729,24 +845,24 @@ private fun SaveButtonSection(
 ) {
     val isEditMode = existingItem != null
     val isCompleted = existingItem?.isCompleted ?: false
-    val canSave = eventName.isNotBlank() && eventTime.isNotBlank() &&
-            eventLocation.isNotBlank() && eventSummary.isNotBlank()
+    val canSave =
+        eventName.isNotBlank() && eventTime.isNotBlank() && eventLocation.isNotBlank() && eventSummary.isNotBlank()
 
     Column(modifier = Modifier.padding(bottom = basePadding)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .standardPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isEditMode) {
                 Column(
                     modifier = Modifier
-                        .padding(top = 16.dp)
+                        .padding(top = basePadding)
                         .weight(1f)
                 ) {
-                    SwipeButton (
+                    SwipeButton(
                         text = if (isCompleted) "Mark as not completed" else "Mark as completed",
                         isComplete = isCompleted,
                         onSwipe = {
@@ -759,8 +875,7 @@ private fun SaveButtonSection(
                                     existingItem?.id?.let { onCompleted(it) }
                                 }
                             }
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -769,14 +884,13 @@ private fun SaveButtonSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    .standardPadding(),
+                horizontalArrangement = Arrangement.spacedBy(basePadding)
             ) {
                 IButton(
                     modifier = Modifier
                         .weight(1f)
-                        .padding(top = 16.dp),
-                    onClick = {
+                        .padding(top = basePadding), onClick = {
                         if (canSave) {
                             if (existingItem != null) {
                                 onUpdateActivity(
@@ -788,60 +902,47 @@ private fun SaveButtonSection(
                                 )
                             } else {
                                 onCreateActivity(
-                                    eventName,
-                                    eventTime,
-                                    eventLocation,
-                                    eventSummary
+                                    eventName, eventTime, eventLocation, eventSummary
                                 )
                             }
                             onSaveComplete()
                         }
-                    },
-                    text = {
+                    }, text = {
                         Text(
                             text = "Update activity",
                             style = MaterialTheme.typography.labelLargeEmphasized
                         )
-                    },
-                    importance = ButtonImportance.Primary
+                    }, importance = ButtonImportance.Primary
                 )
 
                 Box(
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier.padding(top = basePadding)
                 ) {
                     IButton(
                         onClick = { /* Handled by overlay */ },
                         text = { Text("Delete") },
                         importance = ButtonImportance.Error
                     )
-                    
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .combinedClickable(
-                                onClick = {
-                                    Toast.makeText(
-                                        context,
-                                        "Please hold longer to delete",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                },
-                                onLongClick = {
-                                    existingItem?.id?.let {
-                                        onDeleteActivity(it)
-                                    }
-                                }
-                            )
-                    )
+
+                    Box(modifier = Modifier
+                        .matchParentSize()
+                        .combinedClickable(onClick = {
+                            Toast.makeText(
+                                context, "Please hold longer to delete", Toast.LENGTH_SHORT
+                            ).show()
+                        }, onLongClick = {
+                            existingItem?.id?.let {
+                                onDeleteActivity(it)
+                            }
+                        }))
                 }
             }
         } else {
             IButton(
                 modifier = Modifier
-                    .padding(top = if (isEditMode) 8.dp else 16.dp)
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                onClick = {
+                    .padding(top = if (isEditMode) smallPadding else basePadding)
+                    .standardPadding()
+                    .fillMaxWidth(), onClick = {
                     if (canSave) {
                         if (existingItem != null) {
                             onUpdateActivity(
@@ -853,25 +954,109 @@ private fun SaveButtonSection(
                             )
                         } else {
                             onCreateActivity(
-                                eventName,
-                                eventTime,
-                                eventLocation,
-                                eventSummary
+                                eventName, eventTime, eventLocation, eventSummary
                             )
                         }
                         onSaveComplete()
                     }
-                },
-                text = {
+                }, text = {
                     Text(
                         text = "Save activity",
                         style = MaterialTheme.typography.labelLargeEmphasized
                     )
-                },
-                importance = ButtonImportance.Primary
+                }, importance = ButtonImportance.Primary
             )
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun CollapsedEventHeader(
+    modifier: Modifier,
+    visible: Boolean,
+    eventName: String,
+    dateSubtitle: String,
+    onBack: () -> Unit,
+    canSave: Boolean,
+    onSave: () -> Unit,
+) {
+    TopAppBar(
+        modifier = modifier,
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            }
+        },
+        title = {
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(animationSpec = tween()),
+                exit = fadeOut(animationSpec = tween())
+            ) {
+                Column {
+                    Text(
+                        text = if (eventName.isBlank()) "Need help planning your day?" else eventName,
+                        style = MaterialTheme.typography.titleLargeEmphasized,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (dateSubtitle.isNotEmpty()) {
+                        Text(
+                            text = dateSubtitle,
+                            style = MaterialTheme.typography.labelLargeEmphasized
+                        )
+                    }
+                }
+            }
+        },
+        actions = {
+            if (canSave && visible) {
+                IButton(
+                    onClick = onSave,
+                    modifier = Modifier.padding(end = smallPadding),
+                    height = ButtonDefaults.ExtraSmallContainerHeight,
+                    contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.ExtraSmallContainerHeight)
+                ) {
+                    Spacer(
+                        modifier = Modifier.size(
+                            ButtonDefaults.iconSpacingFor(
+                                ButtonDefaults.ExtraSmallContainerHeight
+                            )
+                        )
+                    )
+                    Text("Save")
+                }
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun ExpandedEventHeader(
+    modifier: Modifier,
+    visible: Boolean,
+    eventName: String,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = tween()),
+        exit = fadeOut(animationSpec = tween())
+    ) {
+        Column(modifier = modifier) {
+            Text(
+                text = if (eventName.isBlank()) "Need help planning your day?" else eventName,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.headlineLargeEmphasized
+            )
+        }
+    }
+
 }
 
 @DevicePreview
@@ -883,7 +1068,8 @@ private fun CreateEventScreenPreview() {
             onCreateActivity = { _, _, _, _ -> },
             onUpdateActivity = { _, _, _, _, _ -> },
             onDeleteActivity = {},
-            onSaveComplete = { }
+            onSaveComplete = { },
+            onBack = { }
         )
     }
 }
