@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 sealed interface ItineraryUiState {
     data object Idle : ItineraryUiState
@@ -46,10 +47,9 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
 
     private var currentGroupCode: String = ""
 
-    // Track ongoing operations to prevent duplicates
-    private var isCreating = false
-    private var isUpdating = false
-    private var isDeleting = false
+    private val isCreating = AtomicBoolean(false)
+    private val isUpdating = AtomicBoolean(false)
+    private val isDeleting = AtomicBoolean(false)
 
     fun fetchItinerary(groupCode: String, forceRefresh: Boolean = false) {
         currentGroupCode = groupCode
@@ -91,138 +91,104 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
     }
 
     fun createActivity(groupCode: String, request: CreateItineraryItem) {
-        Log.d(
-            "ITINERO - Itinerary ViewModel",
-            "createActivity called with groupCode: $groupCode, request: $request"
-        )
-        if (isCreating) {
-            Log.d("ITINERO - Itinerary ViewModel", "createActivity already in progress")
-            return
-        }
-        isCreating = true
+        isCreating.set(true)
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.value = ItineraryUiState.Loading
-            Log.d("ITINERO - Itinerary ViewModel", "Calling createActivityUseCase...")
-            when (val result = itineraryUseCase.createActivityUseCase(groupCode, request)) {
-                is Result.Success -> {
-                    Log.d("ITINERO - Itinerary ViewModel", "createActivity SUCCESS: ${result.data}")
-                    _uiState.value = ItineraryUiState.Success(result.data)
-                }
+            try {
+                _uiState.value = ItineraryUiState.Loading
+                when (val result = itineraryUseCase.createActivityUseCase(groupCode, request)) {
+                    is Result.Success -> {
+                        _uiState.value = ItineraryUiState.Success(result.data)
+                    }
 
-                is Result.Error -> {
-                    Log.e(
-                        "ITINERO - Itinerary ViewModel",
-                        "createActivity FAILED: ${result.exception.message}",
-                        result.exception
-                    )
-                    _uiState.value = ItineraryUiState.Error(
-                        result.exception.message ?: "Failed to create activity"
-                    )
+                    is Result.Error -> {
+                        Log.e(
+                            "ITINERO - Itinerary ViewModel",
+                            "createActivity FAILED: ${result.exception.message}",
+                            result.exception
+                        )
+                        _uiState.value = ItineraryUiState.Error(
+                            result.exception.message ?: "Failed to create activity"
+                        )
+                    }
                 }
+            } finally {
+                isCreating.set(false)
             }
-            isCreating = false
         }
     }
 
     fun updateActivity(groupCode: String, itemId: String, request: UpdateItineraryItem) {
-        Log.d(
-            "ITINERO - Itinerary ViewModel",
-            "updateActivity called with groupCode: $groupCode, itemId: $itemId, request: $request"
-        )
-        if (isUpdating) {
-            Log.d("ITINERO - Itinerary ViewModel", "updateActivity already in progress")
-            return
-        }
-        isUpdating = true
+        isUpdating.set(true)
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.value = ItineraryUiState.Loading
-            Log.d("ITINERO - Itinerary ViewModel", "Calling updateActivityInfoUseCase...")
-            when (val result =
-                itineraryUseCase.updateActivityInfoUseCase(groupCode, itemId, request)) {
-                is Result.Success -> {
-                    Log.d("ITINERO - Itinerary ViewModel", "updateActivity SUCCESS: ${result.data}")
-                    _selectedItem.value = result.data
-                    _uiState.value = ItineraryUiState.Success(result.data)
-                }
+            try {
+                _uiState.value = ItineraryUiState.Loading
+                when (val result =
+                    itineraryUseCase.updateActivityInfoUseCase(groupCode, itemId, request)) {
+                    is Result.Success -> {
+                        _selectedItem.value = result.data
+                        _uiState.value = ItineraryUiState.Success(result.data)
+                    }
 
-                is Result.Error -> {
-                    Log.e(
-                        "ITINERO - Itinerary ViewModel",
-                        "updateActivity FAILED: ${result.exception.message}",
-                        result.exception
-                    )
-                    _uiState.value = ItineraryUiState.Error(
-                        result.exception.message ?: "Failed to update activity"
-                    )
+                    is Result.Error -> {
+                        Log.e(
+                            "ITINERO - Itinerary ViewModel",
+                            "updateActivity FAILED: ${result.exception.message}",
+                            result.exception
+                        )
+                        _uiState.value = ItineraryUiState.Error(
+                            result.exception.message ?: "Failed to update activity"
+                        )
+                    }
                 }
+            } finally {
+                isUpdating.set(false)
             }
-            isUpdating = false
         }
     }
 
     fun deleteActivity(groupCode: String, itemId: String) {
-        if (isDeleting) {
-            Log.d("ITINERO - Itinerary ViewModel", "deleteActivity already in progress")
-            return
-        }
-        isDeleting = true
+        isDeleting.set(true)
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.value = ItineraryUiState.Loading
-            when (val result = itineraryUseCase.deleteActivityByIdUseCase(groupCode, itemId)) {
-                is Result.Success -> {
-                    _uiState.value = ItineraryUiState.Success(Unit)
-                    _itineraryData.value =
-                        _itineraryData.value.filter { it.id.toString() != itemId }
-                    if (_selectedItem.value?.id.toString() == itemId) {
-                        _selectedItem.value = null
+            try {
+                _uiState.value = ItineraryUiState.Loading
+                when (val result = itineraryUseCase.deleteActivityByIdUseCase(groupCode, itemId)) {
+                    is Result.Success -> {
+                        _uiState.value = ItineraryUiState.Success(Unit)
+                        _itineraryData.value =
+                            _itineraryData.value.filter { it.id.toString() != itemId }
+                        if (_selectedItem.value?.id.toString() == itemId) {
+                            _selectedItem.value = null
+                        }
+                    }
+
+                    is Result.Error -> {
+                        _uiState.value = ItineraryUiState.Error(
+                            result.exception.message ?: "Failed to delete activity"
+                        )
                     }
                 }
-
-                is Result.Error -> {
-                    _uiState.value = ItineraryUiState.Error(
-                        result.exception.message ?: "Failed to delete activity"
-                    )
-                }
+            } finally {
+                isDeleting.set(false)
             }
-            isDeleting = false
         }
     }
 
     fun toggleActivityCompletion(groupCode: String, itemId: String) {
-        Log.d(
-            "ITINERO - Itinerary ViewModel",
-            "toggleActivityCompletion called with itemId: $itemId"
-        )
         viewModelScope.launch(Dispatchers.IO) {
-            when (val result = itineraryUseCase.toggleActivityCompletionUseCase(groupCode, itemId)) {
+            when (val result =
+                itineraryUseCase.toggleActivityCompletionUseCase(groupCode, itemId)) {
                 is Result.Success -> {
-                    Log.d(
-                        "ITINERO - Itinerary ViewModel",
-                        "Toggle completion successful for itemId: $itemId"
-                    )
                     val oldData = _itineraryData.value
                     _itineraryData.value = _itineraryData.value.map { item ->
                         if (item.id.toString() == itemId) {
-                            Log.d(
-                                "ITINERO - Itinerary ViewModel",
-                                "Found matching item: ${item.name} (ID: ${item.id}), was completed: ${item.isCompleted}, now: ${!item.isCompleted}"
-                            )
                             item.copy(isCompleted = !item.isCompleted)
                         } else {
                             item
                         }
                     }
-                    Log.d(
-                        "ITINERO - Itinerary ViewModel",
-                        "Updated ${_itineraryData.value.size} items in list"
-                    )
 
                     _selectedItem.value?.let { selected ->
                         if (selected.id.toString() == itemId) {
-                            Log.d(
-                                "ITINERO - Itinerary ViewModel",
-                                "Also updating selected item: ${selected.name}"
-                            )
                             _selectedItem.value = selected.copy(isCompleted = !selected.isCompleted)
                         }
                     }
@@ -251,10 +217,6 @@ class ItineraryViewModel(private val itineraryUseCase: ItineraryUseCase, groupCo
     }
 
     fun refreshData() {
-        Log.d(
-            "ITINERO - Itinerary ViewModel",
-            "refreshData called with currentGroupCode: $currentGroupCode"
-        )
         if (currentGroupCode.isNotEmpty()) {
             fetchItinerary(currentGroupCode, forceRefresh = true)
         }

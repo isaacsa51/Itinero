@@ -59,7 +59,6 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
 import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.largePadding
-import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
@@ -126,72 +125,23 @@ fun ExpensesScreen(
                         fadeOut(animationSpec = tween(300))
             }
         ) { targetState ->
-            when (targetState) {
-                is ExpensesUiState.Loading -> {
-                    if (expenses.isEmpty()) {
-                        ShimmerProvider(isLoading = true) {
-                            ExpensesScreenSkeleton(paddingValues, scrollBehavior)
-                        }
-                    } else {
-                        ExpensesContent(
-                            expensesByDate = expensesByDate,
-                            balanceData = balanceData,
-                            startDate = startDate,
-                            endDate = endDate,
-                            isLoading = isLoading,
-                            onRefresh = onRefresh,
-                            onExpenseClick = onExpenseClick,
-                            paddingValues = paddingValues,
-                            scrollBehavior = scrollBehavior,
-                            pullToRefreshState = pullToRefreshState
-                        )
-                    }
+            if (targetState is ExpensesUiState.Loading && expenses.isEmpty()) {
+                ShimmerProvider(isLoading = true) {
+                    ExpensesScreenSkeleton(paddingValues, scrollBehavior)
                 }
-
-                is ExpensesUiState.Success<*> -> {
-                    ExpensesContent(
-                        expensesByDate = expensesByDate,
-                        balanceData = balanceData,
-                        startDate = startDate,
-                        endDate = endDate,
-                        isLoading = isLoading,
-                        onRefresh = onRefresh,
-                        onExpenseClick = onExpenseClick,
-                        paddingValues = paddingValues,
-                        scrollBehavior = scrollBehavior,
-                        pullToRefreshState = pullToRefreshState
-                    )
-                }
-
-                is ExpensesUiState.Error -> {
-                    ExpensesContent(
-                        expensesByDate = expensesByDate,
-                        balanceData = balanceData,
-                        startDate = startDate,
-                        endDate = endDate,
-                        isLoading = isLoading,
-                        onRefresh = onRefresh,
-                        onExpenseClick = onExpenseClick,
-                        paddingValues = paddingValues,
-                        scrollBehavior = scrollBehavior,
-                        pullToRefreshState = pullToRefreshState
-                    )
-                }
-
-                is ExpensesUiState.Idle -> {
-                    ExpensesContent(
-                        expensesByDate = expensesByDate,
-                        balanceData = balanceData,
-                        startDate = startDate,
-                        endDate = endDate,
-                        isLoading = isLoading,
-                        onRefresh = onRefresh,
-                        onExpenseClick = onExpenseClick,
-                        paddingValues = paddingValues,
-                        scrollBehavior = scrollBehavior,
-                        pullToRefreshState = pullToRefreshState
-                    )
-                }
+            } else {
+                ExpensesContent(
+                    expensesByDate = expensesByDate,
+                    balanceData = balanceData,
+                    startDate = startDate,
+                    endDate = endDate,
+                    isLoading = isLoading,
+                    onRefresh = onRefresh,
+                    onExpenseClick = onExpenseClick,
+                    paddingValues = paddingValues,
+                    scrollBehavior = scrollBehavior,
+                    pullToRefreshState = pullToRefreshState
+                )
             }
         }
     }

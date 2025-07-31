@@ -118,90 +118,44 @@ fun ItineraryScreen(
                     )
                 }
             }) { targetState ->
-                when (targetState) {
-                    is ItineraryUiState.Loading -> {
-                        if (itinerary.isEmpty()) {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                                    .padding(paddingValues)
-                            ) {
-                                items(3) { index ->
-                                    ShimmerProvider {
-                                        ItineraryDateSection(
-                                            date = LocalDate.now().plusDays(index.toLong()),
-                                            activities = listOf(
-                                                ItineraryItem(
-                                                    id = "loading_$index",
-                                                    name = "Loading activity",
-                                                    date = "2023-10-01",
-                                                    time = "Loading time",
-                                                    location = "Loading location",
-                                                    description = "Loading description"
-                                                )
-                                            ),
-                                            isLastSection = index == 2,
-                                            onActivitySwiped = { _, _ -> })
-                                    }
-                                }
+                if (targetState is ItineraryUiState.Loading && itinerary.isEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection)
+                            .padding(paddingValues)
+                    ) {
+                        items(3) { index ->
+                            ShimmerProvider {
+                                ItineraryDateSection(
+                                    date = LocalDate.now().plusDays(index.toLong()),
+                                    activities = listOf(
+                                        ItineraryItem(
+                                            id = "loading_$index",
+                                            name = "Loading activity",
+                                            date = "2023-10-01",
+                                            time = "Loading time",
+                                            location = "Loading location",
+                                            description = "Loading description"
+                                        )
+                                    ),
+                                    isLastSection = index == 2,
+                                    onActivitySwiped = { _, _ -> })
                             }
-                        } else {
-                            ItineraryContent(
-                                hasAnyItems = hasAnyItems,
-                                itinerary = itinerary,
-                                startDate = startDate,
-                                endDate = endDate,
-                                onToggleCompletion = onToggleCompletion,
-                                onSwiped = onSwiped,
-                                onActivityClick = onActivityClick,
-                                scrollBehavior = scrollBehavior,
-                                paddingValues = paddingValues
-                            )
                         }
                     }
-
-                    is ItineraryUiState.Idle -> {
-                        ItineraryContent(
-                            hasAnyItems = hasAnyItems,
-                            itinerary = itinerary,
-                            startDate = startDate,
-                            endDate = endDate,
-                            onToggleCompletion = onToggleCompletion,
-                            onSwiped = onSwiped,
-                            onActivityClick = onActivityClick,
-                            scrollBehavior = scrollBehavior,
-                            paddingValues = paddingValues
-                        )
-                    }
-
-                    is ItineraryUiState.Error -> {
-                        ItineraryContent(
-                            hasAnyItems = hasAnyItems,
-                            itinerary = itinerary,
-                            startDate = startDate,
-                            endDate = endDate,
-                            onToggleCompletion = onToggleCompletion,
-                            onSwiped = onSwiped,
-                            onActivityClick = onActivityClick,
-                            scrollBehavior = scrollBehavior,
-                            paddingValues = paddingValues
-                        )
-                    }
-
-                    is ItineraryUiState.Success<*> -> {
-                        ItineraryContent(
-                            hasAnyItems = hasAnyItems,
-                            itinerary = itinerary,
-                            startDate = startDate,
-                            endDate = endDate,
-                            onToggleCompletion = onToggleCompletion,
-                            onSwiped = onSwiped,
-                            onActivityClick = onActivityClick,
-                            scrollBehavior = scrollBehavior,
-                            paddingValues = paddingValues
-                        )
-                    }
+                } else {
+                    ItineraryContent(
+                        hasAnyItems = hasAnyItems,
+                        itinerary = itinerary,
+                        startDate = startDate,
+                        endDate = endDate,
+                        onToggleCompletion = onToggleCompletion,
+                        onSwiped = onSwiped,
+                        onActivityClick = onActivityClick,
+                        scrollBehavior = scrollBehavior,
+                        paddingValues = paddingValues
+                    )
                 }
             }
         }
@@ -329,7 +283,9 @@ fun ItineraryDateSection(
             } else {
                 activities.forEachIndexed { index, activity ->
                     SwipeableCard(
-                        modifier = Modifier.padding(bottom = smallPadding).shimmerable(),
+                        modifier = Modifier
+                            .padding(bottom = smallPadding)
+                            .shimmerable(),
                         content = {
                             Column {
                                 Text(
