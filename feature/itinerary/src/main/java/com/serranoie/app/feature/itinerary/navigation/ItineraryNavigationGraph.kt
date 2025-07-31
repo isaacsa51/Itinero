@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -34,7 +37,7 @@ fun NavGraphBuilder.itineraryGraph(
         val itineraryData by viewModel.itineraryData.collectAsState()
 
         LaunchedEffect(groupCode) {
-            viewModel.fetchItinerary(groupCode)
+            viewModel.fetchItinerary(groupCode, forceRefresh = true)
         }
 
         val screenItineraryData = convertDomainToScreenModel(itineraryData)
@@ -64,10 +67,30 @@ fun NavGraphBuilder.itineraryGraph(
         val groupCode = tripData?.groupCode ?: tripId
         val viewModel = koinViewModel<ItineraryViewModel> { parametersOf(groupCode) }
         val itineraryData by viewModel.itineraryData.collectAsState()
+        val uiState by viewModel.uiState.collectAsState()
+
+        var isSaving by remember { mutableStateOf(false) }
+
+        LaunchedEffect(uiState, isSaving) {
+            val currentState = uiState
+            if (isSaving && currentState is com.serranoie.app.feature.itinerary.ItineraryUiState.Success<*> &&
+                currentState.data is DomainItineraryItem
+            ) {
+                Log.d(
+                    "ItineraryNavGraph",
+                    "Create operation successful - refreshing data and navigating back"
+                )
+                viewModel.fetchItinerary(groupCode, forceRefresh = true)
+                viewModel.resetState()
+                navController.popBackStack()
+                isSaving = false
+            }
+        }
 
         CreateEventScreen(
             existingItem = null,
             onCreateActivity = { name, dateTime, location, description ->
+                isSaving = true
                 val (date, time) = parseDateTimeFromCreateEventScreen(dateTime)
                 val createRequest = CreateItineraryItem(
                     name = name,
@@ -79,6 +102,7 @@ fun NavGraphBuilder.itineraryGraph(
                 viewModel.createActivity(groupCode, createRequest)
             },
             onUpdateActivity = { id, name, dateTime, location, description ->
+                isSaving = true
                 val (date, time) = parseDateTimeFromCreateEventScreen(dateTime)
 
                 val updateRequest = UpdateItineraryItem(
@@ -88,12 +112,11 @@ fun NavGraphBuilder.itineraryGraph(
                     time = time,
                     location = location
                 )
-                Log.d("ItineraryNavGraph", "Update request: $updateRequest")
 
                 viewModel.updateActivity(groupCode, id, updateRequest)
             },
             onSaveComplete = {
-                navController.popBackStack()
+                Log.d("ItineraryNavGraph", "onSaveComplete called - now handled by LaunchedEffect")
             },
             onCompleted = { },
             onBack = { navController.popBackStack() })
@@ -107,6 +130,21 @@ fun NavGraphBuilder.itineraryGraph(
         }
         val itineraryData by viewModel.itineraryData.collectAsState()
         val selectedItem by viewModel.selectedItem.collectAsState()
+        val uiState by viewModel.uiState.collectAsState()
+
+        var isSaving by remember { mutableStateOf(false) }
+
+        LaunchedEffect(uiState, isSaving) {
+            val currentState = uiState
+            if (isSaving && currentState is com.serranoie.app.feature.itinerary.ItineraryUiState.Success<*> &&
+                (currentState.data is DomainItineraryItem || currentState.data is Unit)
+            ) {
+                viewModel.fetchItinerary(groupCode, forceRefresh = true)
+                viewModel.resetState()
+                navController.popBackStack()
+                isSaving = false
+            }
+        }
 
         LaunchedEffect(groupCode, itemId) {
             if (itineraryData.isEmpty()) {
@@ -153,15 +191,10 @@ fun NavGraphBuilder.itineraryGraph(
             )
         }
 
-        LaunchedEffect(itemId, itineraryData) {
-            if (!itemId.isNullOrEmpty() && itineraryData.isNotEmpty() && existingItem == null) {
-                navController.popBackStack()
-            }
-        }
-
         CreateEventScreen(existingItem = currentItem, onCreateActivity = { _, _, _, _ ->
             // This should never be called in edit mode since existingItem is not null
         }, onUpdateActivity = { id, name, dateTime, location, description ->
+            isSaving = true
             val (date, time) = parseDateTimeFromCreateEventScreen(dateTime)
 
             val updateRequest = UpdateItineraryItem(
@@ -175,14 +208,16 @@ fun NavGraphBuilder.itineraryGraph(
 
             viewModel.updateActivity(groupCode, id, updateRequest)
         }, onDeleteActivity = { id ->
+            isSaving = true
             viewModel.deleteActivity(groupCode, id)
-            navController.popBackStack()
         }, onSaveComplete = {
-            navController.popBackStack()
         }, onCompleted = { id ->
             viewModel.toggleActivityCompletion(groupCode, id)
             viewModel.getActivityById(groupCode, id, forceRefresh = true)
-        }, onBack = { navController.popBackStack() })
+        }, onBack = {
+            viewModel.fetchItinerary(groupCode, forceRefresh = true)
+            navController.popBackStack()
+        })
     }
 }
 

@@ -89,6 +89,9 @@ dependencies {
     // Lifecycle viewmodel
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Swipe
+    implementation("me.saket.swipe:swipe:1.3.0")
 }
 
 kapt {

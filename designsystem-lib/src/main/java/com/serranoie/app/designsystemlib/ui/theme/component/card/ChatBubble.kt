@@ -13,6 +13,7 @@ package com.serranoie.app.designsystemlib.ui.theme.component.card
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,6 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.animateVisibility
 import com.serranoie.app.designsystemlib.ui.utils.bounceClick
-import com.serranoie.app.designsystemlib.ui.utils.designBorder
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 
 /**
@@ -285,7 +285,6 @@ private fun ChatAvatar(
 ) {
     InitialsAvatar(
         name = authorName,
-        onClick = onClick,
         modifier = modifier
     )
 }
@@ -297,7 +296,6 @@ private fun ChatAvatar(
 @Composable
 private fun InitialsAvatar(
     name: String,
-    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val initials = getInitials(name)
@@ -310,8 +308,7 @@ private fun InitialsAvatar(
             .size(iconSize * 2) // Using iconSize constant for consistency
             .clip(CircleShape)
             .background(backgroundColor)
-            .designBorder(width = borderStrokeWidth, color = borderColor)
-            .bounceClick { onClick() },
+            .border(width = borderStrokeWidth, color = borderColor, shape = CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Text(

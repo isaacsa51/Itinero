@@ -4,18 +4,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,7 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.IIconButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
 import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
@@ -61,29 +62,41 @@ fun OnboardItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                verticalArrangement = Arrangement.Center,
+                    .weight(1f)
+                    .padding(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.45F),
+                        .weight(0.45f, fill = false)
+                        .height(240.dp),
                     painter = painterResource(id = page.image),
                     contentDescription = null,
                     contentScale = ContentScale.Fit
                 )
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    modifier = Modifier.padding(horizontal = 30.dp),
-                    text = page.title,
-                    style = MaterialTheme.typography.displaySmallEmphasized.copy(fontWeight = FontWeight.Bold),
-                )
-                Text(
-                    modifier = Modifier.padding(horizontal = 30.dp),
-                    text = page.description,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = page.title,
+                        style = MaterialTheme.typography.headlineMediumEmphasized.copy(fontWeight = FontWeight.Bold),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = page.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Start
+                    )
+                }
             }
 
             Row(
@@ -139,5 +152,17 @@ fun OnboardItem(
                 }
             }
         }
+    }
+}
+
+@DevicePreview
+@Composable
+fun OnboardItemPreview() {
+    PreviewWrapper {
+        OnboardItem(
+            page = pages.first(),
+            pagerState = rememberPagerState(pageCount = { pages.size }),
+            onFinished = {}
+        )
     }
 }

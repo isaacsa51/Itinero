@@ -188,7 +188,7 @@ fun TripSettingsScreen(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GroupCodeCard(formattedCode: String, qrBitmap: Bitmap?) {
-    ICard(modifier = Modifier.standardPadding(), isCompleted = false, swipeable = false, content = {
+    ICard(modifier = Modifier.standardPadding(), isCompleted = false, content = {
         Column(modifier = Modifier.padding(basePadding + extraSmallPadding)) {
             Text(
                 modifier = Modifier.padding(top = basePadding),
@@ -393,7 +393,10 @@ private fun GroupManagementSection(
         ) {
             Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Invite New Member", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold))
+                Text(
+                    text = "Invite New Member",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Text(
                     text = "Share invitation code with others",
                     style = MaterialTheme.typography.bodySmall,
@@ -420,7 +423,10 @@ private fun GroupManagementSection(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Manage Members", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold))
+                        Text(
+                            text = "Manage Members",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                        )
                         Text(
                             text = "Review pending invitations and members",
                             style = MaterialTheme.typography.bodySmall,
@@ -461,7 +467,10 @@ private fun GroupManagementSection(
         ) {
             Spacer(modifier = Modifier.width(basePadding))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Transfer Ownership", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold))
+                Text(
+                    text = "Transfer Ownership",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
                 Text(
                     text = "Change the trip administrator",
                     style = MaterialTheme.typography.bodySmall,
@@ -531,7 +540,7 @@ private fun MembersListContent(
                         )
 
                         if (membersUiState.members.size > 1 && index < membersUiState.members.size - 1) {
-                           HorizontalDivider(
+                            HorizontalDivider(
                                 modifier = Modifier.padding(vertical = smallPadding),
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                             )
@@ -648,16 +657,12 @@ private fun MemberItemCardPreview() {
 
             MemberItemCard(
                 member = TripMember(
-                    id = 1,
-                    name = "John Doe",
-                    surname = "Doe",
-                    email = "john.doe@example.com",
-                    status = MemberStatus.PENDING
-                ),
-                onAccept = {},
-                onReject = {},
-                onRemove = {}
-            )
+                id = 1,
+                name = "John Doe",
+                surname = "Doe",
+                email = "john.doe@example.com",
+                status = MemberStatus.PENDING
+            ), onAccept = {}, onReject = {}, onRemove = {})
 
             Text(
                 text = "Accepted Member",
@@ -667,16 +672,12 @@ private fun MemberItemCardPreview() {
 
             MemberItemCard(
                 member = TripMember(
-                    id = 2,
-                    name = "Jane Smith",
-                    surname = "Smith",
-                    email = "jane.smith@example.com",
-                    status = MemberStatus.ACCEPTED
-                ),
-                onAccept = {},
-                onReject = {},
-                onRemove = {}
-            )
+                id = 2,
+                name = "Jane Smith",
+                surname = "Smith",
+                email = "jane.smith@example.com",
+                status = MemberStatus.ACCEPTED
+            ), onAccept = {}, onReject = {}, onRemove = {})
 
             Text(
                 text = "Owner Member",
@@ -686,16 +687,12 @@ private fun MemberItemCardPreview() {
 
             MemberItemCard(
                 member = TripMember(
-                    id = 3,
-                    name = "Alice Johnson",
-                    surname = "Johnson",
-                    email = "alice.johnson@example.com",
-                    status = MemberStatus.OWNER
-                ),
-                onAccept = {},
-                onReject = {},
-                onRemove = {}
-            )
+                id = 3,
+                name = "Alice Johnson",
+                surname = "Johnson",
+                email = "alice.johnson@example.com",
+                status = MemberStatus.OWNER
+            ), onAccept = {}, onReject = {}, onRemove = {})
         }
     }
 }
