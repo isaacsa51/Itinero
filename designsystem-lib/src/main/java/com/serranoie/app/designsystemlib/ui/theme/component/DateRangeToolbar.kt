@@ -1,7 +1,9 @@
 package com.serranoie.app.designsystemlib.ui.theme.component
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -15,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.utils.Constants.DATE_RANGE_TOOLBAR_DEFAULT_WEIGHT
-import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -55,11 +57,13 @@ fun RowScope.DateRangeToolbar(
             text = date.format(dayFormatter),
             style = dayTextStyle,
             color = dayColor,
+            modifier = Modifier.shimmerable()
         )
         Text(
             text = date.format(monthFormatter).uppercase(),
             style = monthTextStyle,
-            color = monthColor
+            color = monthColor,
+            modifier = Modifier.shimmerable()
         )
     }
 }
@@ -70,12 +74,12 @@ private fun DateRangeToolbarPreview() {
     val today = LocalDate.now()
     
     PreviewWrapper {
-        androidx.compose.foundation.layout.Row(
+        Row(
             modifier = Modifier.standardPadding()
         ) {
             DateRangeToolbar(date = today)
             
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Text(
                     text = "Content for this date",
                     style = MaterialTheme.typography.bodyMedium
