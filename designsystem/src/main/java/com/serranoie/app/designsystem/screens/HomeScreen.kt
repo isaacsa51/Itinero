@@ -51,6 +51,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpInputField
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeableCard
 import com.serranoie.app.designsystemlib.ui.utils.Utils.confirmFeedback
 import com.serranoie.app.designsystemlib.ui.utils.Utils.errorFeedback
 import com.serranoie.app.designsystemlib.ui.utils.Utils.strongHapticFeedback
@@ -890,7 +891,7 @@ fun FeedbackTester() {
                     IButton(
                         onClick = { feedbackAction() },
                         text = { Text(label) },
-                        importance =ButtonImportance.Secondary,
+                        importance = ButtonImportance.Secondary,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -906,3 +907,4 @@ fun HomeScreenPreview() {
         HomeScreen()
     }
 }
+

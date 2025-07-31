@@ -11,17 +11,22 @@
 
 package com.serranoie.app.designsystemlib.ui.theme.component.card
 
-import androidx.compose.animation.core.animateFloatAsState
+import android.graphics.BlurMaskFilter
+import android.widget.Toast
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -29,89 +34,108 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ConfirmationNumber
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.LinearGradientShader
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.borderStrokeWidth
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
-import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
-import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
 import com.serranoie.app.designsystemlib.ui.utils.bounceClick
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
-import kotlin.math.absoluteValue
+import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
-data class SwipeActionsConfig(
-    val threshold: Float,
-    val icon: ImageVector,
-    val iconTint: Color,
+data class SwipeAction(
+    val icon: androidx.compose.ui.graphics.painter.Painter? = null,
+    val iconContent: @Composable (() -> Unit)? = null,
     val background: Color,
-    val stayDismissed: Boolean,
-    val onDismiss: () -> Unit,
+    val isUndo: Boolean = false,
+    val onSwipe: () -> Unit
+)
+
+data class SwipeCardAction(
+    val icon: ImageVector, val background: Color, val onAction: () -> Unit, val toastMessage: String
 )
 
 /**
- * A card component with optional swipeable functionality and colorful header.
+ * A card component with optional colorful header and optional animated border.
  *
  * @param modifier The modifier to be applied to the card
  * @param isCompleted Whether the card is marked as completed
- * @param onSwipe Callback when the card is swiped (only used in swipeable variant)
  * @param shape The shape of the card
  * @param color The background color of the card (used with Surface for proper tonal elevation)
  * @param borderWidth The width of the border around the card
  * @param borderColor The color of the border around the card
- * @param swipeable Whether the card should be swipeable
- * @param dragThreshold The threshold at which a swipe is considered complete
  * @param headerTitle Title to display in the colorful header (if null, no header is shown)
  * @param headerColor Background color for the header
  * @param headerTextColor Text color for the header
  * @param headerIcon Optional icon to display in the header
  * @param headerIconContentDescription Content description for the header icon
- * @param swipeActionsConfig Configuration for swipe actions (if null, uses default swipe behavior)
  * @param content The content of the card
  * @param onClick Optional callback when the card is clicked (if null, card is not clickable)
+ * @param showAnimatedBorder If true, shows an animated glitter border with static gradient base around the card. (default: false)
+ * @param animatedBorderColors The list of colors for the animated border gradient.
+ * @param animatedBorderWidth The width of the animated border in dp
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ICard(
     modifier: Modifier = Modifier,
     isCompleted: Boolean = false,
-    onSwipe: (() -> Unit)? = null,
     shape: Shape = RoundedCornerShape(commonCornerRadius),
     color: Color = if (isCompleted) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceContainer,
     borderWidth: Dp = borderStrokeWidth,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    swipeable: Boolean = false,
-    dragThreshold: Float = 150f,
     headerTitle: String? = null,
     headerColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
     headerTextColor: Color = MaterialTheme.colorScheme.onTertiaryContainer,
     headerIcon: ImageVector? = if (isCompleted) Icons.Default.CheckCircle else null,
     headerIconContentDescription: String? = if (isCompleted) "Completed" else null,
-    swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    showAnimatedBorder: Boolean = false,
+    animatedBorderColors: List<Color> = listOf(
+        Color(0xFF8EE8FF),
+        Color(0xFFBD92FB),
+        Color(0xFFEF5CB0),
+        Color(0xFF822EFF),
+        Color(0xFF8EE8FF)
+    ),
+    animatedBorderWidth: Dp = 3.dp
 ) {
     val cardContent: @Composable () -> Unit = {
         Column {
@@ -120,13 +144,11 @@ fun ICard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = headerColor,
-                            shape = RoundedCornerShape(
-                                topStart = commonCornerRadius,
-                                topEnd = commonCornerRadius
+                            color = headerColor, shape = RoundedCornerShape(
+                                topStart = commonCornerRadius, topEnd = commonCornerRadius
                             )
                         )
-                        .standardPadding()
+                        .padding(horizontal = basePadding, vertical = smallPadding + 2.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -135,7 +157,7 @@ fun ICard(
                     ) {
                         Text(
                             text = headerTitle,
-                            style = MaterialTheme.typography.headlineSmallEmphasized,
+                            style = MaterialTheme.typography.titleMediumEmphasized,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             color = headerTextColor
@@ -158,200 +180,282 @@ fun ICard(
         }
     }
 
-    if (swipeable && onSwipe != null) {
-        ISwipeableCard(
-            modifier = modifier,
-            isCompleted = isCompleted,
-            onSwipe = onSwipe,
-            shape = shape,
-            color = color,
-            borderWidth = borderWidth,
-            borderColor = borderColor,
-            dragThreshold = dragThreshold,
-            swipeActionsConfig = swipeActionsConfig,
-            content = cardContent,
-            onClick = onClick
-        )
-    } else {
-        Surface(
-            modifier = if (onClick != null) {
-                modifier
-                    .fillMaxWidth()
-                    .bounceClick { onClick() }
-            } else {
-                modifier.fillMaxWidth()
-            },
-            shape = shape,
-            color = color,
-            border = BorderStroke(borderWidth, borderColor)
-        ) {
-            cardContent()
+    // For animated border, we draw our own border/glitter using Modifier.drawBehind + an always-on animated sweep gradient
+    val animatedModifier =
+        if (showAnimatedBorder) {
+            val infiniteTransition = rememberInfiniteTransition(label = "border_anim")
+            val angle by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 2600, easing = LinearEasing)
+                ),
+                label = "border_angle"
+            )
+            Modifier.drawBehind {
+                val borderPx = animatedBorderWidth.toPx()
+                val w = size.width
+                val h = size.height
+                val corner = 6.dp.toPx()
+                val center = Offset(w / 2, h / 2)
+                val radius = max(w, h) / 2f
+
+                val angleRad = Math.toRadians(angle.toDouble())
+                val directionAngle = angleRad + Math.PI / 4
+
+                val startOffsetX = -radius * cos(directionAngle)
+                val startOffsetY = -radius * sin(directionAngle)
+                val endOffsetX = radius * cos(directionAngle)
+                val endOffsetY = radius * sin(directionAngle)
+
+                // Blurred background border for glow effect
+                val blurPaint = Paint().asFrameworkPaint().apply {
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.STROKE
+                    strokeWidth = borderPx * 1.5f
+                    shader = LinearGradientShader(
+                        from = Offset(
+                            (center.x + startOffsetX).toFloat(),
+                            (center.y + startOffsetY).toFloat()
+                        ),
+                        to = Offset(
+                            (center.x + endOffsetX).toFloat(),
+                            (center.y + endOffsetY).toFloat()
+                        ),
+                        colors = animatedBorderColors,
+                        colorStops = null
+                    )
+                    maskFilter = BlurMaskFilter(30f, BlurMaskFilter.Blur.NORMAL)
+                }
+
+                // Static gradient border
+                val staticGradientPaint = Paint().asFrameworkPaint().apply {
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.STROKE
+                    strokeWidth = borderPx
+                    shader = LinearGradientShader(
+                        from = Offset(0f, 0f),
+                        to = Offset(w, h),
+                        colors = animatedBorderColors,
+                        colorStops = null
+                    )
+                }
+
+                // Sharp foreground border with sweeping gradient
+                val mainPaint = Paint().asFrameworkPaint().apply {
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.STROKE
+                    strokeWidth = 16f
+                    shader = LinearGradientShader(
+                        from = Offset(
+                            (center.x + startOffsetX).toFloat(),
+                            (center.y + startOffsetY).toFloat()
+                        ),
+                        to = Offset(
+                            (center.x + endOffsetX).toFloat(),
+                            (center.y + endOffsetY).toFloat()
+                        ),
+                        colors = animatedBorderColors,
+                        colorStops = null
+                    )
+                }
+
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawRoundRect(
+                        borderPx,
+                        borderPx,
+                        w - borderPx,
+                        h - borderPx,
+                        corner,
+                        corner,
+                        staticGradientPaint
+                    )
+
+                    // Draw blurred background border for glow
+                    canvas.nativeCanvas.drawRoundRect(
+                        borderPx / 2f,
+                        borderPx / 2f,
+                        w - borderPx / 2f,
+                        h - borderPx / 2f,
+                        corner,
+                        corner,
+                        blurPaint
+                    )
+
+                    // Draw main sharp border with animated gradient
+                    canvas.nativeCanvas.drawRoundRect(
+                        borderPx / 2f,
+                        borderPx / 2f,
+                        w - borderPx / 2f,
+                        h - borderPx / 2f,
+                        corner,
+                        corner,
+                        mainPaint
+                    )
+                }
+            }
+        } else {
+            Modifier
         }
+
+    Surface(
+        modifier = if (onClick != null) {
+            modifier
+                .then(animatedModifier)
+                .fillMaxWidth()
+                .bounceClick { onClick() }
+        } else {
+            modifier
+                .then(animatedModifier)
+                .fillMaxWidth()
+        },
+        shape = shape,
+        color = color,
+        border = if (showAnimatedBorder) null else BorderStroke(borderWidth, borderColor)
+    ) {
+        cardContent()
     }
 }
 
-@Deprecated("SwipeableOutlinedCard is deprecated. Use SwipeToDismiss with SwipeActions instead.")
+/**
+ * A swipeable card component that wraps ICard with SwipeToDismissBox functionality.
+ *
+ * @param modifier The modifier to be applied to the swipeable container
+ * @param content The content to display in the card body
+ * @param leftSwipeAction Action to perform when swiping left (EndToStart)
+ * @param rightSwipeAction Action to perform when swiping right (StartToEnd)
+ * @param positionalThreshold The threshold at which a swipe is considered complete (default 25%)
+ * @param cardModifier The modifier to be applied to the inner ICard
+ * @param isCompleted Whether the card is marked as completed
+ * @param headerTitle Optional header title for the card
+ * @param headerColor Background color for the header
+ * @param headerTextColor Text color for the header
+ * @param headerIcon Optional icon to display in the header
+ * @param onClick Optional callback when the card is clicked
+ */
 @Composable
-private fun ISwipeableCard(
+fun SwipeableCard(
     modifier: Modifier = Modifier,
-    isCompleted: Boolean = false,
-    onSwipe: () -> Unit,
-    shape: Shape = RoundedCornerShape(commonCornerRadius * 2),
-    color: Color = MaterialTheme.colorScheme.surface,
-    borderWidth: Dp = borderStrokeWidth,
-    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    dragThreshold: Float = 150f,
-    swipeActionsConfig: SwipeActionsConfig? = null,
     content: @Composable () -> Unit,
+    leftSwipeAction: SwipeCardAction? = null,
+    rightSwipeAction: SwipeCardAction? = null,
+    positionalThreshold: Float = 0.25f,
+    cardModifier: Modifier = Modifier,
+    isCompleted: Boolean = false,
+    headerTitle: String? = null,
+    headerColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
+    headerTextColor: Color = MaterialTheme.colorScheme.onTertiaryContainer,
+    headerIcon: ImageVector? = null,
     onClick: (() -> Unit)? = null
 ) {
-    val offsetXState = remember { mutableFloatStateOf(0f) }
-    val localIsCompletedState = remember { mutableStateOf(isCompleted) }
+    val context = LocalContext.current
+    var lastSwipeTime by remember { mutableStateOf(0L) }
+    val swipeDebounceMs = 500L // Prevent multiple swipes within 500ms
 
-    // Use swipeActionsConfig if provided, otherwise use default behavior
-    val effectiveThreshold = swipeActionsConfig?.threshold ?: dragThreshold
-    val backgroundIcon = swipeActionsConfig?.icon ?: Icons.Default.Done
-    val backgroundIconTint =
-        swipeActionsConfig?.iconTint ?: MaterialTheme.colorScheme.onTertiaryContainer
-    val backgroundColorConfig =
-        swipeActionsConfig?.background ?: MaterialTheme.colorScheme.tertiaryContainer
+    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastSwipeTime < swipeDebounceMs) {
+            return@rememberSwipeToDismissBoxState false
+        }
 
-    // Animation states
-    val scaleState = animateFloatAsState(
-        targetValue = if (offsetXState.floatValue.absoluteValue > effectiveThreshold) 0.95f else 1f,
-        label = "scale"
-    )
+        when (it) {
+            SwipeToDismissBoxValue.StartToEnd -> {
+                rightSwipeAction?.let { action ->
+                    lastSwipeTime = currentTime
+                    action.onAction()
+                    Toast.makeText(context, action.toastMessage, Toast.LENGTH_SHORT).show()
+                }
+                false // Return false to reset the card position
+            }
 
-    val bgColor = if (offsetXState.floatValue.absoluteValue > effectiveThreshold) {
-        backgroundColorConfig
-    } else {
-        Color.Transparent
-    }
+            SwipeToDismissBoxValue.EndToStart -> {
+                leftSwipeAction?.let { action ->
+                    lastSwipeTime = currentTime
+                    action.onAction()
+                    Toast.makeText(context, action.toastMessage, Toast.LENGTH_SHORT).show()
+                }
+                false // Return false to reset the card position
+            }
 
-    // Background check icon visibility
-    val iconAlphaState = animateFloatAsState(
-        targetValue = if (offsetXState.floatValue.absoluteValue > effectiveThreshold) 1f else 0f,
-        label = "iconAlpha"
-    )
+            SwipeToDismissBoxValue.Settled -> false
+        }
+    }, positionalThreshold = { it * positionalThreshold })
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = extraSmallPadding)
-    ) {
-        // Background that appears during swipe
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(bgColor, shape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = backgroundIcon,
-                contentDescription = "Mark as done",
-                tint = backgroundIconTint,
-                modifier = Modifier.alpha(iconAlphaState.value)
+    SwipeToDismissBox(
+        state = dismissState,
+        modifier = modifier,
+        enableDismissFromStartToEnd = rightSwipeAction != null,
+        enableDismissFromEndToStart = leftSwipeAction != null,
+        backgroundContent = {
+            SwipeDismissBackground(
+                dismissState = dismissState,
+                leftSwipeAction = leftSwipeAction,
+                rightSwipeAction = rightSwipeAction
             )
-        }
-
-        Surface(
-            modifier = if (onClick != null) {
-                modifier
-                    .fillMaxWidth()
-                    .offset { IntOffset(offsetXState.value.roundToInt(), 0) }
-                    .scale(scaleState.value)
-                    .alpha(1f)
-                    .draggable(
-                        orientation = Orientation.Horizontal,
-                        state = rememberDraggableState { delta ->
-                            // Only allow dragging if not already completed
-                            if (!localIsCompletedState.value) {
-                                offsetXState.value = offsetXState.value + delta
-                            }
-                        },
-                        onDragStopped = {
-                            if (offsetXState.value.absoluteValue > effectiveThreshold) {
-                                localIsCompletedState.value = true
-                                swipeActionsConfig?.onDismiss?.invoke() ?: onSwipe()
-                            }
-                            // Reset position with animation
-                            offsetXState.value = 0f
-                        }
-                    )
-                    .bounceClick { onClick() }
-            } else {
-                modifier
-                    .fillMaxWidth()
-                    .offset { IntOffset(offsetXState.value.roundToInt(), 0) }
-                    .scale(scaleState.value)
-                    .alpha(1f)
-                    .draggable(
-                        orientation = Orientation.Horizontal,
-                        state = rememberDraggableState { delta ->
-                            // Only allow dragging if not already completed
-                            if (!localIsCompletedState.value) {
-                                offsetXState.value = offsetXState.value + delta
-                            }
-                        },
-                        onDragStopped = {
-                            if (offsetXState.value.absoluteValue > effectiveThreshold) {
-                                localIsCompletedState.value = true
-                                swipeActionsConfig?.onDismiss?.invoke() ?: onSwipe()
-                            }
-                            // Reset position with animation
-                            offsetXState.value = 0f
-                        }
-                    )
-            },
-            shape = shape,
-            color = color,
-            border = BorderStroke(borderWidth, borderColor)
-        ) {
-            content()
-        }
-    }
+        },
+        content = {
+            ICard(
+                modifier = cardModifier.fillMaxWidth(),
+                isCompleted = isCompleted,
+                headerTitle = headerTitle,
+                headerColor = headerColor,
+                headerTextColor = headerTextColor,
+                headerIcon = headerIcon,
+                onClick = onClick,
+                content = {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        content()
+                    }
+                })
+        })
 }
 
+/**
+ * Background component for SwipeableCard that shows different colors and icons
+ * based on swipe direction.
+ */
 @Composable
-private fun ExpenseCard(
-    expenseName: String,
-    membersCount: Int,
-    amountOwed: Double,
-    isYours: Boolean = false,
-    isCompleted: Boolean = false,
-    icon: ImageVector
+private fun SwipeDismissBackground(
+    dismissState: SwipeToDismissBoxState,
+    leftSwipeAction: SwipeCardAction? = null,
+    rightSwipeAction: SwipeCardAction? = null
 ) {
-    ICard(isCompleted = isCompleted, swipeable = false, content = {
-        Column(modifier = Modifier.standardPadding()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = if (isYours) "You are owed" else "You owe",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (isYours) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
-            }
-            Text(
-                text = expenseName,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "${formatCurrency(amountOwed)} • $membersCount people",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+    val color = when (dismissState.dismissDirection) {
+        SwipeToDismissBoxValue.StartToEnd -> rightSwipeAction?.background ?: Color.Transparent
+        SwipeToDismissBoxValue.EndToStart -> leftSwipeAction?.background ?: Color.Transparent
+        SwipeToDismissBoxValue.Settled -> Color.Transparent
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color, shape = RoundedCornerShape(commonCornerRadius))
+            .padding(12.dp, 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Right swipe action (shows on left side when swiping right)
+        rightSwipeAction?.let { action ->
+            Icon(
+                imageVector = action.icon,
+                contentDescription = "right swipe action",
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
-    })
+
+        Spacer(modifier = Modifier)
+
+        // Left swipe action (shows on right side when swiping left)
+        leftSwipeAction?.let { action ->
+            Icon(
+                imageVector = action.icon,
+                contentDescription = "left swipe action",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
 }
 
 @ComponentPreview
@@ -360,11 +464,10 @@ private fun OutlinedCardPreview() {
     PreviewWrapper {
         Column(modifier = Modifier.standardPadding()) {
             // Regular non-swipeable card without header
-            ICard(isCompleted = false, swipeable = false, content = {
+            ICard(isCompleted = false, content = {
                 Column(modifier = Modifier.standardPadding()) {
                     Text(
-                        text = "Basic Card",
-                        style = MaterialTheme.typography.titleMedium
+                        text = "Basic Card", style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = "This is a simple card without header",
@@ -378,7 +481,6 @@ private fun OutlinedCardPreview() {
             // Card with colorful header
             ICard(
                 isCompleted = false,
-                swipeable = false,
                 headerTitle = "Card with Header",
                 headerColor = MaterialTheme.colorScheme.primaryContainer,
                 headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -394,112 +496,109 @@ private fun OutlinedCardPreview() {
 
             Spacer(modifier = Modifier.padding(smallPadding))
 
-            // Swipeable card with header
+            // Completed card with icon
             ICard(
-                isCompleted = false,
-                onSwipe = { /* Handle swipe action */ },
-                swipeable = true,
-                headerTitle = "Swipeable Card",
-                headerIcon = Icons.Default.Done,
+                isCompleted = true,
+                headerTitle = "Completed Task",
+                headerIcon = Icons.Default.CheckCircle,
                 content = {
                     Column(modifier = Modifier.standardPadding()) {
                         Text(
-                            text = "Swipe me to mark as completed",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "Task Status: Complete",
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
-                },
-                onClick = { /* Handle click */ }
-            )
+                })
 
             Spacer(modifier = Modifier.padding(smallPadding))
 
-            // Swipeable card with custom SwipeActionsConfig
+            // Card with ticket icon
             ICard(
                 isCompleted = false,
-                onSwipe = { /* Handle swipe action */ },
-                swipeable = true,
-                headerTitle = "Custom Swipe Card",
-                headerIcon = Icons.Default.Done,
-                swipeActionsConfig = SwipeActionsConfig(
-                    threshold = 0.3f,
+                headerTitle = "Event Ticket",
+                headerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                headerIcon = Icons.Default.ConfirmationNumber,
+                content = {
+                    Column(modifier = Modifier.standardPadding()) {
+                        Text(
+                            text = "Concert Tonight", style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "The Grand Theater - 8:00 PM",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Seat: A-23",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                })
+
+            Spacer(modifier = Modifier.padding(smallPadding))
+
+            // Swipeable card example
+            SwipeableCard(
+                content = {
+                    Text(
+                        text = "Swipe left to archive, right to delete",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
+                headerTitle = "Interactive Card",
+                headerColor = MaterialTheme.colorScheme.primaryContainer,
+                headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                leftSwipeAction = SwipeCardAction(
                     icon = Icons.Default.CheckCircle,
-                    iconTint = MaterialTheme.colorScheme.primary,
                     background = MaterialTheme.colorScheme.primaryContainer,
-                    stayDismissed = false,
-                    onDismiss = { /* Custom dismiss action */ }),
-                content = {
-                    Column(modifier = Modifier.standardPadding()) {
-                        Text(
-                            text = "Swipe me with custom config",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                },
-                onClick = { /* Handle click */ }
+                    onAction = { /* Handle archive */ },
+                    toastMessage = "Task archived!"
+                ),
+                rightSwipeAction = SwipeCardAction(
+                    icon = Icons.Default.Delete,
+                    background = MaterialTheme.colorScheme.errorContainer,
+                    onAction = { /* Handle delete */ },
+                    toastMessage = "Task deleted!"
+                )
             )
 
             Spacer(modifier = Modifier.padding(smallPadding))
 
-            // Completed swipeable card with header
+            SwipeableCard(
+                content = {
+                    Text(
+                        text = "Swipe left to archive, right to delete",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                },
+                headerTitle = "Interactive Card",
+                isCompleted = true,
+                leftSwipeAction = SwipeCardAction(
+                    icon = Icons.Default.CheckCircle,
+                    background = MaterialTheme.colorScheme.primaryContainer,
+                    onAction = { /* Handle archive */ },
+                    toastMessage = "Task archived!"
+                ),
+                headerIcon = Icons.Default.CheckCircle,
+            )
+
+            Spacer(modifier = Modifier.padding(smallPadding))
+
             ICard(
-                isCompleted = true,
-                onSwipe = { /* Handle swipe action */ },
-                swipeable = true,
-                headerTitle = "Completed Card",
                 content = {
                     Column(modifier = Modifier.standardPadding()) {
                         Text(
-                            text = "This card is already marked as completed",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "Animated Glitter Border",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "Static gradient base + animated sweeping effect",
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 },
-                onClick = { /* Handle click */ }
-            )
-
-            Spacer(modifier = Modifier.padding(smallPadding))
-
-            // Regular expense card (current user owes money)
-            ExpenseCard(
-                expenseName = "Dinner at La Taquería",
-                membersCount = 4,
-                amountOwed = 56.75,
-                icon = Icons.Default.Restaurant
-            )
-
-            Spacer(modifier = Modifier.padding(smallPadding))
-
-            // Expense card where others owe the user
-            ExpenseCard(
-                expenseName = "Movie Tickets",
-                membersCount = 3,
-                amountOwed = 32.50,
-                isYours = true,
-                icon = Icons.Default.ConfirmationNumber
-            )
-
-            Spacer(modifier = Modifier.padding(smallPadding))
-
-            // Completed expense card
-            ExpenseCard(
-                expenseName = "Groceries",
-                membersCount = 2,
-                amountOwed = 45.20,
-                isCompleted = true,
-                icon = Icons.Default.Restaurant
-            )
-
-            Spacer(modifier = Modifier.padding(smallPadding))
-
-            // Completed expense card that was yours
-            ExpenseCard(
-                expenseName = "Uber ride with a very long name that should be truncated",
-                membersCount = 3,
-                amountOwed = 12.80,
-                isYours = true,
-                isCompleted = false,
-                icon = Icons.Default.Restaurant
+                showAnimatedBorder = true
             )
         }
     }

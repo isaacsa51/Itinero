@@ -13,7 +13,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -23,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
-import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
 import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroughText
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.BottomSheetContent
@@ -50,7 +53,6 @@ import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItem
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.designsystemlib.ui.theme.component.RecordButton
-import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubble
@@ -59,6 +61,10 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatConversatio
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
 import com.serranoie.app.designsystemlib.ui.theme.component.card.CompactChatBubble
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
+import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeCardAction
+import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeableCard
+import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import java.time.LocalDate
 import java.util.Date
@@ -191,7 +197,6 @@ fun CardComponentsShowcase() {
         // Basic Card
         ICard(
             isCompleted = false,
-            swipeable = false,
             content = {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -211,7 +216,6 @@ fun CardComponentsShowcase() {
         // Card with Header
         ICard(
             isCompleted = false,
-            swipeable = false,
             headerTitle = "Card with Header",
             headerColor = MaterialTheme.colorScheme.primaryContainer,
             headerTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -226,29 +230,64 @@ fun CardComponentsShowcase() {
             onClick = { }
         )
 
-        // Swipeable Card
-        ICard(
-            isCompleted = false,
-            onSwipe = { },
-            swipeable = true,
-            headerTitle = "Swipeable Card",
+        // Swipeable Card Examples
+        Text(
+            text = "Swipeable Cards",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        SwipeableCard(
+            leftSwipeAction = SwipeCardAction(
+                icon = Icons.Default.Archive,
+                background = MaterialTheme.colorScheme.primaryContainer,
+                onAction = { /* Handle archive */ },
+                toastMessage = "Email archived"
+            ),
+            rightSwipeAction = SwipeCardAction(
+                icon = Icons.Default.Delete,
+                background = MaterialTheme.colorScheme.errorContainer,
+                onAction = { /* Handle delete */ },
+                toastMessage = "Email deleted"
+            ),
+            content = {
+                Column {
+                    Text(text = "This is a swipeable card")
+                    Text(text = "Swipe left or right to trigger actions")
+                }
+            }
+        )
+
+        SwipeableCard(
+            headerTitle = "Important Task",
             headerColor = MaterialTheme.colorScheme.tertiaryContainer,
             headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            leftSwipeAction = SwipeCardAction(
+                icon = Icons.Default.CheckCircle,
+                background = MaterialTheme.colorScheme.primaryContainer,
+                onAction = { /* Handle complete */ },
+                toastMessage = "Task completed"
+            ),
+            rightSwipeAction = SwipeCardAction(
+                icon = Icons.Default.Delete,
+                background = MaterialTheme.colorScheme.errorContainer,
+                onAction = { /* Handle delete */ },
+                toastMessage = "Task deleted"
+            ),
             content = {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Swipe to mark as completed",
+                        text = "This card has a custom header and completion state",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-            },
-            onClick = { }
+            }
         )
 
         // Completed Card
         ICard(
             isCompleted = true,
-            swipeable = false,
             headerTitle = "Completed Card",
             headerColor = MaterialTheme.colorScheme.secondaryContainer,
             headerTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -599,7 +638,7 @@ fun InteractiveComponentsShowcase() {
 @Composable
 fun InputComponentsShowcase() {
     var selectedDateTime by remember { mutableStateOf<Date?>(Date()) }
-    var selectedDropdownIndex by remember { mutableStateOf(-1) }
+    var selectedDropdownIndex by remember { mutableIntStateOf(-1) }
     var selectedLocation by remember { mutableStateOf("") }
 
     val dropdownItems = listOf("Option 1", "Option 2", "Option 3", "Option 4")
@@ -1285,7 +1324,6 @@ fun ModifierExtensionsShowcase() {
         ShimmerProvider(isLoading = isShimmering) {
             ICard(
                 isCompleted = false,
-                swipeable = false,
                 content = {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
@@ -1327,7 +1365,6 @@ fun ModifierExtensionsShowcase() {
         ShimmerProvider(isLoading = isAiShimmering) {
             ICard(
                 isCompleted = false,
-                swipeable = false,
                 content = {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(

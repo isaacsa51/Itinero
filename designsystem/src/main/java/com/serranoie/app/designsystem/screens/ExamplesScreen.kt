@@ -23,9 +23,9 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DensitySmall
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -63,8 +63,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
@@ -81,7 +81,8 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpenseCard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
-import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeActionsConfig
+import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeCardAction
+import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeableCard
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -903,7 +904,7 @@ fun MockItineraryDateSection(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(end = 16.dp)
+                .padding(end = 16.dp, start = 8.dp)
         ) {
             // Activity cards
             MockItineraryActivity(
@@ -945,48 +946,72 @@ fun MockItineraryDateSection(
 fun MockItineraryActivity(
     name: String, time: String, location: String, description: String, isCompleted: Boolean
 ) {
-    ICard(
-        swipeable = true,
-        isCompleted = isCompleted,
+    SwipeableCard(
         headerTitle = name,
         headerColor = MaterialTheme.colorScheme.tertiaryContainer,
         headerTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
-        swipeActionsConfig = if (!isCompleted) {
-            SwipeActionsConfig(
-                threshold = 0.3f,
-                icon = Icons.Default.Check,
-                iconTint = MaterialTheme.colorScheme.onPrimary,
-                background = MaterialTheme.colorScheme.primary,
-                stayDismissed = false,
-                onDismiss = { })
-        } else {
-            SwipeActionsConfig(
-                threshold = 0.3f,
-                icon = Icons.Default.Close,
-                iconTint = MaterialTheme.colorScheme.onError,
-                background = MaterialTheme.colorScheme.error,
-                stayDismissed = false,
-                onDismiss = { })
-        },
-        onSwipe = { },
+        isCompleted = isCompleted,
+        leftSwipeAction = SwipeCardAction(
+            icon = Icons.Default.CheckCircle,
+            background = MaterialTheme.colorScheme.primaryContainer,
+            onAction = { /* Handle complete/incomplete action */ },
+            toastMessage = if (isCompleted) "Activity unmarked" else "Activity completed"
+        ),
+        rightSwipeAction = SwipeCardAction(
+            icon = Icons.Default.Delete,
+            background = MaterialTheme.colorScheme.errorContainer,
+            onAction = { /* Handle delete action */ },
+            toastMessage = "Activity deleted"
+        ),
+        onClick = { },
         content = {
             Column(
-                modifier = Modifier.padding(
-                    horizontal = 24.dp, vertical = 8.dp
-                )
+                modifier = Modifier.padding(16.dp)
             ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarToday,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = time,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Map,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = location,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
-                    text = "🕒 $time", style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "📍 $location", style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "❓ $description", style = MaterialTheme.typography.bodyMedium
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        },
-        onClick = { })
+        }
+    )
 }
 
 @Composable
