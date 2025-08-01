@@ -66,6 +66,7 @@ fun HomeRootScreen(
     val homeViewModel = koinViewModel<HomeViewModel>(parameters = { parametersOf(tripId) })
     val tripInfo by homeViewModel.trip.collectAsState()
     val uiState by homeViewModel.uiState.collectAsState()
+    val overviewUiState by homeViewModel.overviewUiState.collectAsState()
 
     val floatingToolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
         exitDirection = FloatingToolbarExitDirection.Bottom
@@ -98,12 +99,17 @@ fun HomeRootScreen(
                         navController,
                         tripId = tripId,
                         uiState = uiState,
+                        overviewUiState = overviewUiState,
                         tripInfo = tripInfo,
                         onGetTravel = { homeViewModel.getCurrentTravel() },
+                        onGetOverview = { homeViewModel.getTripOverview(tripId) },
                         onShowSnackbar = { message ->
                             snackbarHostState.showSnackbar(message)
                         },
-                        onRefresh = { homeViewModel.refreshTrip() })
+                        onRefresh = {
+                            homeViewModel.refreshTrip()
+                            homeViewModel.getTripOverview(tripId)
+                        })
                 }
 
                 itineraryGraph(navController, tripId, tripInfo)

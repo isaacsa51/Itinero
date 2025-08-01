@@ -16,6 +16,7 @@ import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
+import com.serranoie.itinero.core.data.remote.dto.TripOverviewDto
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 
 interface ItineroApi {
@@ -32,6 +33,7 @@ interface ItineroApi {
 
     suspend fun getAllTrips(): List<TripDto>
     suspend fun getTripById(id: String): TripDto
+    suspend fun getTripOverview(groupCode: String): TripOverviewDto
     suspend fun createTrip(request: CreateTripDto): CreateTripDto
     suspend fun updateTripInfo(groupCode: String, request: UpdateTrip)
     suspend fun joinTrip(groupCode: String)

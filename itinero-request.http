@@ -64,6 +64,10 @@ Content-Type: application/json
   "additionalInfo": "Is this really necessary?"
 }
 
+### Get overview from trip
+GET {{base_url}}/trips/{{group_code}}/today-overview
+Authorization: Bearer {{auth_token}}
+
 ### Get specific trip by group code
 GET {{base_url}}/trips/{{group_code}}
 Authorization: Bearer {{auth_token}}

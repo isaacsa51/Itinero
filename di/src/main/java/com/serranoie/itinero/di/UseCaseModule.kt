@@ -23,6 +23,7 @@ import com.serranoie.itinero.core.domain.usecase.GetAllTravelsUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAuthTokenUseCase
 import com.serranoie.itinero.core.domain.usecase.GetCurrentUserMembershipStatusUseCase
 import com.serranoie.itinero.core.domain.usecase.GetTravelByIdUseCase
+import com.serranoie.itinero.core.domain.usecase.GetTripOverviewUseCase
 import com.serranoie.itinero.core.domain.usecase.JoinTravelUseCase
 import com.serranoie.itinero.core.domain.usecase.LeaveTravelUseCase
 import com.serranoie.itinero.core.domain.usecase.LeaveTripUseCase
@@ -51,6 +52,7 @@ val useCaseModule = module {
     factory { MakeOwnerUseCase(get()) }
     factory { GetCurrentUserMembershipStatusUseCase(get()) }
     factory { LeaveTripUseCase(get()) }
+    factory { GetTripOverviewUseCase(get()) }
 
     factory { GetAllActivitiesUseCase(get()) }
     factory { GetActivityByIdUseCase(get()) }
@@ -88,6 +90,7 @@ val useCaseModule = module {
             makeOwner = get(),
             getCurrentUserMembershipStatus = get(),
             leaveTrip = get(),
+            getTripOverview = get()
         )
     }
 

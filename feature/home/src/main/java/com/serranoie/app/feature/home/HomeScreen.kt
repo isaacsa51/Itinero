@@ -170,8 +170,10 @@ fun HomeScreen(
     navController: NavHostController = rememberNavController(),
     tripId: String,
     uiState: HomeUiState,
+    overviewUiState: OverviewUiState,
     onShowSnackbar: suspend (String) -> Unit,
     onGetTravel: () -> Unit,
+    onGetOverview: () -> Unit,
     onRefresh: () -> Unit,
     tripInfo: Trip?
 ) {
@@ -180,6 +182,10 @@ fun HomeScreen(
     LaunchedEffect(key1 = tripId, key2 = tripInfo, key3 = uiState) {
         if (tripInfo == null && uiState !is HomeUiState.Loading) {
             onGetTravel()
+        }
+        // Call getTripOverview when trip data is successfully loaded
+        if (uiState is HomeUiState.Success && tripInfo != null) {
+            onGetOverview()
         }
     }
 
@@ -235,6 +241,7 @@ fun HomeScreen(
                             navController = navController,
                             tripId = tripId,
                             trip = trip,
+                            tripOverview = overviewUiState,
                             paddingValues = paddingValues,
                             onRefresh = onRefresh,
                             onShowSnackbar = onShowSnackbar
@@ -375,12 +382,6 @@ fun HomeScreenShimmer(
                 )
             }
 
-            Spacer(modifier = Modifier.height(Constants.basePadding))
-
-            Text(
-                text = "Today's Tasks", style = MaterialTheme.typography.headlineSmallEmphasized
-            )
-
             Spacer(modifier = Modifier.height(smallPadding))
 
             // Expense Summary Card
@@ -405,7 +406,8 @@ fun HomeScreenShimmer(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Breakfast", style = MaterialTheme.typography.bodyMedium
+                                text = "Breakfast — John",
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
                                 text = "$25.00",
@@ -419,7 +421,8 @@ fun HomeScreenShimmer(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Transportation", style = MaterialTheme.typography.bodyMedium
+                                text = "Transportation — Sarah",
+                                style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
                                 text = "$15.50",
@@ -604,6 +607,7 @@ fun HomeScreenContent(
     navController: NavHostController,
     tripId: String,
     trip: Trip,
+    tripOverview: OverviewUiState,
     paddingValues: PaddingValues,
     onRefresh: () -> Unit,
     onShowSnackbar: suspend (String) -> Unit
@@ -621,7 +625,7 @@ fun HomeScreenContent(
                 .standardPadding()
         ) {
             TripDetailsContent(
-                navController = navController, trip = trip
+                navController = navController, trip = trip, overviewUiState = tripOverview
             )
         }
     }
@@ -652,12 +656,11 @@ fun HomeScreenEmptyOrError(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TripDetailsContent(
-    navController: NavController, trip: Trip
+    navController: NavController,
+    trip: Trip,
+    overviewUiState: OverviewUiState = OverviewUiState.Idle
 ) {
     var isExpanded by remember { mutableStateOf(true) }
-
-    println("DEBUG: TripDetailsContent recomposed with isExpanded = $isExpanded")
-
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -698,7 +701,7 @@ fun TripDetailsContent(
 
         Spacer(modifier = Modifier.height(Constants.basePadding))
 
-        TodayTasksSection()
+        TodayTasksSection(overviewUiState = overviewUiState)
 
         Spacer(modifier = Modifier.height(Constants.basePadding))
 
@@ -712,7 +715,6 @@ fun TripDetailsContent(
             title = "Details",
             isExpanded = isExpanded,
             onExpandedChange = { newValue ->
-                println("DEBUG: TripDetailsContent ExpandableCard onExpandedChange called: $isExpanded -> $newValue")
                 isExpanded = newValue
             },
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -1002,145 +1004,269 @@ fun SummarySection(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TodayTasksSection() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Today's Tasks", style = MaterialTheme.typography.headlineSmallEmphasized
-        )
-        Spacer(modifier = Modifier.height(smallPadding))
+fun TodayTasksSection(overviewUiState: OverviewUiState = OverviewUiState.Idle) {
+    Column(
+        modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(smallPadding)
+    ) {
+        when (overviewUiState) {
+            is OverviewUiState.Success -> {
+                val overview = overviewUiState.data
 
-        ICard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(Constants.commonCornerRadius),
-            content = {
-                Column(
-                    modifier = Modifier.standardPadding()
-                ) {
-                    Text(
-                        text = "Yesterday Expenses",
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(smallPadding))
-
-                    Row(
+                // Yesterday Expenses Card
+                if (overview.yesterdayExpenses.isNotEmpty()) {
+                    ICard(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Breakfast", style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "$25.00",
-                            style = MaterialTheme.typography.labelMediumEmphasized,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                        shape = RoundedCornerShape(Constants.commonCornerRadius),
+                        content = {
+                            Column(
+                                modifier = Modifier.standardPadding(),
+                                verticalArrangement = Arrangement.spacedBy(smallPadding)
+                            ) {
+                                Text(
+                                    text = "Yesterday Expenses",
+                                    style = MaterialTheme.typography.titleMediumEmphasized,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Transportation", style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "$15.50",
-                            style = MaterialTheme.typography.labelMediumEmphasized,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                                overview.yesterdayExpenses.forEach { expense ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = "${expense.name} — ${expense.paidBy.name} ${expense.paidBy.surname}".trim(),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        Text(
+                                            text = "$${String.format("%.2f", expense.amount)}",
+                                            style = MaterialTheme.typography.labelMediumEmphasized,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
 
-                    Spacer(modifier = Modifier.height(smallPadding))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(smallPadding))
+                                HorizontalDivider()
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Total Yesterday", style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "$40.50",
-                            style = MaterialTheme.typography.titleMediumEmphasized,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Total",
+                                        style = MaterialTheme.typography.titleSmallEmphasized
+                                    )
+                                    Text(
+                                        text = "$${String.format("%.2f", overview.yesterdayExpenses.sumOf { it.amount })}",
+                                        style = MaterialTheme.typography.titleSmallEmphasized,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        },
+                        onClick = { })
                 }
-            },
-            onClick = { })
 
-        Spacer(modifier = Modifier.height(Constants.mediumPadding))
+                // Today's Itinerary Card
+                if (overview.todayItinerary.isNotEmpty()) {
+                    ICard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(Constants.commonCornerRadius),
+                        content = {
+                            Column(
+                                modifier = Modifier.standardPadding(),
+                                verticalArrangement = Arrangement.spacedBy(Constants.mediumPadding)
+                            ) {
+                                Text(
+                                    text = "Today's Itinerary",
+                                    style = MaterialTheme.typography.titleMediumEmphasized,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
 
-        // Today's Itinerary
-        ICard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(Constants.commonCornerRadius),
-            content = {
-                Column(
-                    modifier = Modifier.standardPadding()
-                ) {
-                    Text(
-                        text = "Today's Itinerary",
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(Constants.mediumPadding))
+                                overview.todayItinerary.forEach { itinerary ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Text(
+                                            text = itinerary.time,
+                                            style = MaterialTheme.typography.labelMediumEmphasized,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.width(84.dp)
+                                        )
+                                        Column(
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = itinerary.name,
+                                                style = MaterialTheme.typography.labelMediumEmphasized
+                                            )
+                                            Text(
+                                                text = itinerary.location,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        onClick = { })
+                }
+            }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "10:00 AM",
-                            style = MaterialTheme.typography.labelMediumEmphasized,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.width(80.dp)
-                        )
+            is OverviewUiState.Loading -> {
+                // Show shimmer loading state
+                ICard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shimmerable(),
+                    shape = RoundedCornerShape(Constants.commonCornerRadius),
+                    content = {
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.standardPadding(),
+                            verticalArrangement = Arrangement.spacedBy(smallPadding)
                         ) {
                             Text(
-                                text = "Visit Local Market",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Explore traditional crafts and local foods",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "Loading...",
+                                style = MaterialTheme.typography.titleMediumEmphasized,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
-                    }
+                    },
+                    onClick = { })
+            }
 
-                    Spacer(modifier = Modifier.height(Constants.mediumPadding))
-
-                    // Itinerary Item 2
-                    Row(
-                        modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "2:00 PM",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.width(80.dp)
-                        )
+            is OverviewUiState.Error -> {
+                // Show error state with fallback to hardcoded data
+                ICard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Constants.commonCornerRadius),
+                    content = {
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.standardPadding(),
+                            verticalArrangement = Arrangement.spacedBy(smallPadding)
                         ) {
                             Text(
-                                text = "Museum Tour", style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Guided tour of the city's history museum",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "Failed to load overview data",
+                                style = MaterialTheme.typography.titleMediumEmphasized,
+                                color = MaterialTheme.colorScheme.error
                             )
                         }
-                    }
-                }
-            },
-            onClick = { })
+                    },
+                    onClick = { })
+            }
+
+            is OverviewUiState.Idle -> {
+                // Show placeholder/default state
+                ICard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Constants.commonCornerRadius),
+                    content = {
+                        Column(
+                            modifier = Modifier.standardPadding(),
+                            verticalArrangement = Arrangement.spacedBy(smallPadding)
+                        ) {
+                            Text(
+                                text = "Yesterday Expenses",
+                                style = MaterialTheme.typography.titleMediumEmphasized,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Breakfast — John",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = "$25.00",
+                                    style = MaterialTheme.typography.labelMediumEmphasized,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Transportation — Sarah",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = "$15.50",
+                                    style = MaterialTheme.typography.labelMediumEmphasized,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
+                            HorizontalDivider()
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Total",
+                                    style = MaterialTheme.typography.titleSmallEmphasized
+                                )
+                                Text(
+                                    text = "$40.50",
+                                    style = MaterialTheme.typography.titleSmallEmphasized,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    },
+                    onClick = { })
+
+                // Today's Itinerary
+                ICard(
+                    modifier = Modifier.fillMaxWidth(),
+                    content = {
+                        Column(
+                            modifier = Modifier.standardPadding(),
+                            verticalArrangement = Arrangement.spacedBy(smallPadding)
+                        ) {
+                            Text(
+                                text = "Today's Itinerary",
+                                style = MaterialTheme.typography.titleMediumEmphasized,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            HorizontalDivider()
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Text(
+                                    text = "10:00 AM",
+                                    style = MaterialTheme.typography.labelMediumEmphasized,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.width(84.dp)
+                                )
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = "Visit Local Market",
+                                        style = MaterialTheme.typography.labelMediumEmphasized
+                                    )
+                                    Text(
+                                        text = "Location name",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    onClick = { })
+            }
+        }
     }
 }
 
@@ -1279,8 +1405,10 @@ fun HomeScreenPreview() {
         HomeScreen(
             tripId = "ITN-51712",
             uiState = HomeUiState.Idle,
+            overviewUiState = OverviewUiState.Idle,
             onShowSnackbar = {},
             onGetTravel = { },
+            onGetOverview = { },
             tripInfo = tripInfo,
             onRefresh = { },
         )

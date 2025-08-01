@@ -10,6 +10,7 @@ import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripMember
+import com.serranoie.itinero.core.domain.model.TripOverview
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.result.Result
@@ -291,6 +292,22 @@ class TravelRepositoryImpl(
                 Log.e(
                     "ITINERO - TravelRepository",
                     "Failed to leave trip with group code $groupCode: ${result.exception.message}"
+                )
+                result
+            }
+        }
+    }
+
+    override suspend fun getTripOverview(groupCode: String): Result<TripOverview> {
+        return when (val result = safeApiCall { api.getTripOverview(groupCode).toDomain() }) {
+            is Result.Success -> {
+                result
+            }
+
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to get trip overview for group code $groupCode: ${result.exception.message}"
                 )
                 result
             }
