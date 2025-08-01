@@ -283,8 +283,6 @@ fun TripSettingsScreen(
                         isLeaveLoading = leaveTripUiState is TripLeaveTripUiState.Loading
                     )
                 }
-
-
             }
 
             if (showLeaveDialog) {
