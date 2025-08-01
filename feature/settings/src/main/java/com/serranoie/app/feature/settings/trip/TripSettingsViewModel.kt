@@ -26,6 +26,20 @@ sealed interface TripMembersUiState {
     data class Error(val message: String) : TripMembersUiState
 }
 
+sealed interface TripDeletionUiState {
+    data object Idle : TripDeletionUiState
+    data object Loading : TripDeletionUiState
+    data object Success : TripDeletionUiState
+    data class Error(val message: String) : TripDeletionUiState
+}
+
+sealed interface TripLeaveTripUiState {
+    data object Idle : TripLeaveTripUiState
+    data object Loading : TripLeaveTripUiState
+    data object Success : TripLeaveTripUiState
+    data class Error(val message: String) : TripLeaveTripUiState
+}
+
 class TripSettingsViewModel(
     private val travelUseCase: TravelUseCase
 ) : ViewModel() {
@@ -41,6 +55,13 @@ class TripSettingsViewModel(
 
     private val _currentUserMembershipStatus = MutableStateFlow<MembershipStatus?>(null)
     val currentUserMembershipStatus: StateFlow<MembershipStatus?> = _currentUserMembershipStatus
+
+    private val _deletionUiState = MutableStateFlow<TripDeletionUiState>(TripDeletionUiState.Idle)
+    val deletionUiState: StateFlow<TripDeletionUiState> = _deletionUiState
+
+    private val _leaveTripUiState =
+        MutableStateFlow<TripLeaveTripUiState>(TripLeaveTripUiState.Idle)
+    val leaveTripUiState: StateFlow<TripLeaveTripUiState> = _leaveTripUiState
 
     companion object {
         private const val TAG = "TripSettingsViewModel"
@@ -194,6 +215,58 @@ class TripSettingsViewModel(
                 }
             }
         }
+    }
+
+    fun leaveTripCurrentTrip(
+        groupCode: String,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _leaveTripUiState.value = TripLeaveTripUiState.Loading
+            when (val result = travelUseCase.leaveTrip(groupCode)) {
+                is Result.Success -> {
+                    _leaveTripUiState.value = TripLeaveTripUiState.Success
+                    onSuccess()
+                }
+
+                is Result.Error -> {
+                    val errorMessage = result.exception.message ?: "Failed to leave trip"
+                    _leaveTripUiState.value = TripLeaveTripUiState.Error(errorMessage)
+                    onError(errorMessage)
+                }
+            }
+        }
+    }
+
+    fun deleteTrip(
+        groupCode: String,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _deletionUiState.value = TripDeletionUiState.Loading
+            when (val result = travelUseCase.deleteTrip.invoke(groupCode)) {
+                is Result.Success -> {
+                    _deletionUiState.value = TripDeletionUiState.Success
+                    onSuccess()
+                }
+
+                is Result.Error -> {
+                    val errorMessage = result.exception.message ?: "Failed to delete trip"
+                    _deletionUiState.value = TripDeletionUiState.Error(errorMessage)
+                    onError(errorMessage)
+                }
+            }
+        }
+    }
+
+    fun resetDeletionState() {
+        _deletionUiState.value = TripDeletionUiState.Idle
+    }
+
+    fun resetLeaveTripState() {
+        _leaveTripUiState.value = TripLeaveTripUiState.Idle
     }
 
     private fun generateQRCodeBitmap(content: String): Bitmap {

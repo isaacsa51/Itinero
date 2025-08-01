@@ -12,10 +12,10 @@ POST {{base_url}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "Isaac",
-  "surname": "Serrano",
+  "name": "Ani",
+  "surname": "Martinez",
   "phone": "1234567890",
-  "email": "admin",
+  "email": "ani",
   "password": "root"
 }
 
@@ -24,7 +24,7 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin",
+  "email": "ani",
   "password": "root"
 }
 
@@ -149,6 +149,10 @@ Authorization: Bearer {{auth_token}}
 
 ### Leave trip (for members who want to leave)
 DELETE {{base_url}}/trips/{{group_code}}/members/me
+Authorization: Bearer {{auth_token}}
+
+### Delete trip (owner)
+DELETE {{base_url}}/trips/{{group_code}}
 Authorization: Bearer {{auth_token}}
 
 ### ========================================

@@ -314,6 +314,22 @@ class TravelRepositoryImpl(
         }
     }
 
+    override suspend fun deleteTrip(groupCode: String): Result<Unit> {
+        return when (val result = safeApiCall { api.deleteTrip(groupCode) }) {
+            is Result.Success -> {
+                localRepository.clearAllTrips()
+                result
+            }
+            is Result.Error -> {
+                Log.e(
+                    "ITINERO - TravelRepository",
+                    "Failed to delete trip with group code $groupCode: ${result.exception.message}"
+                )
+                result
+            }
+        }
+    }
+
     private suspend fun getCachedTripIfMatches(groupCode: String): Trip? {
         return when (val result = localRepository.getCachedTrip()) {
             is Result.Success -> {

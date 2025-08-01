@@ -23,7 +23,8 @@ data class TravelUseCase(
     val makeOwner: MakeOwnerUseCase,
     val getCurrentUserMembershipStatus: GetCurrentUserMembershipStatusUseCase,
     val leaveTrip: LeaveTripUseCase,
-    val getTripOverview: GetTripOverviewUseCase
+    val getTripOverview: GetTripOverviewUseCase,
+    val deleteTrip: DeleteTripUseCase
 )
 
 class GetAllTravelsUseCase(private val repository: TravelRepository) {
@@ -92,4 +93,9 @@ class LeaveTripUseCase(private val repository: TravelRepository) {
 class GetTripOverviewUseCase(private val repository: TravelRepository) {
     suspend operator fun invoke(groupCode: String): Result<TripOverview> =
         repository.getTripOverview(groupCode)
+}
+
+class DeleteTripUseCase(private val repository: TravelRepository) {
+    suspend operator fun invoke(groupCode: String): Result<Unit> =
+        repository.deleteTrip(groupCode)
 }
