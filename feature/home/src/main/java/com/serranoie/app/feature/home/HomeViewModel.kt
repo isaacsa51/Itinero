@@ -119,4 +119,23 @@ class HomeViewModel(
             }
         }
     }
+
+    /**
+     * Checks if user has other trips available for navigation after deletion
+     */
+    fun getAllTravels(callback: (Boolean) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val result = travelUseCase.getAllTravels()) {
+                is Result.Success -> {
+                    val hasOtherTrips = result.data.isNotEmpty()
+                    callback(hasOtherTrips)
+                }
+
+                is Result.Error -> {
+                    // If we can't fetch trips, assume no other trips available
+                    callback(false)
+                }
+            }
+        }
+    }
 }

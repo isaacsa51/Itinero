@@ -44,20 +44,22 @@ import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.HomeUiState
 import com.serranoie.app.feature.home.HomeViewModel
 import com.serranoie.app.feature.itinerary.navigation.itineraryGraph
+import com.serranoie.app.feature.settings.trip.TripDeletionUiState
 import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
+import com.serranoie.app.feature.settings.trip.TripLeaveTripUiState
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
 import com.serranoie.core.settings.SettingsScreen
 import com.serranoie.core.settings.SettingsViewModel
-import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import org.koin.androidx.compose.koinViewModel
-import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeRootScreen(
     tripId: String,
+    onTripDeleted: ((hasOtherTrips: Boolean) -> Unit)? = null,
+    onTripLeft: ((hasOtherTrips: Boolean) -> Unit)? = null
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -118,9 +120,7 @@ fun HomeRootScreen(
 
                 composable(Route.Chat.route) {
                     ChatScreen(
-                        uiState = exampleUiState,
-                        onBackPressed = { navController.popBackStack() }
-                    )
+                        uiState = exampleUiState, onBackPressed = { navController.popBackStack() })
                 }
 
                 composable(Route.Settings.route) {
@@ -138,8 +138,7 @@ fun HomeRootScreen(
                         },
                         onMaterialYouChanged = { enabled ->
                             settingsViewModel.setMaterialYouEnabled(enabled)
-                        }
-                    )
+                        })
                 }
 
                 composable(
@@ -155,12 +154,12 @@ fun HomeRootScreen(
                     val scrollTo = backStackEntry.arguments?.getString("scrollTo")
 
                     val tripSettingsViewModel = koinViewModel<TripSettingsViewModel>(
-                        parameters = { parametersOf(routeTripId) }
-                    )
+                        parameters = { parametersOf(routeTripId) })
                     val qrBitmap by tripSettingsViewModel.qrBitmap.collectAsState()
                     val membersUiState by tripSettingsViewModel.membersUiState.collectAsState()
                     val currentUserMembershipStatus by tripSettingsViewModel.currentUserMembershipStatus.collectAsState()
-                    val authPreferencesRepository = koinInject<AuthPreferencesRepository>()
+                    val deletionUiState by tripSettingsViewModel.deletionUiState.collectAsState()
+                    val leaveTripUiState by tripSettingsViewModel.leaveTripUiState.collectAsState()
 
                     LaunchedEffect(routeTripId) {
                         Log.d(
@@ -174,9 +173,27 @@ fun HomeRootScreen(
                             )
                         } else {
                             Log.e(
-                                "ITINERO - $TAG",
-                                "Missing tripId ($routeTripId)"
+                                "ITINERO - $TAG", "Missing tripId ($routeTripId)"
                             )
+                        }
+                    }
+
+                    LaunchedEffect(deletionUiState) {
+                        if (deletionUiState is TripDeletionUiState.Success) {
+                            // Handle successful deletion with proper navigation
+                            homeViewModel.getAllTravels { hasOtherTrips ->
+                                tripSettingsViewModel.resetDeletionState()
+                                onTripDeleted?.invoke(hasOtherTrips)
+                            }
+                        }
+                    }
+
+                    LaunchedEffect(leaveTripUiState) {
+                        if (leaveTripUiState is TripLeaveTripUiState.Success) {
+                            homeViewModel.getAllTravels { hasOtherTrips ->
+                                tripSettingsViewModel.resetLeaveTripState()
+                                onTripLeft?.invoke(hasOtherTrips)
+                            }
                         }
                     }
 
@@ -188,6 +205,8 @@ fun HomeRootScreen(
                         qrBitmap = qrBitmap,
                         membersUiState = membersUiState,
                         currentUserMembershipStatus = currentUserMembershipStatus,
+                        deletionUiState = deletionUiState,
+                        leaveTripUiState = leaveTripUiState,
                         onGenerateQrCode = { tripId ->
                             tripSettingsViewModel.setQrText(tripId)
                             tripSettingsViewModel.generateQrCode()
@@ -197,29 +216,38 @@ fun HomeRootScreen(
                         },
                         onAcceptMember = { groupCode, memberId, onSuccess, onError ->
                             tripSettingsViewModel.acceptMember(
-                                groupCode,
-                                memberId,
-                                onSuccess,
-                                onError
+                                groupCode, memberId, onSuccess, onError
                             )
                         },
                         onRejectMember = { groupCode, memberId, onSuccess, onError ->
                             tripSettingsViewModel.rejectMember(
-                                groupCode,
-                                memberId,
-                                onSuccess,
-                                onError
+                                groupCode, memberId, onSuccess, onError
                             )
                         },
                         onRemoveMember = { groupCode, memberId, onSuccess, onError ->
                             tripSettingsViewModel.removeMember(
-                                groupCode,
-                                memberId,
-                                onSuccess,
-                                onError
+                                groupCode, memberId, onSuccess, onError
                             )
-                        }
-                    )
+                        },
+                        onLeaveTrip = { groupCode, onSuccess, onError ->
+                            tripSettingsViewModel.leaveTripCurrentTrip(
+                                groupCode, onSuccess = {
+                                    onSuccess()
+                                }, onError = onError
+                            )
+                        },
+                        onDeleteTrip = {
+                            tripSettingsViewModel.deleteTrip(
+                                groupCode = routeTripId,
+                                onSuccess = {
+                                    // Success handling is now done in LaunchedEffect above
+                                },
+                                onError = { errorMessage ->
+                                    // Error handling is now done in the UI state
+                                    Log.e("HomeRootScreen", "Failed to delete trip: $errorMessage")
+                                }
+                            )
+                        })
                 }
 
                 composable(
@@ -383,7 +411,8 @@ fun HomeRootScreen(
                                 Icons.AutoMirrored.Rounded.Message, contentDescription = "Chat"
                             )
                         }
-                    })
+                    },
+                )
             }
         }
     }

@@ -27,6 +27,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -38,6 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -54,8 +58,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
@@ -84,6 +90,91 @@ import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripMember
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun LeaveTripConfirmationDialog(
+    onDismiss: () -> Unit, onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    "Leave Group", style = MaterialTheme.typography.labelLargeEmphasized
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    "Cancel", style = MaterialTheme.typography.labelLargeEmphasized
+                )
+            }
+        },
+        title = {
+            Text(
+                text = "Are you sure you want to leave this trip group?",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            Text(
+                text = "This action cannot be undone. You will lose access to this trip's planning group and itinerary.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        },
+        icon = { Icon(imageVector = Icons.Rounded.Warning, contentDescription = null) },
+        properties = DialogProperties(),
+        shape = RoundedCornerShape(commonCornerRadius)
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun DeleteTripConfirmationDialog(
+    onDismiss: () -> Unit, onConfirm: () -> Unit, isLoading: Boolean = false
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = !isLoading) {
+                Text(
+                    "Delete Trip",
+                    color = if (isLoading) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelLargeEmphasized
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", style = MaterialTheme.typography.labelLargeEmphasized)
+            }
+        },
+        title = {
+            Text(
+                text = if (isLoading) "Deleting trip..." else "Are you sure you want to delete this trip?",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center,
+            )
+        },
+        text = {
+            Text(
+                text = "This action is irreversible. All trip data and planning group members will be removed.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        },
+        icon = { Icon(imageVector = Icons.Rounded.DeleteForever, contentDescription = null) },
+        properties = DialogProperties(),
+        shape = RoundedCornerShape(commonCornerRadius)
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,12 +185,16 @@ fun TripSettingsScreen(
     trip: Trip?,
     qrBitmap: Bitmap?,
     membersUiState: TripMembersUiState,
+    deletionUiState: TripDeletionUiState,
+    leaveTripUiState: TripLeaveTripUiState,
     currentUserMembershipStatus: MembershipStatus?,
     onGenerateQrCode: (String) -> Unit,
     onFetchMembers: (String) -> Unit,
     onAcceptMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
     onRejectMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
-    onRemoveMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit
+    onRemoveMember: (String, Int, () -> Unit, (String) -> Unit) -> Unit,
+    onLeaveTrip: (String, () -> Unit, (String) -> Unit) -> Unit,
+    onDeleteTrip: (() -> Unit)? = null
 ) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -109,6 +204,8 @@ fun TripSettingsScreen(
     val coroutineScope = rememberCoroutineScope()
 
     var expanded by remember { mutableStateOf(false) }
+    var showLeaveDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(tripId) {
         if (tripId.isNotEmpty()) {
@@ -137,49 +234,103 @@ fun TripSettingsScreen(
         }, scrollBehavior = scrollBehavior
         )
     }, snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(paddingValues), state = lazyListState
-        ) {
-            item {
-                GroupCodeCard(formattedCode = formattedCode, qrBitmap = qrBitmap)
-            }
-
-            item(key = "tripInfo") {
-                TripInfoSection(navController = navController, tripId = tripId, trip = trip)
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(mediumPadding))
-            }
-
-            if (currentUserMembershipStatus?.isOwner == true) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .padding(paddingValues),
+                state = lazyListState
+            ) {
                 item {
-                    GroupManagementSection(
-                        tripId = tripId,
-                        membersUiState = membersUiState,
-                        onFetchMembers = onFetchMembers,
-                        onAcceptMember = onAcceptMember,
-                        onRejectMember = onRejectMember,
-                        onRemoveMember = onRemoveMember,
-                        snackbarHostState = snackbarHostState,
-                        coroutineScope = coroutineScope
-                    )
+                    GroupCodeCard(formattedCode = formattedCode, qrBitmap = qrBitmap)
+                }
+
+                item(key = "tripInfo") {
+                    TripInfoSection(navController = navController, tripId = tripId, trip = trip)
                 }
 
                 item {
                     Spacer(modifier = Modifier.height(mediumPadding))
                 }
+
+                if (currentUserMembershipStatus?.isOwner == true) {
+                    item {
+                        GroupManagementSection(
+                            tripId = tripId,
+                            membersUiState = membersUiState,
+                            onFetchMembers = onFetchMembers,
+                            onAcceptMember = onAcceptMember,
+                            onRejectMember = onRejectMember,
+                            onRemoveMember = onRemoveMember,
+                            snackbarHostState = snackbarHostState,
+                            coroutineScope = coroutineScope
+                        )
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(mediumPadding))
+                    }
+                }
+
+                item {
+                    DangerZoneSection(
+                        currentUserMembershipStatus = currentUserMembershipStatus,
+                        onShowLeaveDialog = { showLeaveDialog = true },
+                        onShowDeleteDialog = { showDeleteDialog = true },
+                        showDeleteButton = onDeleteTrip != null,
+                        isDeletionLoading = deletionUiState is TripDeletionUiState.Loading,
+                        isLeaveLoading = leaveTripUiState is TripLeaveTripUiState.Loading
+                    )
+                }
             }
 
-            item {
-                DangerZoneSection(currentUserMembershipStatus = currentUserMembershipStatus)
+            if (showLeaveDialog) {
+                LeaveTripConfirmationDialog(onDismiss = { showLeaveDialog = false }, onConfirm = {
+                    onLeaveTrip(tripId, {
+                        showLeaveDialog = false
+                    }, {})
+                })
             }
 
-            item {
-                Spacer(modifier = Modifier.height(mediumPadding))
+            if (showDeleteDialog && onDeleteTrip != null) {
+                DeleteTripConfirmationDialog(
+                    onDismiss = { showDeleteDialog = false },
+                    onConfirm = {
+                        coroutineScope.launch {
+                            onDeleteTrip()
+                        }
+                        showDeleteDialog = false
+                    },
+                    isLoading = deletionUiState is TripDeletionUiState.Loading
+                )
+            }
+
+            // Handle deletion state changes
+            LaunchedEffect(deletionUiState) {
+                when (deletionUiState) {
+                    is TripDeletionUiState.Success -> {
+                        snackbarHostState.showSnackbar("Trip deleted successfully")
+                    }
+                    is TripDeletionUiState.Error -> {
+                        snackbarHostState.showSnackbar("Error: ${deletionUiState.message}")
+                    }
+                    else -> {}
+                }
+            }
+
+            // Handle leave trip state changes
+            LaunchedEffect(leaveTripUiState) {
+                when (leaveTripUiState) {
+                    is TripLeaveTripUiState.Success -> {
+                        snackbarHostState.showSnackbar("Left trip successfully")
+                    }
+
+                    is TripLeaveTripUiState.Error -> {
+                        snackbarHostState.showSnackbar("Error: ${leaveTripUiState.message}")
+                    }
+                    else -> {}
+                }
             }
         }
     }
@@ -316,7 +467,7 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                contentDescription = null
+                contentDescription = "Navigate"
             )
         }
 
@@ -338,7 +489,7 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                contentDescription = null
+                contentDescription = "Navigate"
             )
         }
 
@@ -360,7 +511,7 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                contentDescription = null
+                contentDescription = "Navigate"
             )
         }
     }
@@ -699,7 +850,14 @@ private fun MemberItemCardPreview() {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun DangerZoneSection(currentUserMembershipStatus: MembershipStatus?) {
+private fun DangerZoneSection(
+    currentUserMembershipStatus: MembershipStatus?,
+    onShowLeaveDialog: () -> Unit,
+    onShowDeleteDialog: () -> Unit,
+    showDeleteButton: Boolean = false,
+    isDeletionLoading: Boolean = false,
+    isLeaveLoading: Boolean = false
+) {
     Column(modifier = Modifier.standardPadding()) {
         Text(
             text = "DANGER ZONE", style = MaterialTheme.typography.labelLargeEmphasized.copy(
@@ -712,26 +870,30 @@ private fun DangerZoneSection(currentUserMembershipStatus: MembershipStatus?) {
         IButton(
             text = {
                 Text(
-                    text = "Leave Trip Group", style = MaterialTheme.typography.labelLargeEmphasized
+                    text = if (isLeaveLoading) "Leaving..." else "Leave Trip Group",
+                    style = MaterialTheme.typography.labelLargeEmphasized
                 )
             },
-            onClick = { /* Show leave group confirmation */ },
+            onClick = onShowLeaveDialog,
             modifier = Modifier.fillMaxWidth(),
             importance = ButtonImportance.Secondary,
+            enabled = !isLeaveLoading
         )
 
         Spacer(modifier = Modifier.height(smallPadding * 1.5f))
 
-        if (currentUserMembershipStatus?.isOwner == true) {
+        if (showDeleteButton && currentUserMembershipStatus?.isOwner == true) {
             IButton(
                 text = {
                     Text(
-                        text = "Delete Trip", style = MaterialTheme.typography.labelLargeEmphasized
+                        text = if (isDeletionLoading) "Deleting..." else "Delete Trip",
+                        style = MaterialTheme.typography.labelLargeEmphasized
                     )
                 },
-                onClick = { /* Show delete trip confirmation */ },
+                onClick = onShowDeleteDialog,
                 modifier = Modifier.fillMaxWidth(),
                 importance = ButtonImportance.Error,
+                enabled = !isDeletionLoading
             )
         }
     }
@@ -769,6 +931,8 @@ private fun TripSettingsScreenPreview() {
             ),
             qrBitmap = null,
             membersUiState = TripMembersUiState.Idle,
+            deletionUiState = TripDeletionUiState.Idle,
+            leaveTripUiState = TripLeaveTripUiState.Idle,
             currentUserMembershipStatus = MembershipStatus(
                 status = "OWNER", isOwner = true, isMember = true, isPending = false
             ),
@@ -776,6 +940,9 @@ private fun TripSettingsScreenPreview() {
             onFetchMembers = {},
             onAcceptMember = { _, _, _, _ -> },
             onRejectMember = { _, _, _, _ -> },
-            onRemoveMember = { _, _, _, _ -> })
+            onRemoveMember = { _, _, _, _ -> },
+            onLeaveTrip = { _, _, _ -> },
+            onDeleteTrip = {}
+        )
     }
 }

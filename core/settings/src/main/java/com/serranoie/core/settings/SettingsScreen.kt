@@ -50,7 +50,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -134,7 +136,7 @@ fun SettingsScreen(
             }
 
             PaddedListGroup(
-                title = "Look & Feel"
+                title = "Look & Feel".toUpperCase(locale = Locale.current)
             ) {
                 CustomPaddedListItem(
                     onClick = { showThemeDialog = true }, position = PaddedListItemPosition.First
@@ -201,7 +203,7 @@ fun SettingsScreen(
             }
 
             PaddedListGroup(
-                title = "App Information"
+                title = "App Information".toUpperCase(locale = Locale.current)
             ) {
                 CustomPaddedListItem(
                     onClick = { }, position = PaddedListItemPosition.First
@@ -391,7 +393,7 @@ fun SettingsScreenPreviewContent(
             }
 
             PaddedListGroup(
-                title = "Look & Feel"
+                title = "Look & Feel".toUpperCase(locale = Locale.current)
             ) {
                 CustomPaddedListItem(
                     onClick = { showThemeDialog = true }, position = PaddedListItemPosition.First
@@ -458,7 +460,7 @@ fun SettingsScreenPreviewContent(
             }
 
             PaddedListGroup(
-                title = "App Information"
+                title = "App Information".toUpperCase(locale = Locale.current)
             ) {
                 CustomPaddedListItem(
                     onClick = { }, position = PaddedListItemPosition.First

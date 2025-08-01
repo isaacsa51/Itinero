@@ -25,4 +25,5 @@ interface TravelRepository {
     suspend fun getCurrentUserMembershipStatus(groupCode: String): Result<MembershipStatus>
     suspend fun leaveTrip(groupCode: String): Result<Unit>
     suspend fun getTripOverview(groupCode: String): Result<TripOverview>
+    suspend fun deleteTrip(groupCode: String): Result<Unit>
 }

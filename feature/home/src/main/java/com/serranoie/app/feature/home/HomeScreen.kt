@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.SupervisedUserCircle
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -58,6 +57,8 @@ import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ExpandableCard
@@ -249,7 +250,8 @@ fun HomeScreen(
                         )
                     } ?: HomeScreenEmptyOrError(
                         message = "Unexpected error: Trip data missing after success.",
-                        paddingValues = paddingValues
+                        paddingValues = paddingValues,
+                        navController = navController
                     )
                 }
 
@@ -257,7 +259,7 @@ fun HomeScreen(
                     HomeScreenEmptyOrError(
                         message = "No trip information available.",
                         paddingValues = paddingValues,
-                        onRetry = onGetTravel
+                        navController = navController
                     )
                 }
 
@@ -265,7 +267,9 @@ fun HomeScreen(
                     val errorMessage =
                         (uiState as? HomeUiState.Error)?.message ?: "An unknown error occurred."
                     HomeScreenEmptyOrError(
-                        message = errorMessage, paddingValues = paddingValues, onRetry = onGetTravel
+                        message = errorMessage,
+                        paddingValues = paddingValues,
+                        navController = navController
                     )
                 }
             }
@@ -634,7 +638,10 @@ fun HomeScreenContent(
 
 @Composable
 fun HomeScreenEmptyOrError(
-    message: String, paddingValues: PaddingValues, onRetry: (() -> Unit)? = null
+    message: String,
+    paddingValues: PaddingValues,
+    onRetry: (() -> Unit)? = null,
+    navController: NavController
 ) {
     Column(
         modifier = Modifier
@@ -647,9 +654,15 @@ fun HomeScreenEmptyOrError(
         Text(text = message, style = MaterialTheme.typography.bodyLarge)
         onRetry?.let {
             Spacer(modifier = Modifier.height(Constants.basePadding))
-            Button(onClick = it) {
-                Text("Retry")
-            }
+
+            IButton(
+                content = { Text("Go Back") },
+                onClick = {
+                    navController.navigate(Route.TravelList.route)
+                },
+                importance = ButtonImportance.Tertiary,
+            )
+
         }
     }
 }
@@ -1057,7 +1070,11 @@ fun TodayTasksSection(overviewUiState: OverviewUiState = OverviewUiState.Idle) {
                                         style = MaterialTheme.typography.titleSmallEmphasized
                                     )
                                     Text(
-                                        text = "$${String.format("%.2f", overview.yesterdayExpenses.sumOf { it.amount })}",
+                                        text = "$${
+                                            String.format(
+                                                "%.2f",
+                                                overview.yesterdayExpenses.sumOf { it.amount })
+                                        }",
                                         style = MaterialTheme.typography.titleSmallEmphasized,
                                         color = MaterialTheme.colorScheme.error
                                     )
@@ -1130,7 +1147,8 @@ fun TodayTasksSection(overviewUiState: OverviewUiState = OverviewUiState.Idle) {
                             Text(
                                 text = "Loading...",
                                 style = MaterialTheme.typography.titleMediumEmphasized,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.shimmerable()
                             )
                         }
                     },
@@ -1224,48 +1242,44 @@ fun TodayTasksSection(overviewUiState: OverviewUiState = OverviewUiState.Idle) {
                     onClick = { })
 
                 // Today's Itinerary
-                ICard(
-                    modifier = Modifier.fillMaxWidth(),
-                    content = {
-                        Column(
-                            modifier = Modifier.standardPadding(),
-                            verticalArrangement = Arrangement.spacedBy(smallPadding)
+                ICard(modifier = Modifier.fillMaxWidth(), content = {
+                    Column(
+                        modifier = Modifier.standardPadding(),
+                        verticalArrangement = Arrangement.spacedBy(smallPadding)
+                    ) {
+                        Text(
+                            text = "Today's Itinerary",
+                            style = MaterialTheme.typography.titleMediumEmphasized,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        HorizontalDivider()
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top
                         ) {
                             Text(
-                                text = "Today's Itinerary",
-                                style = MaterialTheme.typography.titleMediumEmphasized,
-                                color = MaterialTheme.colorScheme.primary
+                                text = "10:00 AM",
+                                style = MaterialTheme.typography.labelMediumEmphasized,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.width(84.dp)
                             )
-
-                            HorizontalDivider()
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.Top
+                            Column(
+                                modifier = Modifier.weight(1f)
                             ) {
                                 Text(
-                                    text = "10:00 AM",
-                                    style = MaterialTheme.typography.labelMediumEmphasized,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.width(84.dp)
+                                    text = "Visit Local Market",
+                                    style = MaterialTheme.typography.labelMediumEmphasized
                                 )
-                                Column(
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(
-                                        text = "Visit Local Market",
-                                        style = MaterialTheme.typography.labelMediumEmphasized
-                                    )
-                                    Text(
-                                        text = "Location name",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                                Text(
+                                    text = "Location name",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
-                    },
-                    onClick = { })
+                    }
+                }, onClick = { })
             }
         }
     }

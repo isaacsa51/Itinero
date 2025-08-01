@@ -18,6 +18,7 @@ import com.serranoie.app.feature.itinerary.domain.usecase.UpdateActivityInfoUseC
 import com.serranoie.itinero.core.domain.usecase.AcceptMemberToTripUseCase
 import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import com.serranoie.itinero.core.domain.usecase.CreateTravelUseCase
+import com.serranoie.itinero.core.domain.usecase.DeleteTripUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllMembersUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllTravelsUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAuthTokenUseCase
@@ -53,6 +54,7 @@ val useCaseModule = module {
     factory { GetCurrentUserMembershipStatusUseCase(get()) }
     factory { LeaveTripUseCase(get()) }
     factory { GetTripOverviewUseCase(get()) }
+    factory { DeleteTripUseCase(get()) }
 
     factory { GetAllActivitiesUseCase(get()) }
     factory { GetActivityByIdUseCase(get()) }
@@ -90,7 +92,8 @@ val useCaseModule = module {
             makeOwner = get(),
             getCurrentUserMembershipStatus = get(),
             leaveTrip = get(),
-            getTripOverview = get()
+            getTripOverview = get(),
+            deleteTrip = get()
         )
     }
 

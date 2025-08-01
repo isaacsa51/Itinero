@@ -19,8 +19,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
@@ -164,12 +162,22 @@ fun MarqueeText(
                 }.first().measure(infiniteWidthConstraints) to secondTextOffset
             }
             gradient = subcompose(MarqueeLayers.EdgesGradient) {
-                Row {
-                    GradientEdge(startColor = Color.Transparent, endColor = gradientEdgeColor)
-                    Spacer(modifier = Modifier.weight(1f))
-                    GradientEdge(startColor = gradientEdgeColor, endColor = Color.Transparent)
-                }
-            }.first().measure(constraints = constraints.copy(maxHeight = mainText.height))
+                Box(
+                    modifier = Modifier
+                        .width(10.dp)
+                        .fillMaxHeight()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                0f to Color.Transparent,
+                                1f to gradientEdgeColor
+                            )
+                        )
+                )
+            }.first().measure(
+                constraints = constraints.copy(
+                    maxHeight = mainText.height
+                )
+            )
         }
 
         layout(
@@ -182,28 +190,10 @@ fun MarqueeText(
             }
             // Only place gradient when marquee is actually needed
             if (shouldUseMarquee) {
-                gradient?.place(0, 0)
+                gradient?.place(constraints.maxWidth - (gradient.width), 0)
             }
         }
     }
-}
-
-@Composable
-private fun GradientEdge(
-    startColor: Color,
-    endColor: Color
-) {
-    Box(
-        modifier = Modifier
-            .width(10.dp)
-            .fillMaxHeight()
-            .background(
-                brush = Brush.horizontalGradient(
-                    0f to startColor,
-                    1f to endColor
-                )
-            )
-    )
 }
 
 private enum class MarqueeLayers {
