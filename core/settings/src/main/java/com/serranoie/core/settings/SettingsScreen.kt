@@ -203,7 +203,7 @@ fun SettingsScreen(
             }
 
             PaddedListGroup(
-                title = "App Information"
+                title = "App Information".toUpperCase(locale = Locale.current)
             ) {
                 CustomPaddedListItem(
                     onClick = { }, position = PaddedListItemPosition.First
