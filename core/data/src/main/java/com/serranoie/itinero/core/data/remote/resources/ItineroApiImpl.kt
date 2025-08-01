@@ -18,6 +18,7 @@ import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
+import com.serranoie.itinero.core.data.remote.dto.TripOverviewDto
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 import io.ktor.client.HttpClient
 
@@ -50,6 +51,10 @@ class ItineroApiImpl(
 
     override suspend fun getAllTrips(): List<TripDto> {
         return get("/trips")
+    }
+
+    override suspend fun getTripOverview(groupCode: String): TripOverviewDto {
+        return get("/trips/$groupCode/today-overview")
     }
 
     override suspend fun createTrip(request: CreateTripDto): CreateTripDto {

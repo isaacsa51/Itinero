@@ -15,6 +15,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.itinero.core.domain.model.Trip
+import com.serranoie.itinero.core.domain.model.TripOverview
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
@@ -31,6 +32,13 @@ sealed interface HomeUiState {
     data class Error(val message: String) : HomeUiState
 }
 
+sealed interface OverviewUiState {
+    data object Idle : OverviewUiState
+    data object Loading : OverviewUiState
+    data class Success(val data: TripOverview) : OverviewUiState
+    data class Error(val message: String) : OverviewUiState
+}
+
 class HomeViewModel(
     private val travelUseCase: TravelUseCase,
     private val groupCode: String
@@ -38,6 +46,9 @@ class HomeViewModel(
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    private val _overviewUiState = MutableStateFlow<OverviewUiState>(OverviewUiState.Idle)
+    val overviewUiState: StateFlow<OverviewUiState> = _overviewUiState.asStateFlow()
 
     private val _trip = MutableStateFlow<Trip?>(null)
     val trip: StateFlow<Trip?> = _trip.asStateFlow()
@@ -89,6 +100,21 @@ class HomeViewModel(
                 is Result.Error -> {
                     Log.d("HomeViewModel", "updateTripInfo: Error, ${result.exception.message}")
                     _uiState.value = HomeUiState.Error(result.exception.message ?: "Unknown error")
+                }
+            }
+        }
+    }
+
+    fun getTripOverview(groupCode: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _overviewUiState.value = OverviewUiState.Loading
+
+            when (val result = travelUseCase.getTripOverview(groupCode)) {
+                is Result.Success -> {
+                    _overviewUiState.value = OverviewUiState.Success(result.data)
+                }
+                is Result.Error -> {
+                    _overviewUiState.value = OverviewUiState.Error(result.exception.message ?: "Unknown error")
                 }
             }
         }

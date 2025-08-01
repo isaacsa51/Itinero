@@ -4,6 +4,7 @@ import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripMember
+import com.serranoie.itinero.core.domain.model.TripOverview
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.result.Result
@@ -22,6 +23,7 @@ data class TravelUseCase(
     val makeOwner: MakeOwnerUseCase,
     val getCurrentUserMembershipStatus: GetCurrentUserMembershipStatusUseCase,
     val leaveTrip: LeaveTripUseCase,
+    val getTripOverview: GetTripOverviewUseCase
 )
 
 class GetAllTravelsUseCase(private val repository: TravelRepository) {
@@ -85,4 +87,9 @@ class GetCurrentUserMembershipStatusUseCase(private val repository: TravelReposi
 class LeaveTripUseCase(private val repository: TravelRepository) {
     suspend operator fun invoke(groupCode: String): Result<Unit> =
         repository.leaveTrip(groupCode)
+}
+
+class GetTripOverviewUseCase(private val repository: TravelRepository) {
+    suspend operator fun invoke(groupCode: String): Result<TripOverview> =
+        repository.getTripOverview(groupCode)
 }

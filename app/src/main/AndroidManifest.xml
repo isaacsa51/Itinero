@@ -20,6 +20,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.Itinero"
         android:usesCleartextTraffic="true"
         android:windowSoftInputMode="adjustResize"
@@ -27,7 +28,6 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Itinero">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
