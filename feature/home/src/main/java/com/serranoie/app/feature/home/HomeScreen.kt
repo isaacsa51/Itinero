@@ -66,6 +66,7 @@ import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
 import com.serranoie.app.designsystemlib.ui.utils.Constants
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.Utils.formatCurrency
 import com.serranoie.app.designsystemlib.ui.utils.clickableWithoutRipple
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
@@ -1038,7 +1039,7 @@ fun TodayTasksSection(overviewUiState: OverviewUiState = OverviewUiState.Idle) {
                                             style = MaterialTheme.typography.bodyMedium
                                         )
                                         Text(
-                                            text = "$${String.format("%.2f", expense.amount)}",
+                                            text = formatCurrency(expense.amount),
                                             style = MaterialTheme.typography.labelMediumEmphasized,
                                             color = MaterialTheme.colorScheme.error
                                         )
