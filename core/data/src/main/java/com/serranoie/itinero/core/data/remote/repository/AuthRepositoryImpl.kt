@@ -40,5 +40,20 @@ class AuthRepositoryImpl(
 
     override suspend fun logout() {
         authPreferencesRepository.clearToken()
+        authPreferencesRepository.clearLoginStatus()
+        authPreferencesRepository.saveLoginStatus(false)
+    }
+
+    override suspend fun deleteAccount(password: String) {
+        try {
+            api.deleteAccount(password)
+            // Only clear local data if API call succeeds
+            authPreferencesRepository.clearToken()
+            authPreferencesRepository.clearLoginStatus()
+            authPreferencesRepository.saveLoginStatus(false)
+        } catch (e: Exception) {
+            // Re-throw the exception so the ViewModel can handle it
+            throw e
+        }
     }
 }

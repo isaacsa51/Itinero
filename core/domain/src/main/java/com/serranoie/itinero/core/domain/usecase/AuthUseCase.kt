@@ -9,7 +9,8 @@ data class AuthUseCase(
     val register: RegisterUseCase,
     val getAuthToken: GetAuthTokenUseCase,
     val saveAuthToken: SaveAuthTokenUseCase,
-    val logout: LogoutUseCase
+    val logout: LogoutUseCase,
+    val deleteAccountUseCase: DeleteAccountUseCase
 )
 
 class LoginUseCase(private val repo: AuthRepository) {
@@ -30,4 +31,8 @@ class SaveAuthTokenUseCase(private val repo: AuthRepository) {
 
 class LogoutUseCase(private val repo: AuthRepository) {
     suspend operator fun invoke() = repo.logout()
+}
+
+class DeleteAccountUseCase(private val repo: AuthRepository) {
+    suspend operator fun invoke(password: String) = repo.deleteAccount(password)
 }

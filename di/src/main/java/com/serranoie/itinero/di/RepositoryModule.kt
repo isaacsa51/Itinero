@@ -10,8 +10,10 @@ import com.serranoie.app.feature.expenses.data.remote.repository.ExpensesReposit
 import com.serranoie.app.feature.expenses.domain.repository.ExpensesRepository
 import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.data.remote.resources.ItineroApiImpl
+import com.serranoie.itinero.core.data.remote.resources.UnauthorizedHandler
 import com.serranoie.itinero.core.data.remote.repository.AuthRepositoryImpl
 import com.serranoie.itinero.core.data.remote.repository.TravelRepositoryImpl
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import org.koin.dsl.module
@@ -23,7 +25,16 @@ val repositoryModule = module {
     single<ExpensesApi> { ExpensesApiImpl(get()) }
 
     // Repository Implementations
-    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
+    single<AuthRepository> {
+        val authPrefs = get<AuthPreferencesRepository>()
+        // Set up UnauthorizedHandler with auth preferences
+        UnauthorizedHandler.setAuthTokenClearer {
+            authPrefs.clearToken()
+            authPrefs.clearLoginStatus()
+            authPrefs.saveLoginStatus(false)
+        }
+        AuthRepositoryImpl(get(), authPrefs)
+    }
     single<TravelRepository> {
         TravelRepositoryImpl(
             get(), // ItineroApi

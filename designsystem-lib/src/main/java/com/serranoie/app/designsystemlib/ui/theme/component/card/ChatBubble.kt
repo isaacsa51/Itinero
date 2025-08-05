@@ -278,7 +278,7 @@ fun ChatConversation(
  * Circular avatar component for chat messages that displays user initials
  */
 @Composable
-private fun ChatAvatar(
+fun ChatAvatar(
     authorName: String,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier

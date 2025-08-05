@@ -24,13 +24,29 @@ class HomeNavigationGraph : NavigationGraph {
             startDestination = Route.Home.route
         ) {
             composable(
-                route = Route.Home.route,
-                arguments = listOf(navArgument("tripId") { type = NavType.StringType })
+                route = Route.Home.route + "?userName={userName}&userStatus={userStatus}",
+                arguments = listOf(
+                    navArgument("tripId") { type = NavType.StringType },
+                    navArgument("userName") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = ""
+                    },
+                    navArgument("userStatus") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = ""
+                    }
+                )
             ) { backStackEntry ->
                 val tripId = backStackEntry.arguments?.getString("tripId") ?: ""
+                val userName = backStackEntry.arguments?.getString("userName") ?: ""
+                val userStatus = backStackEntry.arguments?.getString("userStatus") ?: ""
                 val coroutineScope = rememberCoroutineScope()
                 HomeRootScreen(
                     tripId = tripId,
+                    userName = userName,
+                    userStatus = userStatus,
                     onTripDeleted = { hasOtherTrips ->
                         coroutineScope.launch {
                             // Navigate based on whether user has other trips
@@ -64,10 +80,24 @@ class HomeNavigationGraph : NavigationGraph {
                                 }
                             }
                         }
+                    },
+                    onLogout = {
+                        // This uses the main navController which has access to AuthNavigation
+                        navController.navigate(Route.AuthNavigation.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }
-            composable(route = Route.Settings.route) {
+            composable(
+                route = Route.Settings.route + "?userName={userName}&userStatus={userStatus}",
+                arguments = listOf(
+                    navArgument("userName") { type = NavType.StringType },
+                    navArgument("userStatus") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val userName = backStackEntry.arguments?.getString("userName") ?: ""
+                val userStatus = backStackEntry.arguments?.getString("userStatus") ?: ""
                 val settingsViewModel: SettingsViewModel = koinViewModel()
                 val themeMode by settingsViewModel.themeMode.collectAsState()
                 val isMaterialYouEnabled by settingsViewModel.isMaterialYouEnabled.collectAsState()
@@ -77,6 +107,8 @@ class HomeNavigationGraph : NavigationGraph {
                     settingsViewModel = settingsViewModel,
                     currentThemeMode = themeMode,
                     isMaterialYouEnabled = isMaterialYouEnabled,
+                    userName = userName,
+                    userStatus = userStatus,
                     onThemeModeChanged = { newThemeMode ->
                         settingsViewModel.setThemeMode(newThemeMode)
                     },

@@ -135,10 +135,13 @@ class MainActivity : ComponentActivity() {
 
     private suspend fun validateTokenWithServer() {
         try {
-            val Result = travelUseCase.getAllTravels()
+            val result = travelUseCase.getAllTravels()
         } catch (e: UnauthorizedException) {
             throw e
         } catch (e: Exception) {
+            if (e.message?.contains("404") == true) {
+                throw UnauthorizedException("User not found")
+            }
             Log.e(
                 "ITINERO - MainActivity", "Network error during token validation: ${e.message}"
             )

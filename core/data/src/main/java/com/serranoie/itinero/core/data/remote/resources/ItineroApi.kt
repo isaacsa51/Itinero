@@ -29,6 +29,7 @@ interface ItineroApi {
         phone: String
     ): AuthResponse
     suspend fun logoutUser()
+    suspend fun deleteAccount(password: String)
     suspend fun forgotPasswordUser(email: String)
 
     suspend fun getAllTrips(): List<TripDto>

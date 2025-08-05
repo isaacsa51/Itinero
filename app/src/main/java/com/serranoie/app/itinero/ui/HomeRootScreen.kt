@@ -18,13 +18,14 @@ import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -49,8 +50,8 @@ import com.serranoie.app.feature.settings.trip.TripInfoSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripLeaveTripUiState
 import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
-import com.serranoie.core.settings.SettingsScreen
 import com.serranoie.core.settings.SettingsViewModel
+import com.serranoie.core.settings.navigation.settingsGraph
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -59,7 +60,10 @@ import org.koin.core.parameter.parametersOf
 fun HomeRootScreen(
     tripId: String,
     onTripDeleted: ((hasOtherTrips: Boolean) -> Unit)? = null,
-    onTripLeft: ((hasOtherTrips: Boolean) -> Unit)? = null
+    onTripLeft: ((hasOtherTrips: Boolean) -> Unit)? = null,
+    userName: String = "",
+    userStatus: String = "",
+    onLogout: (() -> Unit)? = null
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -69,6 +73,10 @@ fun HomeRootScreen(
     val tripInfo by homeViewModel.trip.collectAsState()
     val uiState by homeViewModel.uiState.collectAsState()
     val overviewUiState by homeViewModel.overviewUiState.collectAsState()
+
+    val settingsViewModel = koinViewModel<SettingsViewModel>()
+    val themeMode by settingsViewModel.themeMode.collectAsState()
+    val isMaterialYouEnabled by settingsViewModel.isMaterialYouEnabled.collectAsState()
 
     val floatingToolbarScrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
         exitDirection = FloatingToolbarExitDirection.Bottom
@@ -111,7 +119,10 @@ fun HomeRootScreen(
                         onRefresh = {
                             homeViewModel.refreshTrip()
                             homeViewModel.getTripOverview(tripId)
-                        })
+                        },
+                        userName = userName,
+                        userStatus = userStatus
+                    )
                 }
 
                 itineraryGraph(navController, tripId, tripInfo)
@@ -123,23 +134,18 @@ fun HomeRootScreen(
                         uiState = exampleUiState, onBackPressed = { navController.popBackStack() })
                 }
 
-                composable(Route.Settings.route) {
-                    val settingsViewModel = koinViewModel<SettingsViewModel>()
-                    val themeMode by settingsViewModel.themeMode.collectAsState()
-                    val isMaterialYouEnabled by settingsViewModel.isMaterialYouEnabled.collectAsState()
-
-                    SettingsScreen(
-                        navController = navController,
-                        settingsViewModel = settingsViewModel,
-                        currentThemeMode = themeMode,
-                        isMaterialYouEnabled = isMaterialYouEnabled,
-                        onThemeModeChanged = { newThemeMode ->
-                            settingsViewModel.setThemeMode(newThemeMode)
-                        },
-                        onMaterialYouChanged = { enabled ->
-                            settingsViewModel.setMaterialYouEnabled(enabled)
-                        })
-                }
+                settingsGraph(
+                    navController = navController,
+                    currentThemeMode = themeMode,
+                    isMaterialYouEnabled = isMaterialYouEnabled,
+                    onThemeModeChanged = { newThemeMode ->
+                        settingsViewModel.setThemeMode(newThemeMode)
+                    },
+                    onMaterialYouChanged = { enabled ->
+                        settingsViewModel.setMaterialYouEnabled(enabled)
+                    },
+                    onLogout = onLogout
+                )
 
                 composable(
                     route = "trip_settings/{tripId}?scrollTo={scrollTo}", arguments = listOf(
@@ -304,7 +310,10 @@ fun HomeRootScreen(
                                                 tripId = tripInfo?.groupCode!!
                                             )
                                         )
-                                    }) {
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.tertiary
+                                ) {
                                     Icon(
                                         Icons.Filled.Edit, contentDescription = "Edit trip settings"
                                     )
@@ -315,7 +324,10 @@ fun HomeRootScreen(
                                 FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(Screen.ADD_ITINERARY.name)
-                                    }) {
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.tertiary
+                                ) {
                                     Icon(
                                         Icons.Filled.Add, contentDescription = "Add itinerary item"
                                     )
@@ -326,7 +338,10 @@ fun HomeRootScreen(
                                 FloatingToolbarDefaults.StandardFloatingActionButton(
                                     onClick = {
                                         navController.navigate(Screen.ADD_EXPENSE.name)
-                                    }) {
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.tertiary
+                                ) {
                                     Icon(
                                         Icons.Filled.Add, contentDescription = "Add expense"
                                     )
@@ -335,7 +350,10 @@ fun HomeRootScreen(
 
                             else -> {
                                 FloatingToolbarDefaults.StandardFloatingActionButton(
-                                    onClick = { /* Default action */ }) {
+                                    onClick = { /* Default action */ },
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.tertiary
+                                ) {
                                     Icon(
                                         Icons.Filled.Add, contentDescription = "Add"
                                     )

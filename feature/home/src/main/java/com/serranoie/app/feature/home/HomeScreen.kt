@@ -177,7 +177,9 @@ fun HomeScreen(
     onGetTravel: () -> Unit,
     onGetOverview: () -> Unit,
     onRefresh: () -> Unit,
-    tripInfo: Trip?
+    tripInfo: Trip?,
+    userName: String = "",
+    userStatus: String = ""
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
@@ -212,7 +214,9 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Route.Settings.route) }) {
+                    IconButton(onClick = {
+                        navController.navigate(Route.Settings.createRoute(userName, userStatus))
+                    }) {
                         Icon(Icons.Outlined.Settings, contentDescription = "Settings")
                     }
                 },

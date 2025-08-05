@@ -8,7 +8,9 @@ sealed class Route(val route: String) {
 
     data object HomeNavigation : Route("homeNavigation")
     data object Home : Route("HOME/{tripId}") {
-        fun createRoute(tripId: String) = "HOME/$tripId"
+        fun createRoute(tripId: String, userName: String = "", userStatus: String = ""): String {
+            return "HOME/$tripId?userName=$userName&userStatus=$userStatus"
+        }
     }
 
     data object Welcome : Route(Screen.WELCOME.name)
@@ -48,7 +50,12 @@ sealed class Route(val route: String) {
     data object CameraScanner : Route(Screen.CAMERA_SCANNER.name)
 
     //data object SettingsNavigation : Route("settingsNavigation")
-    data object Settings : Route(Screen.SETTINGS.name)
+    data object Settings : Route(Screen.SETTINGS.name) {
+        fun createRoute(userName: String = "", userStatus: String = ""): String {
+            return "${Screen.SETTINGS.name}?userName=$userName&userStatus=$userStatus"
+        }
+    }
+    data object Profile : Route(Screen.PROFILE.name)
 
     data object AuthNavigation : Route("authNavigation")
     data object Authentication : Route(Screen.AUTH.name)

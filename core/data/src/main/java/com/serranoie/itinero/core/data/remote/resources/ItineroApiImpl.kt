@@ -13,6 +13,7 @@ package com.serranoie.itinero.core.data.remote.resources
 
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
+import com.serranoie.itinero.core.data.remote.dto.DeleteAccountRequestDto
 import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
 import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
 import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
@@ -100,5 +101,12 @@ class ItineroApiImpl(
 
     override suspend fun getCurrentUserMembershipStatus(groupCode: String): MembershipStatusDto {
         return get("/trips/$groupCode/member/status")
+    }
+
+    override suspend fun deleteAccount(password: String) {
+        deleteWithBody<Unit, DeleteAccountRequestDto>(
+            "/auth/delete-account",
+            DeleteAccountRequestDto(password)
+        )
     }
 }

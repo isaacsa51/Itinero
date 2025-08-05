@@ -18,6 +18,7 @@ import com.serranoie.app.feature.itinerary.domain.usecase.UpdateActivityInfoUseC
 import com.serranoie.itinero.core.domain.usecase.AcceptMemberToTripUseCase
 import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import com.serranoie.itinero.core.domain.usecase.CreateTravelUseCase
+import com.serranoie.itinero.core.domain.usecase.DeleteAccountUseCase
 import com.serranoie.itinero.core.domain.usecase.DeleteTripUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllMembersUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllTravelsUseCase
@@ -76,6 +77,7 @@ val useCaseModule = module {
     factory { GetAuthTokenUseCase(get()) }
     factory { SaveAuthTokenUseCase(get()) }
     factory { LogoutUseCase(get()) }
+    factory { DeleteAccountUseCase(get()) }
 
     factory {
         TravelUseCase(
@@ -114,7 +116,8 @@ val useCaseModule = module {
             register = get(),
             getAuthToken = get(),
             saveAuthToken = get(),
-            logout = get()
+            logout = get(),
+            deleteAccountUseCase = get()
         )
     }
 

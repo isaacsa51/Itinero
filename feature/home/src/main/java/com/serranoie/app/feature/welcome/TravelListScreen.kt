@@ -91,12 +91,20 @@ fun TravelListScreen(
         is TravelUiState.Loading -> "loading"
         is TravelUiState.Success<*> -> if (trips.isNotEmpty()) "success" else "empty"
         is TravelUiState.Error -> "error"
+        is TravelUiState.NetworkError -> "network_error"
+        is TravelUiState.NoInternet -> "no_internet"
         is TravelUiState.Idle -> if (trips.isNotEmpty()) "success" else "loading"
     }
 
     LaunchedEffect(uiState) {
         if (uiState is TravelUiState.Error) {
             onShowSnackbar(uiState.message)
+            onResetState()
+        } else if (uiState is TravelUiState.NetworkError) {
+            onShowSnackbar("Network connection error. Please check your internet connection.")
+            onResetState()
+        } else if (uiState is TravelUiState.NoInternet) {
+            onShowSnackbar("No internet connection. Please check your network settings.")
             onResetState()
         }
     }
@@ -214,6 +222,19 @@ fun TravelListScreen(
                         onRetry = onGetAllTravels
                     )
                 }
+                "network_error" -> {
+                    ErrorTravelList(
+                        paddingValues = paddingValues,
+                        onRetry = onGetAllTravels
+                    )
+                }
+
+                "no_internet" -> {
+                    NoInternetTravelList(
+                        paddingValues = paddingValues,
+                        onRetry = onGetAllTravels
+                    )
+                }
             }
         }
     }
@@ -324,6 +345,35 @@ fun ErrorTravelList(
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Please try again",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetry) {
+            Text("Retry")
+        }
+    }
+}
+
+@Composable
+fun NoInternetTravelList(
+    paddingValues: PaddingValues,
+    onRetry: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "No internet connection",
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Please check your connection and try again",
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(modifier = Modifier.height(16.dp))

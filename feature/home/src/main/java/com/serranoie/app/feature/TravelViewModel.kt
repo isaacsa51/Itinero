@@ -3,6 +3,7 @@ package com.serranoie.app.feature
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.itinero.core.data.mappers.toTrip
+import com.serranoie.itinero.core.domain.exception.NetworkException
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.Trip
@@ -19,6 +20,8 @@ sealed interface TravelUiState {
     data object Loading : TravelUiState
     data class Success<T>(val data: T) : TravelUiState
     data class Error(val message: String) : TravelUiState
+    data object NetworkError : TravelUiState
+    data object NoInternet : TravelUiState
 }
 
 // Shared ViewModel for creation and joining operations only
@@ -132,8 +135,12 @@ class TravelListViewModel(
                 }
 
                 is Result.Error -> {
-                    _uiState.value =
-                        TravelUiState.Error(result.exception.message ?: "Unknown error")
+                    val exception = result.exception
+                    when (exception) {
+                        is NetworkException -> _uiState.value = TravelUiState.NetworkError
+                        else -> _uiState.value =
+                            TravelUiState.Error(exception.message ?: "Unknown error")
+                    }
                 }
             }
         }

@@ -156,9 +156,36 @@ class WelcomeNavigationGraph : NavigationGraph {
 
                         is TravelUiState.Error -> {
                             Log.e("ITINERO - WelcomeNav", "Error loading trips: ${currentState.message}")
-                            navController.navigate(Route.Welcome.route) {
-                                popUpTo(Route.TravelList.route) { inclusive = true }
-                                launchSingleTop = true
+
+                            // Check if the error is authentication-related
+                            if (currentState.message.contains(
+                                    "Please log in again",
+                                    ignoreCase = true
+                                ) ||
+                                currentState.message.contains(
+                                    "User not found",
+                                    ignoreCase = true
+                                ) ||
+                                currentState.message.contains(
+                                    "Session expired",
+                                    ignoreCase = true
+                                ) ||
+                                currentState.message.contains("Unauthorized", ignoreCase = true)
+                            ) {
+
+                                Log.d(
+                                    "ITINERO - WelcomeNav",
+                                    "Authentication error detected, navigating to auth screen"
+                                )
+                                navController.navigate(Route.AuthNavigation.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            } else {
+                                // For other errors, navigate to welcome screen
+                                navController.navigate(Route.Welcome.route) {
+                                    popUpTo(Route.TravelList.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         }
 
