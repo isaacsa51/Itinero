@@ -14,6 +14,8 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.SIMPLE
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.pingInterval
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
@@ -21,6 +23,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.seconds
 
 val networkModule = module {
     single { NetworkConnectivityManager(androidContext()) }
@@ -37,6 +40,11 @@ val networkModule = module {
                     explicitNulls = false
                     coerceInputValues = true
                 })
+            }
+
+            install(WebSockets) {
+                pingInterval = 20.seconds
+                maxFrameSize = Long.MAX_VALUE
             }
 
             install(HttpTimeout) {
