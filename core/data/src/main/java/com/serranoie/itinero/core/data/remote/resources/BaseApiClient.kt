@@ -142,22 +142,43 @@ abstract class BaseApiClient(
             }
 
             Log.e("ITINERO - API ERROR", "Error in API call: $errorBody")
-            Log.e("ITINERO - API ERROR", "In response from `${response.request.url}`")
-            Log.e("ITINERO - API ERROR", "Response status `${response.status}`")
-            Log.e("ITINERO - API ERROR", "Response header `ContentType: ${response.contentType()}`")
 
-            // Handle 401 Unauthorized specifically
             if (response.status == HttpStatusCode.Unauthorized) {
-                Log.e("ITINERO - API ERROR", "401 Unauthorized - triggering automatic logout")
-                UnauthorizedHandler.handleUnauthorized()
-                throw UnauthorizedException("Session expired. Please log in again.")
+                val requestUrl = response.request.url.encodedPath
+
+
+                val isAuthEndpoint = requestUrl.contains("/auth/login") ||
+                        requestUrl.contains("/auth/register") ||
+                        requestUrl.contains("/auth/forgot-password") ||
+                        requestUrl.contains("/auth/reset-password") ||
+                        requestUrl.contains("/auth/verify") ||
+                        requestUrl.contains("/auth/delete-account")
+
+                if (isAuthEndpoint) {
+                    val errorMessage = when {
+                        requestUrl.contains("/auth/delete-account") ->
+                            "Incorrect password. Please enter your current password to delete your account."
+
+                        requestUrl.contains("/auth/login") || requestUrl.contains("/auth/register") ->
+                            "Invalid credentials. Please check your email and password."
+
+                        else ->
+                            "Authentication failed. Please check your credentials."
+                    }
+                    throw UnauthorizedException(errorMessage)
+                } else {
+                    Log.e(
+                        "ITINERO - API ERROR",
+                        "401 Unauthorized on protected endpoint ($requestUrl) - triggering automatic logout"
+                    )
+                    UnauthorizedHandler.handleUnauthorized()
+                    throw UnauthorizedException("Session expired. Please log in again.")
+                }
             }
 
-            // Handle 404 User not found specifically
             if (response.status == HttpStatusCode.NotFound &&
                 errorBody.contains("User not found", ignoreCase = true)
             ) {
-                Log.e("ITINERO - API ERROR", "404 User not found - triggering automatic logout")
                 UnauthorizedHandler.handleUnauthorized()
                 throw UnauthorizedException("User not found. Please log in again.")
             }

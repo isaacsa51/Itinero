@@ -19,6 +19,9 @@ import com.serranoie.core.settings.SettingsScreen
 import com.serranoie.core.settings.SettingsViewModel
 import com.serranoie.core.settings.account.AccountSettingsScreen
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 fun NavGraphBuilder.settingsGraph(
     navController: NavController,
@@ -30,6 +33,12 @@ fun NavGraphBuilder.settingsGraph(
 ) {
     composable(Route.Settings.route) {
         val viewModel: SettingsViewModel = koinViewModel()
+        val userProfile by viewModel.userProfile.collectAsState()
+
+        // Ensure user profile is fetched when navigating to this screen
+        LaunchedEffect(Unit) {
+            viewModel.fetchUserProfile()
+        }
 
         SettingsScreen(
             navController = navController,
@@ -37,12 +46,19 @@ fun NavGraphBuilder.settingsGraph(
             currentThemeMode = currentThemeMode,
             isMaterialYouEnabled = isMaterialYouEnabled,
             onThemeModeChanged = onThemeModeChanged,
-            onMaterialYouChanged = onMaterialYouChanged
+            onMaterialYouChanged = onMaterialYouChanged,
+            userName = userProfile?.fullName ?: "Loading...",
         )
     }
 
     composable(Route.Profile.route) {
         val viewModel: SettingsViewModel = koinViewModel()
+
+        // Ensure user profile is fetched when navigating to this screen
+        LaunchedEffect(Unit) {
+            viewModel.fetchUserProfile()
+        }
+
         AccountSettingsScreen(
             navController = navController,
             settingsViewModel = viewModel,

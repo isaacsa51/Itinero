@@ -17,6 +17,9 @@ class AuthRepositoryImpl(
         val authResult = response.toDomain()
         authPreferencesRepository.saveToken(authResult.token)
         authPreferencesRepository.saveUserId(authResult.userId)
+        authPreferencesRepository.saveUserName(authResult.name)
+        authPreferencesRepository.saveUserLastName(authResult.lastName)
+        authPreferencesRepository.saveUserEmail(email)
         return authResult
     }
 
@@ -31,6 +34,10 @@ class AuthRepositoryImpl(
         val authResult = response.toDomain()
         authPreferencesRepository.saveToken(authResult.token)
         authPreferencesRepository.saveUserId(authResult.userId)
+        authPreferencesRepository.saveUserName(authResult.name)
+        authPreferencesRepository.saveUserLastName(authResult.lastName)
+        authPreferencesRepository.saveUserEmail(request.email)
+        authPreferencesRepository.saveUserPhone(request.phone)
         return authResult
     }
 
@@ -39,20 +46,21 @@ class AuthRepositoryImpl(
     override suspend fun getAuthToken(): String? = authPreferencesRepository.getToken()
 
     override suspend fun logout() {
+        api.logoutUser()
         authPreferencesRepository.clearToken()
         authPreferencesRepository.clearLoginStatus()
         authPreferencesRepository.saveLoginStatus(false)
+        authPreferencesRepository.clearUserInfo()
     }
 
     override suspend fun deleteAccount(password: String) {
         try {
             api.deleteAccount(password)
-            // Only clear local data if API call succeeds
             authPreferencesRepository.clearToken()
             authPreferencesRepository.clearLoginStatus()
             authPreferencesRepository.saveLoginStatus(false)
+            authPreferencesRepository.clearUserInfo()
         } catch (e: Exception) {
-            // Re-throw the exception so the ViewModel can handle it
             throw e
         }
     }

@@ -1,3 +1,14 @@
+/*
+ - Copyright (c) 2025 Isaac Serrano.
+ -
+ - File: InputFields.kt
+ - Project: Itinero
+ - Module: Itinero.designsystem-lib.main
+ -
+ - This file belongs to the project: Itinero.
+ - Last edited: 26 july 2025
+ */
+
 package com.serranoie.app.designsystemlib.ui.theme.component
 
 import androidx.compose.foundation.background
@@ -12,6 +23,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -33,9 +46,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,6 +58,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
@@ -58,6 +74,23 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldIconSize
 import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldIconSpacing
 import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldSmallHeight
 import com.serranoie.app.designsystemlib.ui.utils.Constants.textFieldVerticalPadding
+import kotlinx.coroutines.launch
+
+enum class InputType {
+    TEXT,
+    NUMBER,
+    EMAIL,
+    PHONE,
+    URI
+}
+
+private fun InputType.toKeyboardType(): KeyboardType = when (this) {
+    InputType.TEXT -> KeyboardType.Text
+    InputType.NUMBER -> KeyboardType.Number
+    InputType.EMAIL -> KeyboardType.Email
+    InputType.PHONE -> KeyboardType.Phone
+    InputType.URI -> KeyboardType.Uri
+}
 
 @Composable
 fun ITextField(
@@ -67,12 +100,27 @@ fun ITextField(
     label: String,
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
+    inputType: InputType = InputType.TEXT,
+    onDone: (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    fontStyle: TextStyle? = MaterialTheme.typography.bodyLarge
+    fontStyle: TextStyle? = MaterialTheme.typography.bodyLarge,
+    autoScrollToFocus: Boolean = true
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val finalKeyboardOptions = keyboardOptions.copy(
+        keyboardType = inputType.toKeyboardType(),
+        imeAction = if (onDone != null) ImeAction.Done else keyboardOptions.imeAction
+    )
+
+    val finalKeyboardActions = if (onDone != null) {
+        KeyboardActions(onDone = { onDone() })
+    } else keyboardActions
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -81,9 +129,16 @@ fun ITextField(
         leadingIcon = leadingIcon?.let {
             { Icon(imageVector = it, contentDescription = null) }
         },
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        modifier = modifier.fillMaxWidth(),
+        keyboardOptions = finalKeyboardOptions,
+        keyboardActions = finalKeyboardActions,
+        modifier = modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .onFocusChanged { focusState ->
+                if (focusState.isFocused && autoScrollToFocus) coroutineScope.launch {
+                    bringIntoViewRequester.bringIntoView()
+                }
+            },
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
@@ -108,11 +163,26 @@ fun IFilledTextField(
     label: String,
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
+    inputType: InputType = InputType.TEXT,
+    onDone: (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
-    borderColor: Color = MaterialTheme.colorScheme.outlineVariant
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    autoScrollToFocus: Boolean = true
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val finalKeyboardOptions = keyboardOptions.copy(
+        keyboardType = inputType.toKeyboardType(),
+        imeAction = if (onDone != null) ImeAction.Done else keyboardOptions.imeAction
+    )
+
+    val finalKeyboardActions = if (onDone != null) {
+        KeyboardActions(onDone = { onDone() })
+    } else keyboardActions
+
     TextField(
         value = value,
         onValueChange = onValueChange,
@@ -121,9 +191,16 @@ fun IFilledTextField(
         leadingIcon = leadingIcon?.let {
             { Icon(imageVector = it, contentDescription = null) }
         },
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        modifier = modifier.fillMaxWidth(),
+        keyboardOptions = finalKeyboardOptions,
+        keyboardActions = finalKeyboardActions,
+        modifier = modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .onFocusChanged { focusState ->
+                if (focusState.isFocused && autoScrollToFocus) coroutineScope.launch {
+                    bringIntoViewRequester.bringIntoView()
+                }
+            },
         shape = shape,
     )
 }
@@ -134,12 +211,24 @@ fun IPasswordField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    onDone: (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
-    borderColor: Color = MaterialTheme.colorScheme.outlineVariant
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    autoScrollToFocus: Boolean = true
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val finalKeyboardOptions = keyboardOptions.copy(
+        imeAction = if (onDone != null) ImeAction.Done else keyboardOptions.imeAction
+    )
+
+    val finalKeyboardActions = if (onDone != null) {
+        KeyboardActions(onDone = { onDone() })
+    } else keyboardActions
 
     OutlinedTextField(
         value = value,
@@ -158,9 +247,16 @@ fun IPasswordField(
             }
         },
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        modifier = modifier.fillMaxWidth(),
+        keyboardOptions = finalKeyboardOptions,
+        keyboardActions = finalKeyboardActions,
+        modifier = modifier
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .onFocusChanged { focusState ->
+                if (focusState.isFocused && autoScrollToFocus) coroutineScope.launch {
+                    bringIntoViewRequester.bringIntoView()
+                }
+            },
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
@@ -185,19 +281,34 @@ fun ISmallerTextField(
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
+    inputType: InputType = InputType.TEXT,
+    onDone: (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    autoScrollToFocus: Boolean = true
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val finalKeyboardOptions = keyboardOptions.copy(
+        keyboardType = inputType.toKeyboardType(),
+        imeAction = if (onDone != null) ImeAction.Done else keyboardOptions.imeAction
+    )
+
+    val finalKeyboardActions = if (onDone != null) {
+        KeyboardActions(onDone = { onDone() })
+    } else keyboardActions
+
     BasicTextField(
         value = value,
         onValueChange = if (enabled) onValueChange else { _ -> },
         singleLine = true,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
+        keyboardOptions = finalKeyboardOptions,
+        keyboardActions = finalKeyboardActions,
         enabled = enabled,
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         textStyle = LocalTextStyle.current.copy(
@@ -217,7 +328,13 @@ fun ISmallerTextField(
                 if (enabled) borderColor else borderColor.copy(alpha = SURFACE_DISABLED_ALPHA),
                 shape
             )
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .onFocusChanged { focusState ->
+                if (focusState.isFocused && autoScrollToFocus) coroutineScope.launch {
+                    bringIntoViewRequester.bringIntoView()
+                }
+            },
         decorationBox = { innerTextField ->
             Row(
                 modifier = Modifier.padding(
@@ -272,18 +389,33 @@ fun IFilledSmallerTextField(
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
+    inputType: InputType = InputType.TEXT,
+    onDone: (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    autoScrollToFocus: Boolean = true
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
+    val finalKeyboardOptions = keyboardOptions.copy(
+        keyboardType = inputType.toKeyboardType(),
+        imeAction = if (onDone != null) ImeAction.Done else keyboardOptions.imeAction
+    )
+
+    val finalKeyboardActions = if (onDone != null) {
+        KeyboardActions(onDone = { onDone() })
+    } else keyboardActions
+
     BasicTextField(
         value = value,
         onValueChange = if (enabled) onValueChange else { _ -> },
         singleLine = true,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
+        keyboardOptions = finalKeyboardOptions,
+        keyboardActions = finalKeyboardActions,
         enabled = enabled,
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         textStyle = LocalTextStyle.current.copy(
@@ -298,7 +430,13 @@ fun IFilledSmallerTextField(
                     alpha = SURFACE_DISABLED_ALPHA
                 ), shape
             )
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .onFocusChanged { focusState ->
+                if (focusState.isFocused && autoScrollToFocus) coroutineScope.launch {
+                    bringIntoViewRequester.bringIntoView()
+                }
+            },
         decorationBox = { innerTextField ->
             Row(
                 modifier = Modifier.padding(
@@ -352,8 +490,7 @@ fun IFilledSmallerTextField(
 private fun ITextFieldPreview() {
     PreviewWrapper {
         Column(
-            modifier = Modifier
-                .padding(vertical = smallPadding),
+            modifier = Modifier.padding(vertical = smallPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             ITextField(

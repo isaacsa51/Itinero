@@ -15,7 +15,7 @@ Content-Type: application/json
   "name": "Isaac",
   "surname": "Serrano",
   "phone": "1234567890",
-  "email": "admin",
+  "email": "admin@mail.com",
   "password": "root"
 }
 
@@ -24,7 +24,7 @@ POST {{base_url}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin",
+  "email": "admin@mail.com",
   "password": "root"
 }
 

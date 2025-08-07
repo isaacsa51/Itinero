@@ -30,6 +30,7 @@ import com.serranoie.itinero.core.domain.usecase.JoinTravelUseCase
 import com.serranoie.itinero.core.domain.usecase.LeaveTravelUseCase
 import com.serranoie.itinero.core.domain.usecase.LeaveTripUseCase
 import com.serranoie.itinero.core.domain.usecase.LoginUseCase
+import com.serranoie.itinero.core.domain.usecase.LogoutObserverUseCase
 import com.serranoie.itinero.core.domain.usecase.LogoutUseCase
 import com.serranoie.itinero.core.domain.usecase.MakeOwnerUseCase
 import com.serranoie.itinero.core.domain.usecase.RegisterUseCase
@@ -41,6 +42,8 @@ import com.serranoie.itinero.core.domain.usecase.UpdateTripInfoUseCase
 import org.koin.dsl.module
 
 val useCaseModule = module {
+    single { LogoutObserverUseCase() }
+
     factory { GetAllTravelsUseCase(get()) }
     factory { GetTravelByIdUseCase(get()) }
     factory { JoinTravelUseCase(get()) }

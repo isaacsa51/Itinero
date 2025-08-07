@@ -44,6 +44,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
@@ -64,12 +66,10 @@ import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
-import com.serranoie.app.designsystemlib.ui.theme.component.LabelChip
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatAvatar
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
-import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Utils
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
@@ -83,17 +83,18 @@ fun SettingsScreen(
     isMaterialYouEnabled: Boolean,
     onThemeModeChanged: (String) -> Unit,
     onMaterialYouChanged: (Boolean) -> Unit,
-    userName: String = "Isaac Serrano",
-    userStatus: String = "OWNER"
+    userName: String,
 ) {
     val viewModelThemeMode by settingsViewModel.themeMode.collectAsState()
     val viewModelMaterialYou by settingsViewModel.isMaterialYouEnabled.collectAsState()
+    val userProfile by settingsViewModel.userProfile.collectAsState()
 
     val themeOptions = listOf("Light", "Dark", "System Default")
     val selectedThemeIndex = themeOptions.indexOf(viewModelThemeMode)
     var showThemeDialog by remember { mutableStateOf(false) }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior =
+        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     Scaffold(
         topBar = {
@@ -117,6 +118,7 @@ fun SettingsScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
             if (showThemeDialog) {
                 AlertDialog(
@@ -133,10 +135,6 @@ fun SettingsScreen(
                                 ) {
                                     RadioButton(
                                         selected = selectedThemeIndex == idx, onClick = {
-                                            android.util.Log.d(
-                                                "SettingsScreen",
-                                                "Theme changed from $viewModelThemeMode to $option"
-                                            )
                                             settingsViewModel.setThemeMode(option)
                                             showThemeDialog = false
                                         })
@@ -158,8 +156,7 @@ fun SettingsScreen(
 
             AccountInformationSection(
                 navController = navController,
-                userName = userName,
-                userStatus = userStatus
+                userName = userProfile?.fullName ?: "Loading...",
             )
 
             LookAndFeelSection(
@@ -168,8 +165,7 @@ fun SettingsScreen(
                 settingsViewModel = settingsViewModel,
                 onThemeModeChanged = onThemeModeChanged,
                 onMaterialYouChanged = onMaterialYouChanged,
-                onShowThemeDialog = { showThemeDialog = true }
-            )
+                onShowThemeDialog = { showThemeDialog = true })
 
             AppInformationSection()
         }
@@ -180,7 +176,6 @@ fun SettingsScreen(
 private fun AccountInformationSection(
     navController: NavController,
     userName: String,
-    userStatus: String = "MEMBER"
 ) {
     PaddedListGroup(
         title = "Account Information".toUpperCase(locale = Locale.current)
@@ -188,7 +183,6 @@ private fun AccountInformationSection(
         ProfileAccountSettings(
             navController = navController,
             userName = userName,
-            userStatus = userStatus
         )
     }
 }
@@ -246,8 +240,7 @@ private fun LookAndFeelSection(
             onClick = {
                 settingsViewModel?.setMaterialYouEnabled(!viewModelMaterialYou)
                 onMaterialYouChanged?.invoke(!viewModelMaterialYou)
-            },
-            position = PaddedListItemPosition.Last
+            }, position = PaddedListItemPosition.Last
         ) {
             Icon(
                 imageVector = Icons.Default.Palette,
@@ -269,12 +262,10 @@ private fun LookAndFeelSection(
             }
 
             Switch(
-                checked = viewModelMaterialYou,
-                onCheckedChange = { newValue ->
+                checked = viewModelMaterialYou, onCheckedChange = { newValue ->
                     settingsViewModel?.setMaterialYouEnabled(newValue)
                     onMaterialYouChanged?.invoke(newValue)
-                }
-            )
+                })
         }
     }
 }
@@ -391,8 +382,7 @@ private fun AppInformationSection() {
                 }
 
                 Text(
-                    text = "Version $versionName",
-                    style = MaterialTheme.typography.bodySmall
+                    text = "Version $versionName", style = MaterialTheme.typography.bodySmall
                 )
             }
         }
@@ -403,106 +393,66 @@ private fun AppInformationSection() {
 @Composable
 private fun ProfileAccountSettings(
     navController: NavController,
-    userName: String = "Isaac Serrano",
-    userStatus: String = "OWNER"
+    userName: String,
 ) {
-    ICard(
-        onClick = { navController.navigate(Route.Profile.route) },
-        content = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(smallPadding),
-                modifier = Modifier
-                    .standardPadding()
-                    .fillMaxWidth()
-            ) {
+    ICard(onClick = { navController.navigate(Route.Profile.route) }, content = {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(smallPadding),
+            modifier = Modifier
+                .standardPadding()
+                .fillMaxWidth()
+        ) {
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(smallPadding),
-                    verticalAlignment = Alignment.CenterVertically
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(smallPadding),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ChatAvatar(
+                    authorName = userName, modifier = Modifier
+                        .height(48.dp)
+                        .width(48.dp)
+                )
+
+                Column(
+                    modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center
                 ) {
-                    ChatAvatar(
-                        authorName = userName, modifier = Modifier
-                            .height(48.dp)
-                            .width(48.dp)
+                    Text(
+                        text = userName,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMediumEmphasized,
                     )
 
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                        Text(
-                            text = userName,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMediumEmphasized,
-                        )
-
-                        Text(
-                            text = "View and edit your account information",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-
-                    LabelChip(
-                        text = userStatus,
-                        textStyle = MaterialTheme.typography.labelSmallEmphasized,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        borderColor = MaterialTheme.colorScheme.outline,
-                        textColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    Text(
+                        text = "View and edit your account information",
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
         }
-    )
+    })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@DevicePreview
-@Composable
-private fun SettingsScreenPreview() {
-    PreviewWrapper {
-        val navController = rememberNavController()
-        var currentThemeMode by remember { mutableStateOf("System Default") }
-        var isMaterialYou by remember { mutableStateOf(true) }
-
-        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-        Scaffold(
-            topBar = {
-                MediumTopAppBar(
-                    title = {
-                        Text(
-                            "Settings", maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                    }, navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Go back"
-                            )
-                        }
-                    }, scrollBehavior = scrollBehavior
-                )
-            }) { padding ->
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                AccountInformationSection(
-                    navController = navController,
-                    userName = "Isaac Serrano",
-                    userStatus = "MEMBER"
-                )
-
-                LookAndFeelSection(
-                    viewModelThemeMode = currentThemeMode,
-                    viewModelMaterialYou = isMaterialYou,
-                    onThemeModeChanged = { currentThemeMode = it },
-                    onMaterialYouChanged = { isMaterialYou = it },
-                    onShowThemeDialog = { }
-                )
-
-                AppInformationSection()
-            }
-        }
-    }
-}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@DevicePreview
+//@Composable
+//private fun SettingsScreenPreview() {
+//    PreviewWrapper {
+//        val navController = rememberNavController()
+//        var currentThemeMode by remember { mutableStateOf("System Default") }
+//        var isMaterialYou by remember { mutableStateOf(true) }
+//
+//        val scrollBehavior =
+//            TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+//
+//        SettingsScreen(
+//            navController = navController,
+//            settingsViewModel = SettingsViewModel(),
+//            currentThemeMode = currentThemeMode,
+//            isMaterialYouEnabled = isMaterialYou,
+//            onThemeModeChanged = { currentThemeMode = it },
+//            onMaterialYouChanged = { isMaterialYou = it },
+//            userName = "Isaac Serrano"
+//        )
+//    }
+//}

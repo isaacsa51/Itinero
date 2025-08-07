@@ -20,13 +20,20 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serranoie.itinero.core.domain.exception.UnauthorizedException
+import com.serranoie.itinero.core.domain.model.UserProfile
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class SettingsViewModel(private val context: Context, private val authUseCase: AuthUseCase) : ViewModel() {
+class SettingsViewModel(
+    private val context: Context,
+    private val authUseCase: AuthUseCase,
+    private val authPrefsRepo: AuthPreferencesRepository
+) : ViewModel() {
     companion object {
         private const val PREFS_NAME = "theme_preferences"
         private const val KEY_MATERIAL_YOU = "material_you"
@@ -36,7 +43,6 @@ class SettingsViewModel(private val context: Context, private val authUseCase: A
     private val sharedPrefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    // Store listener as a strong reference to prevent garbage collection
     private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
             KEY_THEME_MODE -> {
@@ -75,8 +81,18 @@ class SettingsViewModel(private val context: Context, private val authUseCase: A
     private val _accountActionSuccess = MutableStateFlow<String?>(null)
     val accountActionSuccess: StateFlow<String?> = _accountActionSuccess.asStateFlow()
 
+    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
+
+    private val _isLoadingUserProfile = MutableStateFlow(false)
+    val isLoadingUserProfile: StateFlow<Boolean> = _isLoadingUserProfile.asStateFlow()
+
+    private val _userProfileError = MutableStateFlow<String?>(null)
+    val userProfileError: StateFlow<String?> = _userProfileError.asStateFlow()
+
     init {
         sharedPrefs.registerOnSharedPreferenceChangeListener(prefsListener)
+        fetchUserProfile()
     }
 
     override fun onCleared() {
@@ -171,7 +187,6 @@ class SettingsViewModel(private val context: Context, private val authUseCase: A
 
                 authUseCase.logout()
 
-                // Clear user data from SharedPreferences
                 clearUserData()
                 _accountActionSuccess.value = "Successfully logged out"
                 onSuccess()
@@ -199,28 +214,26 @@ class SettingsViewModel(private val context: Context, private val authUseCase: A
                     return@launch
                 }
 
-                // Call the use case with password for server-side validation
                 authUseCase.deleteAccountUseCase(password)
 
-                // Clear all user data (only reached if API call succeeds)
                 clearUserData()
                 _accountActionSuccess.value = "Account successfully deleted"
                 onSuccess()
 
+            } catch (e: UnauthorizedException) {
+                Log.e("SettingsViewModel", "Account deletion failed: Unauthorized", e)
+                _deleteAccountError.value = e.message ?: "Invalid password. Please try again."
             } catch (e: Exception) {
                 Log.e("SettingsViewModel", "Account deletion failed", e)
-
                 // Handle specific error cases
                 val errorMessage = when {
                     e.message?.contains("401") == true ||
                             e.message?.contains("unauthorized") == true ||
                             e.message?.contains("password") == true -> "Invalid password. Please try again."
-
                     e.message?.contains("403") == true -> "Account deletion not allowed."
                     e.message?.contains("network") == true -> "Network error. Please check your connection and try again."
                     else -> "Account deletion failed: ${e.message}"
                 }
-
                 _deleteAccountError.value = errorMessage
             } finally {
                 _isDeletingAccount.value = false
@@ -244,5 +257,68 @@ class SettingsViewModel(private val context: Context, private val authUseCase: A
         _logoutError.value = null
         _deleteAccountError.value = null
         _accountActionSuccess.value = null
+        _userProfileError.value = null
+    }
+
+    /**
+     * Loads user profile from the preferences repository.
+     */
+    fun fetchUserProfile() {
+        viewModelScope.launch {
+            _isLoadingUserProfile.value = true
+            _userProfileError.value = null
+            try {
+                val profile = authPrefsRepo.getUserProfile()
+                _userProfile.value = profile
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to fetch user profile", e)
+                _userProfileError.value = "Failed to load profile: ${e.message}"
+            } finally {
+                _isLoadingUserProfile.value = false
+            }
+        }
+    }
+
+    /**
+     * Clears the user profile state.
+     */
+    fun clearUserProfile() {
+        _userProfile.value = null
+    }
+
+    /**
+     * Updates stored user profile with new data AND emits change.
+     */
+    fun updateUserProfileLocally(newProfile: UserProfile) {
+        viewModelScope.launch {
+            try {
+                authPrefsRepo.setUserProfile(newProfile)
+                _userProfile.value = newProfile
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to update user profile locally", e)
+                _userProfileError.value = "Failed to update profile: ${e.message}"
+            }
+        }
+    }
+
+    /**
+     * Updates personal information (name, lastName, email) locally and optionally to backend
+     */
+    fun updatePersonalInfo(updatedProfile: UserProfile) {
+        viewModelScope.launch {
+            try {
+                // Update locally first
+                authPrefsRepo.setUserProfile(updatedProfile)
+                _userProfile.value = updatedProfile
+
+                // TODO: Add backend API call here when available
+                // authUseCase.updatePersonalInfo(updatedProfile)
+
+                _accountActionSuccess.value = "Personal information updated successfully"
+            } catch (e: Exception) {
+                Log.e("SettingsViewModel", "Failed to update personal info", e)
+                _userProfileError.value = "Failed to update personal info: ${e.message}"
+            }
+        }
     }
 }

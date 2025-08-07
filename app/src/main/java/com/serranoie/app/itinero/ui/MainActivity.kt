@@ -26,9 +26,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
@@ -43,9 +43,12 @@ import com.serranoie.itinero.core.domain.exception.UnauthorizedException
 import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
+import com.serranoie.itinero.core.domain.usecase.LogoutObserverUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.launchIn
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.KoinAndroidContext
 
@@ -55,6 +58,7 @@ class MainActivity : ComponentActivity() {
     private val authPreferences: AuthPreferencesRepository by inject()
     private val authRepository: AuthRepository by inject()
     private val travelUseCase: TravelUseCase by inject()
+    private val logoutObserverUseCase: LogoutObserverUseCase by inject()
     private val networkObserver: NetworkObserver by inject()
     private val settingsViewModel: SettingsViewModel by inject()
 
@@ -77,6 +81,25 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(Unit) {
                     startDestination = determineStartDestination()
                     isReady = true
+                }
+
+                LaunchedEffect(navController, isReady) {
+                    if (isReady) {
+                        logoutObserverUseCase.logoutEvents
+                            .onEach { _: Unit ->
+                                Log.d(
+                                    "MainActivity",
+                                    "Logout event received, navigating to auth screen"
+                                )
+                                if (navController.currentDestination?.route != Route.AuthNavigation.route) {
+                                    navController.navigate(Route.AuthNavigation.route) {
+                                        popUpTo(0) { inclusive = true } // Clear entire back stack
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
+                            .launchIn(this)
+                    }
                 }
 
                 val isDarkTheme by settingsViewModel.isDarkTheme.collectAsState()

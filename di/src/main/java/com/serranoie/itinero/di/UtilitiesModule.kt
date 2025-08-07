@@ -8,5 +8,5 @@ import org.koin.dsl.module
 
 val utilitiesModule = module {
     single { NetworkObserver(androidContext()) }
-    viewModel { SettingsViewModel(androidContext(), get()) }
+    viewModel { SettingsViewModel(androidContext(), get(), get()) }
 }

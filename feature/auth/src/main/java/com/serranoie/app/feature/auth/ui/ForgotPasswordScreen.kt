@@ -1,7 +1,9 @@
 package com.serranoie.app.feature.auth.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +19,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -25,6 +29,7 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
+import com.serranoie.app.designsystemlib.ui.theme.component.InputType
 
 // ! TODO: Add functionality after backend is ready to send OTP to email.
 
@@ -39,6 +44,15 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+            Image(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.2f),
+                painter = painterResource(com.serranoie.app.feature.auth.R.drawable.forgot_password_image),
+                contentDescription = null,
+                contentScale = ContentScale.Fit
+            )
+
             Text(
                 text = "Recover your password", style = typography.headlineSmall
             )
@@ -62,6 +76,7 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                 onValueChange = { email = it },
                 label = "Email",
                 placeholder = "Enter your email",
+                inputType = InputType.EMAIL
             )
 
 

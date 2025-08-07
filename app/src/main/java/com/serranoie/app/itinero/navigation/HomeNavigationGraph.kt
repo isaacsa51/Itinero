@@ -49,9 +49,7 @@ class HomeNavigationGraph : NavigationGraph {
                     userStatus = userStatus,
                     onTripDeleted = { hasOtherTrips ->
                         coroutineScope.launch {
-                            // Navigate based on whether user has other trips
                             if (hasOtherTrips) {
-                                // Navigate to travel list if user has other trips
                                 navController.navigate(Route.WelcomeNavigation.route) {
                                     popUpTo(0) { inclusive = true }
                                 }
@@ -67,14 +65,11 @@ class HomeNavigationGraph : NavigationGraph {
                     },
                     onTripLeft = { hasOtherTrips ->
                         coroutineScope.launch {
-                            // Navigate based on whether user has other trips
                             if (hasOtherTrips) {
-                                // Navigate to travel list if user has other trips
                                 navController.navigate(Route.WelcomeNavigation.route) {
                                     popUpTo(0) { inclusive = true }
                                 }
                             } else {
-                                // Navigate to welcome screen if no other trips
                                 navController.navigate(Route.WelcomeNavigation.route) {
                                     popUpTo(0) { inclusive = true }
                                 }
@@ -82,7 +77,6 @@ class HomeNavigationGraph : NavigationGraph {
                         }
                     },
                     onLogout = {
-                        // This uses the main navController which has access to AuthNavigation
                         navController.navigate(Route.AuthNavigation.route) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -97,7 +91,6 @@ class HomeNavigationGraph : NavigationGraph {
                 )
             ) { backStackEntry ->
                 val userName = backStackEntry.arguments?.getString("userName") ?: ""
-                val userStatus = backStackEntry.arguments?.getString("userStatus") ?: ""
                 val settingsViewModel: SettingsViewModel = koinViewModel()
                 val themeMode by settingsViewModel.themeMode.collectAsState()
                 val isMaterialYouEnabled by settingsViewModel.isMaterialYouEnabled.collectAsState()
@@ -108,7 +101,6 @@ class HomeNavigationGraph : NavigationGraph {
                     currentThemeMode = themeMode,
                     isMaterialYouEnabled = isMaterialYouEnabled,
                     userName = userName,
-                    userStatus = userStatus,
                     onThemeModeChanged = { newThemeMode ->
                         settingsViewModel.setThemeMode(newThemeMode)
                     },

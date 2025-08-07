@@ -16,42 +16,44 @@ import com.serranoie.itinero.core.data.remote.repository.TravelRepositoryImpl
 import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.repository.TravelRepository
+import com.serranoie.itinero.core.domain.usecase.LogoutObserverUseCase
 import org.koin.dsl.module
 
 val repositoryModule = module {
-    // Remote APIs
     single<ItineroApi> { ItineroApiImpl(get()) }
     single<ItineraryApi> { ItineraryApiImpl(get()) }
     single<ExpensesApi> { ExpensesApiImpl(get()) }
 
-    // Repository Implementations
     single<AuthRepository> {
         val authPrefs = get<AuthPreferencesRepository>()
-        // Set up UnauthorizedHandler with auth preferences
+        val logoutObserver = get<LogoutObserverUseCase>()
+
         UnauthorizedHandler.setAuthTokenClearer {
             authPrefs.clearToken()
             authPrefs.clearLoginStatus()
             authPrefs.saveLoginStatus(false)
         }
+        UnauthorizedHandler.setLogoutObserver(logoutObserver)
+
         AuthRepositoryImpl(get(), authPrefs)
     }
     single<TravelRepository> {
         TravelRepositoryImpl(
-            get(), // ItineroApi
-            get()  // LocalTravelRepository
+            get(),
+            get()
         )
     }
     single<ExpensesRepository>{
         ExpensesRepositoryImpl(
-            get(), // ExpensesApi
-            get()  // LocalExpensesRepository
+            get(),
+            get()
         )
     }
 
     single<ItineraryRepository> {
         ItineraryRepositoryImpl(
-            get(), // ItineraryApi
-            get()  // LocalItineraryRepository
+            get(),
+            get()
         )
     }
 }

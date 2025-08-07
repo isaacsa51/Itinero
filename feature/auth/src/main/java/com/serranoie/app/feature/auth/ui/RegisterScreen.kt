@@ -1,7 +1,9 @@
 package com.serranoie.app.feature.auth.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,26 +32,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.serranoie.app.core.navigation.Route
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
-import org.koin.androidx.compose.koinViewModel
+import com.serranoie.app.designsystemlib.ui.theme.component.InputType
 import kotlinx.coroutines.flow.StateFlow
+import org.koin.androidx.compose.koinViewModel
 
 data class FieldValidation(
-    val isValid: Boolean,
-    val errorMessage: String? = null
+    val isValid: Boolean, val errorMessage: String? = null
 )
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -93,6 +97,14 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+            Image(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.2f),
+                painter = painterResource(com.serranoie.app.feature.auth.R.drawable.register_image),
+                contentDescription = null,
+                contentScale = ContentScale.Fit
+            )
             Text(
                 text = "Sign up", style = typography.titleLarge
             )
@@ -118,8 +130,7 @@ fun RegisterScreen(
                 password = password,
                 onPasswordChange = { password = it },
                 passwordConfirmation = passwordConfirmation,
-                onPasswordConfirmationChange = { passwordConfirmation = it }
-            )
+                onPasswordConfirmationChange = { passwordConfirmation = it })
 
             if (errorMessage != null) {
                 Text(
@@ -134,53 +145,50 @@ fun RegisterScreen(
 
             IButton(
                 onClick = {
-                    errorMessage = null
+                errorMessage = null
 
-                    // Validate all fields
-                    val nameValidation = validateName(name)
-                    val lastNameValidation = validateName(lastName)
-                    val numberValidation = validatePhoneNumber(number)
-                    val emailValidation = validateEmail(email)
-                    val passwordValidation = validatePassword(password)
-                    val passwordConfirmationValidation =
-                        validatePasswordConfirmation(password, passwordConfirmation)
+                // Validate all fields
+                val nameValidation = validateName(name)
+                val lastNameValidation = validateName(lastName)
+                val numberValidation = validatePhoneNumber(number)
+                val emailValidation = validateEmail(email)
+                val passwordValidation = validatePassword(password)
+                val passwordConfirmationValidation =
+                    validatePasswordConfirmation(password, passwordConfirmation)
 
-                    if (!nameValidation.isValid) {
-                        errorMessage = nameValidation.errorMessage
-                        return@IButton
-                    }
-                    if (!lastNameValidation.isValid) {
-                        errorMessage = lastNameValidation.errorMessage
-                        return@IButton
-                    }
-                    if (!numberValidation.isValid) {
-                        errorMessage = numberValidation.errorMessage
-                        return@IButton
-                    }
-                    if (!emailValidation.isValid) {
-                        errorMessage = emailValidation.errorMessage
-                        return@IButton
-                    }
-                    if (!passwordValidation.isValid) {
-                        errorMessage = passwordValidation.errorMessage
-                        return@IButton
-                    }
-                    if (!passwordConfirmationValidation.isValid) {
-                        errorMessage = passwordConfirmationValidation.errorMessage
-                        return@IButton
-                    }
+                if (!nameValidation.isValid) {
+                    errorMessage = nameValidation.errorMessage
+                    return@IButton
+                }
+                if (!lastNameValidation.isValid) {
+                    errorMessage = lastNameValidation.errorMessage
+                    return@IButton
+                }
+                if (!numberValidation.isValid) {
+                    errorMessage = numberValidation.errorMessage
+                    return@IButton
+                }
+                if (!emailValidation.isValid) {
+                    errorMessage = emailValidation.errorMessage
+                    return@IButton
+                }
+                if (!passwordValidation.isValid) {
+                    errorMessage = passwordValidation.errorMessage
+                    return@IButton
+                }
+                if (!passwordConfirmationValidation.isValid) {
+                    errorMessage = passwordConfirmationValidation.errorMessage
+                    return@IButton
+                }
 
-                    onRegister(name, lastName, number, email, password)
-                },
-                text = {
-                    if (state is AuthUiState.Loading) {
-                        LoadingIndicator()
-                    } else {
-                        Text("Register")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = state !is AuthUiState.Loading
+                onRegister(name, lastName, number, email, password)
+            }, text = {
+                if (state is AuthUiState.Loading) {
+                    LoadingIndicator()
+                } else {
+                    Text("Register")
+                }
+            }, modifier = Modifier.fillMaxWidth(), enabled = state !is AuthUiState.Loading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -240,8 +248,8 @@ private fun FieldInformation(
         placeholder = "Enter your name",
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+        inputType = InputType.TEXT
     )
 
     ITextField(
@@ -251,27 +259,19 @@ private fun FieldInformation(
         placeholder = "Enter your last name",
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+        inputType = InputType.TEXT
     )
 
     ITextField(
-        value = number,
-        onValueChange = { input ->
-            // Only allow numbers
+        value = number, onValueChange = { input ->
             if (input.all { it.isDigit() }) {
                 onNumberChange(input)
             }
-        },
-        label = "Number",
-        placeholder = "Enter your number",
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Number,
-            imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+        }, label = "Number", placeholder = "Enter your number", keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+        ), keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }), inputType = InputType.PHONE
     )
 
     ITextField(
@@ -280,12 +280,12 @@ private fun FieldInformation(
         label = "Email",
         placeholder = "Enter your email",
         keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Next
+            keyboardType = KeyboardType.Email, imeAction = ImeAction.Next
         ),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+            onNext = { focusManager.moveFocus(FocusDirection.Down) },
+        ),
+        inputType = InputType.EMAIL
     )
 
     IPasswordField(
@@ -294,8 +294,7 @@ private fun FieldInformation(
         label = "Password",
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-        )
+            onNext = { focusManager.moveFocus(FocusDirection.Down) })
     )
 
     IPasswordField(
@@ -304,8 +303,7 @@ private fun FieldInformation(
         label = "Confirm Password",
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
-            onDone = { focusManager.clearFocus() }
-        )
+            onDone = { focusManager.clearFocus() })
     )
 }
 
@@ -342,16 +340,14 @@ private fun validateEmail(email: String): FieldValidation {
 }
 
 private fun validatePassword(password: String): FieldValidation {
-    val passwordRegex =
-        "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@\$%^&*-]).{8,}\$".toRegex()
+    val passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@\$%^&*-]).{8,}\$".toRegex()
     return if (password.isBlank()) {
         FieldValidation(false, "Password is required")
     } else if (password.length < 8) {
         FieldValidation(false, "Password must be at least 8 characters")
     } else if (!passwordRegex.matches(password)) {
         FieldValidation(
-            false,
-            "Password must contain uppercase, lowercase, number, and special character"
+            false, "Password must contain uppercase, lowercase, number, and special character"
         )
     } else {
         FieldValidation(true)

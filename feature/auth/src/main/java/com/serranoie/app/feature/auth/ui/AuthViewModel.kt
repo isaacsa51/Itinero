@@ -3,6 +3,7 @@ package com.serranoie.app.feature.auth.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.serranoie.app.feature.auth.AuthConstants
+import com.serranoie.itinero.core.domain.exception.UnauthorizedException
 import com.serranoie.itinero.core.domain.model.RegisterRequest
 import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,11 @@ class AuthViewModel(
                 Log.d("ITINERO - AuthViewModel", "Token verification after save: $savedToken")
 
                 _uiState.value = AuthUiState.Success(result.name)
+            } catch (e: UnauthorizedException) {
+                Log.e("ITINERO - AuthViewModel", "Login unauthorized: ${e.message}")
+                _uiState.value = AuthUiState.Error(
+                    e.message ?: "Authentication failed. Please check your credentials."
+                )
             } catch (e: Exception) {
                 Log.e("ITINERO - AuthViewModel", "Login error: ${e.message}")
                 _uiState.value = AuthUiState.Error(e.message ?: "Unknown error")
@@ -64,6 +70,11 @@ class AuthViewModel(
                 authPreferences.saveLoginStatus(true, expirationTime)
                 
                 _uiState.value = AuthUiState.Success(result.name)
+            } catch (e: UnauthorizedException) {
+                Log.e("ITINERO - AuthViewModel", "Registration unauthorized: ${e.message}")
+                _uiState.value = AuthUiState.Error(
+                    e.message ?: "Registration failed. Please check your information."
+                )
             } catch (e: Exception) {
                 _uiState.value = AuthUiState.Error(e.message ?: "Unknown error")
             }

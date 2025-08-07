@@ -1,9 +1,11 @@
 package com.serranoie.app.feature.auth.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -43,6 +48,8 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
+import com.serranoie.app.designsystemlib.ui.theme.component.InputType
+import com.serranoie.app.feature.auth.R
 import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.compose.koinViewModel
 
@@ -77,14 +84,14 @@ fun AuthScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-//            Image(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .fillMaxHeight(0.2f),
-//                painter = painterResource(R.drawable.image_login),
-//                contentDescription = null,
-//                contentScale = ContentScale.Fit
-//            )
+            Image(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.2f),
+                painter = painterResource(R.drawable.auth_image),
+                contentDescription = null,
+                contentScale = ContentScale.Fit
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -100,7 +107,8 @@ fun AuthScreen(
                 onValueChange = { email = it },
                 label = "Email",
                 placeholder = "Enter your email",
-                leadingIcon = Icons.Rounded.Email
+                leadingIcon = Icons.Rounded.Email,
+                inputType = InputType.EMAIL
             )
 
             IPasswordField(
