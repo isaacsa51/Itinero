@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -57,22 +56,21 @@ fun OnboardItem(
                 .fillMaxWidth()
                 .fillMaxHeight()
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.Center
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .padding(vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(0.45f, fill = false)
-                        .height(240.dp),
-                    painter = painterResource(id = page.image),
+                        .fillMaxWidth(0.8f)
+                        .weight(1f, false),
+                    painter = painterResource(page.image),
                     contentDescription = null,
                     contentScale = ContentScale.Fit
                 )
@@ -80,9 +78,9 @@ fun OnboardItem(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .padding(top = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -91,10 +89,10 @@ fun OnboardItem(
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         text = page.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Start
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -162,7 +160,6 @@ fun OnboardItemPreview() {
         OnboardItem(
             page = pages.first(),
             pagerState = rememberPagerState(pageCount = { pages.size }),
-            onFinished = {}
-        )
+            onFinished = {})
     }
 }

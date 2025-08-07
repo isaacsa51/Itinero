@@ -208,7 +208,7 @@ abstract class BaseApiClient(
             }
 
             else -> {
-                NetworkException("Network error occurred. Please check your internet connection and try again.")
+                NetworkException("Network error occurred. Please check your internet connection and try again.", exception)
             }
         }
     }
