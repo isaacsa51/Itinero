@@ -44,7 +44,6 @@ val networkModule = module {
 
             install(WebSockets) {
                 pingInterval = 20.seconds
-                maxFrameSize = Long.MAX_VALUE
             }
 
             install(HttpTimeout) {
