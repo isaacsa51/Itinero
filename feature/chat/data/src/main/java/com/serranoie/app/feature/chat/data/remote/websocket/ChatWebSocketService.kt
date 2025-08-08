@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.cancellation.CancellationException
 
 class ChatWebSocketService(
     private val httpClient: HttpClient, private val baseUrl: String, private val json: Json = Json {
@@ -65,10 +66,6 @@ class ChatWebSocketService(
                     headers.append("Authorization", "Bearer $authToken")
                 }) {
                 Log.i(TAG, "WebSocket connection established for group: $groupCode")
-
-                if (this is DefaultClientWebSocketSession) {
-                    activeSessions[groupCode] = this
-                }
 
                 try {
                     for (frame in incoming) {
@@ -231,6 +228,9 @@ class ChatWebSocketService(
                 }
             }
         } catch (e: ChatApiException) {
+            throw e
+        } catch (e: CancellationException) {
+            Log.d(TAG, "sendMessageWithNewConnection cancelled for group ${message.groupCode}")
             throw e
         } catch (e: Exception) {
             Log.e(

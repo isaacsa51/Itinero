@@ -32,6 +32,9 @@ val networkModule = module {
         val authPreferencesRepository = get<AuthPreferencesRepository>()
 
         HttpClient(Android) {
+
+            expectSuccess = false
+
             install(ContentNegotiation) {
                 json(Json {
                     prettyPrint = true

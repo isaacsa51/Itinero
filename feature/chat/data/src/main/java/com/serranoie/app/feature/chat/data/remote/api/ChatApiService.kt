@@ -19,6 +19,7 @@ import com.serranoie.itinero.core.domain.exception.NetworkException
 import com.serranoie.itinero.core.domain.exception.UnauthorizedException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -90,6 +91,7 @@ class ChatApiService(
 
             val safeUrl = buildSafeUrl("chat/groups", groupCode, "messages")
             val response: HttpResponse = httpClient.get {
+                expectSuccess = false
                 url(safeUrl)
                 header("Authorization", "Bearer $authToken")
                 parameter("limit", limit)
