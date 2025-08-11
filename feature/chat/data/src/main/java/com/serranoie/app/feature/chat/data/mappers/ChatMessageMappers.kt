@@ -17,26 +17,21 @@ import com.serranoie.app.feature.chat.domain.model.ChatMessage
 import com.serranoie.app.feature.chat.domain.model.MessageType
 import kotlin.collections.map
 
-/**
- * Extension function to convert ChatMessageDto to ChatMessage domain model
- */
 fun ChatMessageDto.toDomain(): ChatMessage {
     return ChatMessage(
         id = this.id,
         groupCode = this.groupCode,
-        senderId = this.senderId,
-        senderName = this.senderName,
-        message = this.message,
+        senderId = (this.authorId.takeIf { it.isNotEmpty() } ?: this.senderId ?: "0").toLongOrNull()
+            ?: 0L,
+        senderName = this.authorName.takeIf { it.isNotEmpty() } ?: this.senderName ?: "Unknown",
+        message = this.message.takeIf { it.isNotEmpty() } ?: this.content ?: "",
         messageType = MessageType.fromString(this.messageType),
         timestamp = this.timestamp,
         isEdited = this.isEdited,
-        replyToMessageId = this.replyToMessageId
+        replyToMessageId = this.replyToId
     )
 }
 
-/**
- * Extension function to convert ChatMessageEntity to ChatMessage domain model
- */
 fun ChatMessageEntity.toDomain(): ChatMessage {
     return ChatMessage(
         id = this.id,
@@ -51,9 +46,6 @@ fun ChatMessageEntity.toDomain(): ChatMessage {
     )
 }
 
-/**
- * Extension function to convert ChatMessage domain model to ChatMessageEntity
- */
 fun ChatMessage.toEntity(): ChatMessageEntity {
     return ChatMessageEntity(
         id = this.id,
@@ -68,47 +60,35 @@ fun ChatMessage.toEntity(): ChatMessageEntity {
     )
 }
 
-/**
- * Extension function to convert ChatMessage domain model to ChatMessageDto
- */
 fun ChatMessage.toDto(): ChatMessageDto {
     return ChatMessageDto(
         id = this.id,
         groupCode = this.groupCode,
-        senderId = this.senderId,
+        authorId = "",
+        authorName = "",
+        senderId = this.senderId.toString(),
         senderName = this.senderName,
-        message = this.message,
+        message = "",
         messageType = this.messageType.value,
         timestamp = this.timestamp,
         isEdited = this.isEdited,
-        replyToMessageId = this.replyToMessageId
+        replyToId = this.replyToMessageId,
+        content = this.message
     )
 }
 
-/**
- * Extension function to convert list of ChatMessageDto to list of ChatMessage
- */
 fun List<ChatMessageDto>.toDomain(): List<ChatMessage> {
     return this.map { it.toDomain() }
 }
 
-/**
- * Extension function to convert list of ChatMessageEntity to list of ChatMessage
- */
 fun List<ChatMessageEntity>.toDomainFromEntity(): List<ChatMessage> {
     return this.map { it.toDomain() }
 }
 
-/**
- * Extension function to convert list of ChatMessage to list of ChatMessageEntity
- */
 fun List<ChatMessage>.toEntity(): List<ChatMessageEntity> {
     return this.map { it.toEntity() }
 }
 
-/**
- * Extension function to convert list of ChatMessage to list of ChatMessageDto
- */
 fun List<ChatMessage>.toDto(): List<ChatMessageDto> {
     return this.map { it.toDto() }
 }

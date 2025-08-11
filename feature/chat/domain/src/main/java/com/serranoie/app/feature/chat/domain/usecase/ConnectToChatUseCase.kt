@@ -11,33 +11,29 @@
 
 package com.serranoie.app.feature.chat.domain.usecase
 
-import com.serranoie.app.feature.chat.domain.model.ChatMessage
 import com.serranoie.app.feature.chat.domain.repository.ChatRepository
+import com.serranoie.app.feature.chat.domain.repository.ChatEvent
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Use case for connecting to real-time chat via WebSocket
- */
 class ConnectToChatUseCase(
     private val chatRepository: ChatRepository
 ) {
 
-    /**
-     * Execute the use case to connect to chat
-     * @param groupCode The group code to connect to
-     * @param authToken JWT authentication token
-     * @return Flow of chat messages from WebSocket
-     */
     suspend operator fun invoke(
         groupCode: String,
         authToken: String
-    ): Flow<ChatMessage> {
+    ): Flow<ChatEvent> {
         return chatRepository.connectToChat(groupCode, authToken)
     }
 
-    /**
-     * Disconnect from chat
-     */
+    suspend fun sendTypingEvent(
+        isTyping: Boolean,
+        groupCode: String,
+        authToken: String
+    ): Result<Unit> {
+        return chatRepository.sendTypingEvent(isTyping, groupCode, authToken)
+    }
+
     fun disconnect() {
         chatRepository.disconnect()
     }

@@ -59,7 +59,7 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubble
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithAvatar
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatConversation
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
-import com.serranoie.app.designsystemlib.ui.theme.component.card.CompactChatBubble
+import com.serranoie.app.designsystemlib.ui.theme.component.card.BubbleTypingIndicator
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeCardAction
 import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeableCard
@@ -498,9 +498,8 @@ fun ChatComponentsShowcase() {
 
         HorizontalDivider()
 
-        // Compact Chat Bubbles
         Text(
-            text = "Compact Chat Bubbles",
+            text = "Typing indicator",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -509,20 +508,7 @@ fun ChatComponentsShowcase() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            CompactChatBubble(
-                message = "This is a compact message for previews or lists",
-                isUserMe = false,
-                maxLines = 2,
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            CompactChatBubble(
-                message = "Compact user message",
-                isUserMe = true,
-                maxLines = 1,
-                modifier = Modifier.weight(1f)
+            BubbleTypingIndicator(
             )
         }
 

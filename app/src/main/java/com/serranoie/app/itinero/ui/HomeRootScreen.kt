@@ -39,7 +39,7 @@ import androidx.navigation.navArgument
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.core.navigation.Screen
 import com.serranoie.app.feature.chat.ChatScreen
-import com.serranoie.app.feature.chat.exampleUiState
+import com.serranoie.app.feature.chat.ChatViewModel
 import com.serranoie.app.feature.expenses.navigation.expensesGraph
 import com.serranoie.app.feature.home.HomeScreen
 import com.serranoie.app.feature.home.HomeUiState
@@ -52,7 +52,9 @@ import com.serranoie.app.feature.settings.trip.TripSettingsScreen
 import com.serranoie.app.feature.settings.trip.TripSettingsViewModel
 import com.serranoie.core.settings.SettingsViewModel
 import com.serranoie.core.settings.navigation.settingsGraph
+import com.serranoie.itinero.core.domain.usecase.GetCurrentUserIdUseCase
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -130,8 +132,47 @@ fun HomeRootScreen(
                 expensesGraph(navController, tripId)
 
                 composable(Route.Chat.route) {
+                    val chatViewModel = koinViewModel<ChatViewModel>()
+                    val chatUiState by chatViewModel.uiState.collectAsState()
+                    val isLoading by chatViewModel.isLoading.collectAsState()
+                    val error by chatViewModel.error.collectAsState()
+                    val isConnected by chatViewModel.isConnected.collectAsState()
+                    val typingUsers by chatViewModel.typingUsers.collectAsState()
+
+                    val getCurrentUserIdUseCase =
+                        koinInject<GetCurrentUserIdUseCase>()
+                    val currentUserId = getCurrentUserIdUseCase() ?: "unknown_user"
+
                     ChatScreen(
-                        uiState = exampleUiState, onBackPressed = { navController.popBackStack() })
+                        groupCode = tripInfo?.groupCode ?: "",
+                        groupName = tripInfo?.groupName ?: "Chat",
+                        memberCount = tripInfo?.totalMembers ?: 0,
+                        currentUserId = currentUserId,
+                        onBackPressed = { navController.popBackStack() },
+                        uiState = chatUiState,
+                        isLoading = isLoading,
+                        isConnected = isConnected,
+                        error = error,
+                        typingUsers = typingUsers,
+                        onInitializeChat = { groupCode, groupName, memberCount ->
+                            chatViewModel.initializeChat(groupCode, groupName, memberCount)
+                        },
+                        onSendMessage = { message ->
+                            chatViewModel.sendMessage(message)
+                        },
+                        onRetryConnection = {
+                            chatViewModel.retryConnection()
+                        },
+                        onClearError = {
+                            chatViewModel.clearError()
+                        },
+                        onTypingStarted = {
+                            chatViewModel.sendTypingStarted()
+                        },
+                        onTypingStopped = {
+                            chatViewModel.sendTypingStopped()
+                        }
+                    )
                 }
 
                 settingsGraph(

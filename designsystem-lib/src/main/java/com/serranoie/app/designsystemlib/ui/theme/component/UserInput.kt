@@ -13,7 +13,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,14 +31,22 @@ import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.Contacts
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.InsertPhoto
 import androidx.compose.material.icons.outlined.Mood
 import androidx.compose.material3.AlertDialog
@@ -90,28 +96,57 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue
 
 enum class InputSelector {
-    NONE,
-    MAP,
-    DM,
-    EMOJI,
-    PHONE,
-    PICTURE
+    NONE, MAP, DM, EMOJI, PHONE, PICTURE
 }
 
 enum class EmojiStickerSelector {
-    EMOJI,
-    STICKER
+    EMOJI, STICKER
 }
 
 @ComponentPreview
 @Composable
 fun UserInputPreview() {
     PreviewWrapper {
-        UserInput(onMessageSent = {})
+        UserInput(onMessageSent = {}, onTypingStarted = {}, onTypingStopped = {})
+    }
+}
+
+@ComponentPreview
+@Composable
+fun UserInputWithAttachmentMenuPreview() {
+    PreviewWrapper {
+        Column {
+            // Show the attachment menu preview
+            AttachmentMenu(
+                onDismiss = { },
+                onOptionSelected = { }
+            )
+
+            // Show the user input below to simulate the actual layout
+            Surface(tonalElevation = 2.dp, contentColor = MaterialTheme.colorScheme.secondary) {
+                Column {
+                    UserInputText(
+                        textFieldValue = TextFieldValue(""),
+                        onTextChanged = { },
+                        keyboardShown = false,
+                        onTextFieldFocused = { },
+                        onMessageSent = { },
+                        focusState = false,
+                        onAttachmentClick = { }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -121,63 +156,99 @@ fun UserInput(
     onMessageSent: (String) -> Unit,
     modifier: Modifier = Modifier,
     resetScroll: () -> Unit = {},
+    onTypingStarted: () -> Unit = {},
+    onTypingStopped: () -> Unit = {},
 ) {
     var currentInputSelector by rememberSaveable { mutableStateOf(InputSelector.NONE) }
     val dismissKeyboard = { currentInputSelector = InputSelector.NONE }
 
-    // Intercept back navigation if there's a InputSelector visible
     if (currentInputSelector != InputSelector.NONE) {
         BackHandler(onBack = dismissKeyboard)
+    }
+
+    var showAttachmentMenu by remember { mutableStateOf(false) }
+
+    if (showAttachmentMenu) {
+        BackHandler(onBack = { showAttachmentMenu = false })
     }
 
     var textState by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
 
-    // Used to decide if the keyboard should be shown
     var textFieldFocusState by remember { mutableStateOf(false) }
+
+    var isCurrentlyTyping by remember { mutableStateOf(false) }
+    var lastTypingTime by remember { mutableStateOf(0L) }
+
+    // Handle typing detection with debouncing
+    LaunchedEffect(textState.text) {
+        val currentTime = System.currentTimeMillis()
+        lastTypingTime = currentTime
+
+        if (textState.text.isNotEmpty() && !isCurrentlyTyping) {
+            isCurrentlyTyping = true
+            onTypingStarted()
+        } else if (textState.text.isEmpty() && isCurrentlyTyping) {
+            isCurrentlyTyping = false
+            onTypingStopped()
+        }
+
+        if (isCurrentlyTyping) {
+            delay(2000)
+            if (currentTime == lastTypingTime && isCurrentlyTyping) {
+                isCurrentlyTyping = false
+                onTypingStopped()
+            }
+        }
+    }
+
+    LaunchedEffect(textFieldFocusState) {
+        if (!textFieldFocusState && isCurrentlyTyping) {
+            isCurrentlyTyping = false
+            onTypingStopped()
+        }
+    }
+
+    // Stop typing when message is sent
+    LaunchedEffect(textState.text.isEmpty()) {
+        if (textState.text.isEmpty() && isCurrentlyTyping) {
+            isCurrentlyTyping = false
+            onTypingStopped()
+        }
+    }
 
     Surface(tonalElevation = 2.dp, contentColor = MaterialTheme.colorScheme.secondary) {
         Column(modifier = modifier) {
+            if (showAttachmentMenu) {
+                AttachmentMenu(
+                    onDismiss = { showAttachmentMenu = false },
+                    onOptionSelected = { option ->
+                        showAttachmentMenu = false
+                    }
+                )
+            }
+
             UserInputText(
                 textFieldValue = textState,
                 onTextChanged = { textState = it },
-                // Only show the keyboard if there's no input selector and text field has focus
                 keyboardShown = currentInputSelector == InputSelector.NONE && textFieldFocusState,
-                // Close extended selector if text field receives focus
                 onTextFieldFocused = { focused ->
                     if (focused) {
                         currentInputSelector = InputSelector.NONE
                         resetScroll()
+                        // Close attachment menu when text field gets focus
+                        showAttachmentMenu = false
                     }
                     textFieldFocusState = focused
                 },
                 onMessageSent = {
                     onMessageSent(textState.text)
-                    // Reset text field and close keyboard
                     textState = TextFieldValue()
-                    // Move scroll to bottom
                     resetScroll()
                 },
-                focusState = textFieldFocusState
-            )
-            UserInputSelector(
-                onSelectorChange = { currentInputSelector = it },
-                sendMessageEnabled = textState.text.isNotBlank(),
-                onMessageSent = {
-                    onMessageSent(textState.text)
-                    // Reset text field and close keyboard
-                    textState = TextFieldValue()
-                    // Move scroll to bottom
-                    resetScroll()
-                    dismissKeyboard()
-                },
-                currentInputSelector = currentInputSelector
-            )
-            SelectorExpanded(
-                onCloseRequested = dismissKeyboard,
-                onTextAdded = { textState = textState.addText(it) },
-                currentSelector = currentInputSelector
+                focusState = textFieldFocusState,
+                onAttachmentClick = { showAttachmentMenu = !showAttachmentMenu }
             )
         }
     }
@@ -185,13 +256,10 @@ fun UserInput(
 
 private fun TextFieldValue.addText(newString: String): TextFieldValue {
     val newText = this.text.replaceRange(
-        this.selection.start,
-        this.selection.end,
-        newString
+        this.selection.start, this.selection.end, newString
     )
     val newSelection = TextRange(
-        start = newText.length,
-        end = newText.length
+        start = newText.length, end = newText.length
     )
 
     return this.copy(text = newText, selection = newSelection)
@@ -199,15 +267,11 @@ private fun TextFieldValue.addText(newString: String): TextFieldValue {
 
 @Composable
 private fun SelectorExpanded(
-    currentSelector: InputSelector,
-    onCloseRequested: () -> Unit,
-    onTextAdded: (String) -> Unit
+    currentSelector: InputSelector, onCloseRequested: () -> Unit, onTextAdded: (String) -> Unit
 ) {
     if (currentSelector == InputSelector.NONE) return
 
-    // Request focus to force the TextField to lose it
     val focusRequester = remember { FocusRequester() }
-    // If the selector is shown, always request focus to trigger a TextField.onFocusChange.
     SideEffect {
         if (currentSelector == InputSelector.EMOJI) {
             focusRequester.requestFocus()
@@ -240,11 +304,10 @@ fun FunctionalityNotAvailablePanel() {
                 .height(320.dp)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Not Available",
-                style = MaterialTheme.typography.titleMedium
+                text = "Not Available", style = MaterialTheme.typography.titleMedium
             )
             Text(
                 text = "Not Available",
@@ -259,8 +322,6 @@ fun FunctionalityNotAvailablePanel() {
 @Composable
 private fun UserInputSelector(
     onSelectorChange: (InputSelector) -> Unit,
-    sendMessageEnabled: Boolean,
-    onMessageSent: () -> Unit,
     currentInputSelector: InputSelector,
     modifier: Modifier = Modifier
 ) {
@@ -283,37 +344,6 @@ private fun UserInputSelector(
             selected = currentInputSelector == InputSelector.PICTURE,
             description = ""
         )
-
-        val border = if (!sendMessageEnabled) {
-            BorderStroke(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-            )
-        } else {
-            null
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        val disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-
-        val buttonColors = ButtonDefaults.buttonColors(
-            disabledContainerColor = Color.Transparent,
-            disabledContentColor = disabledContentColor
-        )
-
-        // Send button
-        ITextButton(
-            onClick = onMessageSent,
-            modifier = Modifier.height(36.dp),
-            enabled = sendMessageEnabled,
-            text = {
-                Text(
-                    text = "Send",
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-        )
     }
 }
 
@@ -327,15 +357,13 @@ private fun InputSelectorButton(
 ) {
     val backgroundModifier = if (selected) {
         Modifier.background(
-            color = LocalContentColor.current,
-            shape = RoundedCornerShape(14.dp)
+            color = LocalContentColor.current, shape = RoundedCornerShape(14.dp)
         )
     } else {
         Modifier
     }
     IconButton(
-        onClick = onClick,
-        modifier = modifier.then(backgroundModifier)
+        onClick = onClick, modifier = modifier.then(backgroundModifier)
     ) {
         val tint = if (selected) {
             contentColorFor(backgroundColor = LocalContentColor.current)
@@ -361,7 +389,7 @@ private fun NotAvailablePopup(onDismissed: () -> Unit) {
 val KeyboardShownKey = SemanticsPropertyKey<Boolean>("KeyboardShownKey")
 var SemanticsPropertyReceiver.keyboardShownProperty by KeyboardShownKey
 
-@ExperimentalFoundationApi
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun UserInputText(
     keyboardType: KeyboardType = KeyboardType.Text,
@@ -370,16 +398,20 @@ private fun UserInputText(
     keyboardShown: Boolean,
     onTextFieldFocused: (Boolean) -> Unit,
     onMessageSent: (String) -> Unit,
-    focusState: Boolean
+    focusState: Boolean,
+    onAttachmentClick: () -> Unit
 ) {
     val swipeOffset = remember { mutableStateOf(0f) }
     var isRecordingMessage by remember { mutableStateOf(false) }
     val a11ylabel = "User input text field"
+    val hasText = textFieldValue.text.isNotBlank()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp),
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         AnimatedContent(
             targetState = isRecordingMessage,
@@ -388,45 +420,89 @@ private fun UserInputText(
                 .weight(1f)
                 .fillMaxHeight()
         ) { recording ->
-            Box(Modifier.fillMaxSize()) {
-                if (recording) {
-                    RecordingIndicator { swipeOffset.value }
-                } else {
-                    UserInputTextField(
-                        textFieldValue,
-                        onTextChanged,
-                        onTextFieldFocused,
-                        keyboardType,
-                        focusState,
-                        onMessageSent,
-                        Modifier
-                            .fillMaxWidth()
-                            .semantics {
-                                contentDescription = a11ylabel
-                                keyboardShownProperty = keyboardShown
-                            }
-                    )
+            if (recording) {
+                RecordingIndicator { swipeOffset.value }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = onAttachmentClick,
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.AttachFile,
+                            contentDescription = "Menu",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    ) {
+                        UserInputTextField(
+                            textFieldValue,
+                            onTextChanged,
+                            onTextFieldFocused,
+                            keyboardType,
+                            focusState,
+                            onMessageSent,
+                            Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = a11ylabel
+                                    keyboardShownProperty = keyboardShown
+                                })
+                    }
                 }
             }
         }
-        RecordButton(
-            recording = isRecordingMessage,
-            swipeOffset = { swipeOffset.value },
-            onSwipeOffsetChange = { offset -> swipeOffset.value = offset },
-            onStartRecording = {
-                val consumed = !isRecordingMessage
-                isRecordingMessage = true
-                consumed
-            },
-            onFinishRecording = {
-                // handle end of recording
-                isRecordingMessage = false
-            },
-            onCancelRecording = {
-                isRecordingMessage = false
-            },
-            modifier = Modifier.fillMaxHeight()
-        )
+
+        AnimatedContent(
+            targetState = hasText, label = "button-state", modifier = Modifier.fillMaxHeight()
+        ) { showSendIcon ->
+            if (showSendIcon) {
+                // Send button
+                IconButton(
+                    onClick = {
+                        if (textFieldValue.text.isNotBlank()) {
+                            onMessageSent(textFieldValue.text)
+                        }
+                    }, modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Send,
+                        contentDescription = "Send message",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else {
+                // Record button (when no text)
+                RecordButton(
+                    recording = isRecordingMessage,
+                    swipeOffset = { swipeOffset.value },
+                    onSwipeOffsetChange = { offset -> swipeOffset.value = offset },
+                    onStartRecording = {
+                        val consumed = !isRecordingMessage
+                        isRecordingMessage = true
+                        consumed
+                    },
+                    onFinishRecording = {
+                        // handle end of recording
+                        isRecordingMessage = false
+                    },
+                    onCancelRecording = {
+                        isRecordingMessage = false
+                    },
+                    modifier = Modifier.fillMaxHeight()
+                )
+            }
+        }
     }
 }
 
@@ -442,39 +518,49 @@ private fun BoxScope.UserInputTextField(
     modifier: Modifier = Modifier
 ) {
     var lastFocusState by remember { mutableStateOf(false) }
-    BasicTextField(
-        value = textFieldValue,
-        onValueChange = { onTextChanged(it) },
-        modifier = modifier
-            .padding(start = 32.dp)
-            .align(Alignment.CenterStart)
-            .onFocusChanged { state ->
-                if (lastFocusState != state.isFocused) {
-                    onTextFieldFocused(state.isFocused)
-                }
-                lastFocusState = state.isFocused
-            },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = ImeAction.Send
-        ),
-        keyboardActions = KeyboardActions {
-            if (textFieldValue.text.isNotBlank()) onMessageSent(textFieldValue.text)
-        },
-        maxLines = 1,
-        cursorBrush = SolidColor(LocalContentColor.current),
-        textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
-    )
 
-    val disableContentColor =
-        MaterialTheme.colorScheme.onSurfaceVariant
+    // Outer box for full height clickable area
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(start = 32.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        BasicTextField(
+            value = textFieldValue,
+            onValueChange = { onTextChanged(it) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .onFocusChanged { state ->
+                    if (lastFocusState != state.isFocused) {
+                        onTextFieldFocused(state.isFocused)
+                    }
+                    lastFocusState = state.isFocused
+                },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType, imeAction = ImeAction.Send
+            ),
+            keyboardActions = KeyboardActions {
+                if (textFieldValue.text.isNotBlank()) {
+                    onMessageSent(textFieldValue.text)
+                }
+            },
+            maxLines = 1,
+            singleLine = true,
+            cursorBrush = SolidColor(LocalContentColor.current),
+            textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current)
+        )
+    }
+
     if (textFieldValue.text.isEmpty() && !focusState) {
         Text(
             modifier = Modifier
+                .wrapContentHeight()
                 .align(Alignment.CenterStart)
                 .padding(start = 32.dp),
             text = "Type a message...",
-            style = MaterialTheme.typography.bodyLargeEmphasized.copy(color = disableContentColor)
+            style = MaterialTheme.typography.bodyLargeEmphasized.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
         )
     }
 }
@@ -490,8 +576,7 @@ private fun RecordingIndicator(swipeOffset: () -> Float) {
         }
     }
     Row(
-        Modifier.fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically
+        Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically
     ) {
         val infiniteTransition = rememberInfiniteTransition(label = "pulse")
 
@@ -499,21 +584,18 @@ private fun RecordingIndicator(swipeOffset: () -> Float) {
             initialValue = 1f,
             targetValue = 0.2f,
             animationSpec = infiniteRepeatable(
-                tween(2000),
-                repeatMode = RepeatMode.Reverse
+                tween(2000), repeatMode = RepeatMode.Reverse
             ),
             label = "pulse",
         )
-        Box(
-            Modifier
-                .size(56.dp)
-                .padding(24.dp)
-                .graphicsLayer {
-                    scaleX = animatedPulse.value; scaleY = animatedPulse.value
-                }
-                .clip(CircleShape)
-                .background(Color.Red)
-        )
+        Box(Modifier
+            .size(56.dp)
+            .padding(24.dp)
+            .graphicsLayer {
+                scaleX = animatedPulse.value; scaleY = animatedPulse.value
+            }
+            .clip(CircleShape)
+            .background(Color.Red))
 
         Box(
             Modifier
@@ -539,19 +621,16 @@ private fun RecordingIndicator(swipeOffset: () -> Float) {
 
 @Composable
 fun EmojiSelector(
-    onTextAdded: (String) -> Unit,
-    focusRequester: FocusRequester
+    onTextAdded: (String) -> Unit, focusRequester: FocusRequester
 ) {
     var selected by remember { mutableStateOf(EmojiStickerSelector.EMOJI) }
 
     val a11yLabel = "Emoji Selector"
     Column(
         modifier = Modifier
-            .focusRequester(focusRequester) // Requests focus when the Emoji selector is displayed
-            // Make the emoji selector focusable so it can steal focus from TextField
+            .focusRequester(focusRequester)
             .focusTarget()
-            .semantics { contentDescription = a11yLabel }
-    ) {
+            .semantics { contentDescription = a11yLabel }) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -581,10 +660,7 @@ fun EmojiSelector(
 
 @Composable
 fun ExtendedSelectorInnerButton(
-    text: String,
-    onClick: () -> Unit,
-    selected: Boolean,
-    modifier: Modifier = Modifier
+    text: String, onClick: () -> Unit, selected: Boolean, modifier: Modifier = Modifier
 ) {
     val colors = ButtonDefaults.buttonColors(
         containerColor = if (selected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
@@ -602,22 +678,19 @@ fun ExtendedSelectorInnerButton(
         contentPadding = PaddingValues(0.dp)
     ) {
         Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall
+            text = text, style = MaterialTheme.typography.titleSmall
         )
     }
 }
 
 @Composable
 fun EmojiTable(
-    onTextAdded: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onTextAdded: (String) -> Unit, modifier: Modifier = Modifier
 ) {
     Column(modifier.fillMaxWidth()) {
         repeat(4) { x ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 repeat(EMOJI_COLUMNS) { y ->
                     val emoji = emojis[x * EMOJI_COLUMNS + y]
@@ -628,8 +701,7 @@ fun EmojiTable(
                             .padding(8.dp),
                         text = emoji,
                         style = LocalTextStyle.current.copy(
-                            fontSize = 18.sp,
-                            textAlign = TextAlign.Center
+                            fontSize = 18.sp, textAlign = TextAlign.Center
                         )
                     )
                 }
@@ -640,20 +712,16 @@ fun EmojiTable(
 
 @Composable
 fun FunctionalityNotAvailablePopup(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = {
-            Text(
-                text = "Functionality not available \uD83D\uDE48",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = "CLOSE")
-            }
+    AlertDialog(onDismissRequest = onDismiss, text = {
+        Text(
+            text = "Functionality not available \uD83D\uDE48",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }, confirmButton = {
+        TextButton(onClick = onDismiss) {
+            Text(text = "CLOSE")
         }
-    )
+    })
 }
 
 private const val EMOJI_COLUMNS = 10
@@ -788,3 +856,107 @@ private val emojis = listOf(
     "\ud83d\udc6d", // Two Women Holding Hands
     "\ud83d\udc8f" // Kiss
 )
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun AttachmentMenu(
+    onDismiss: () -> Unit,
+    onOptionSelected: (String) -> Unit
+) {
+    AnimatedVisibility(
+        visible = true,
+        enter = expandHorizontally() + fadeIn(),
+        exit = shrinkHorizontally() + fadeOut()
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(),
+            contentColor = MaterialTheme.colorScheme.secondary
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .standardPadding(horizontal = basePadding, vertical = mediumPadding)
+            ) {
+                Text(
+                    text = "Attach",
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = smallPadding)
+                )
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    horizontalArrangement = Arrangement.spacedBy(smallPadding),
+                    verticalArrangement = Arrangement.spacedBy(smallPadding),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    item {
+                        AttachmentOption(
+                            icon = Icons.Filled.Camera,
+                            label = "Camera",
+                            onClick = { onOptionSelected("camera") }
+                        )
+                    }
+                    item {
+                        AttachmentOption(
+                            icon = Icons.Filled.AttachFile,
+                            label = "Document",
+                            onClick = { onOptionSelected("document") }
+                        )
+                    }
+                    item {
+                        AttachmentOption(
+                            icon = Icons.Outlined.InsertPhoto,
+                            label = "Gallery",
+                            onClick = { onOptionSelected("gallery") }
+                        )
+                    }
+                    item {
+                        AttachmentOption(
+                            icon = Icons.Filled.LocationOn,
+                            label = "Location",
+                            onClick = { onOptionSelected("location") }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AttachmentOption(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(smallPadding)
+    ) {
+        Surface(
+            modifier = Modifier.size(46.dp),
+            shape = RoundedCornerShape(corner = CornerSize(commonCornerRadius)),
+            color = MaterialTheme.colorScheme.secondaryContainer
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier
+                    .size(24.dp)
+                    .padding(12.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(top = extraSmallPadding),
+            textAlign = TextAlign.Center
+        )
+    }
+}

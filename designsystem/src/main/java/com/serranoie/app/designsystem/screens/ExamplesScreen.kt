@@ -1225,7 +1225,6 @@ fun ChatExampleContent() {
                         timestamp = message.timestamp,
                         authorName = message.authorName,
                         onMessageClick = { },
-                        onAvatarClick = { },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

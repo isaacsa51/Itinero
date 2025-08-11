@@ -1,5 +1,8 @@
 package com.serranoie.itinero.di
 
+import com.serranoie.app.feature.chat.domain.usecase.ConnectToChatUseCase
+import com.serranoie.app.feature.chat.domain.usecase.GetMessagesUseCase
+import com.serranoie.app.feature.chat.domain.usecase.SendMessageUseCase
 import com.serranoie.app.feature.expenses.domain.usecase.AddExpenseUseCase
 import com.serranoie.app.feature.expenses.domain.usecase.DeleteExpenseUseCase
 import com.serranoie.app.feature.expenses.domain.usecase.ExpensesUseCases
@@ -15,6 +18,7 @@ import com.serranoie.app.feature.itinerary.domain.usecase.GetAllActivitiesUseCas
 import com.serranoie.app.feature.itinerary.domain.usecase.ItineraryUseCase
 import com.serranoie.app.feature.itinerary.domain.usecase.ToggleActivityCompletionUseCase
 import com.serranoie.app.feature.itinerary.domain.usecase.UpdateActivityInfoUseCase
+import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.usecase.AcceptMemberToTripUseCase
 import com.serranoie.itinero.core.domain.usecase.AuthUseCase
 import com.serranoie.itinero.core.domain.usecase.CreateTravelUseCase
@@ -23,6 +27,7 @@ import com.serranoie.itinero.core.domain.usecase.DeleteTripUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllMembersUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAllTravelsUseCase
 import com.serranoie.itinero.core.domain.usecase.GetAuthTokenUseCase
+import com.serranoie.itinero.core.domain.usecase.GetCurrentUserIdUseCase
 import com.serranoie.itinero.core.domain.usecase.GetCurrentUserMembershipStatusUseCase
 import com.serranoie.itinero.core.domain.usecase.GetTravelByIdUseCase
 import com.serranoie.itinero.core.domain.usecase.GetTripOverviewUseCase
@@ -39,6 +44,7 @@ import com.serranoie.itinero.core.domain.usecase.RemoveMemberUseCase
 import com.serranoie.itinero.core.domain.usecase.SaveAuthTokenUseCase
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import com.serranoie.itinero.core.domain.usecase.UpdateTripInfoUseCase
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -81,6 +87,14 @@ val useCaseModule = module {
     factory { SaveAuthTokenUseCase(get()) }
     factory { LogoutUseCase(get()) }
     factory { DeleteAccountUseCase(get()) }
+
+    // Chat use cases
+    factory { GetMessagesUseCase(get()) }
+    factory { SendMessageUseCase(get()) }
+    factory { ConnectToChatUseCase(get()) }
+
+    // Current user ID use case
+    factory { GetCurrentUserIdUseCase(get()) }
 
     factory {
         TravelUseCase(
