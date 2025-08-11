@@ -1,8 +1,8 @@
 package com.serranoie.app.feature.chat
 
-import android.text.TextUtils
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,13 +15,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -59,14 +57,11 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.designsystemlib.ui.theme.component.JumpToBottom
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
+import com.serranoie.app.designsystemlib.ui.theme.component.card.BubbleTypingIndicator
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithAvatar
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
-import com.serranoie.app.designsystemlib.ui.theme.component.card.BubbleTypingIndicator
-import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
-import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
-import android.util.Log
-import androidx.compose.foundation.layout.consumeWindowInsets
 import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import kotlinx.coroutines.launch
 
 /**
@@ -173,10 +168,8 @@ fun ChannelNameBar(
         title = {
             Box(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
             ) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
@@ -306,51 +299,61 @@ fun Messages(
         ) {
             // Show typing indicator at the bottom (first in reversed list)
             item(key = "typing_indicator") {
-                AnimatedVisibility(
-                    visible = typingUsers.isNotEmpty(),
-                    enter = fadeIn(animationSpec = tween(200)) + slideInVertically(
-                        initialOffsetY = { fullHeight -> fullHeight / 3 },
-                        animationSpec = tween(250)
-                    ),
-                    exit = fadeOut(animationSpec = tween(150)) + slideOutVertically(
-                        targetOffsetY = { fullHeight -> fullHeight / 3 },
-                        animationSpec = tween(200)
-                    )
+                // Fixed height container to prevent layout shifts
+                Box(
+                    modifier = Modifier
+                        .height(if (typingUsers.isNotEmpty()) 72.dp else 0.dp)
+                        .animateContentSize(animationSpec = tween(durationMillis = 300))
                 ) {
-                    Column {
-                        // Animated typing users text
-                        AnimatedContent(
-                            targetState = typingUsers.joinToString(", "),
-                            transitionSpec = {
-                                fadeIn(animationSpec = tween(150)).togetherWith(
-                                    fadeOut(animationSpec = tween(150))
+                    AnimatedVisibility(
+                        visible = typingUsers.isNotEmpty(),
+                        enter = fadeIn(animationSpec = tween(200)) + slideInVertically(
+                            initialOffsetY = { fullHeight -> fullHeight },
+                            animationSpec = tween(250)
+                        ),
+                        exit = fadeOut(animationSpec = tween(100)) + slideOutVertically(
+                            targetOffsetY = { fullHeight -> fullHeight },
+                            animationSpec = tween(150)
+                        )
+                    ) {
+                        Column {
+                            // Animated typing users text
+                            AnimatedContent(
+                                targetState = typingUsers.joinToString(", "),
+                                transitionSpec = {
+                                    fadeIn(animationSpec = tween(150)).togetherWith(
+                                        fadeOut(animationSpec = tween(150))
+                                    )
+                                }
+                            ) { typingUsersText ->
+                                Text(
+                                    text = "$typingUsersText ${if (typingUsers.size == 1) "is" else "are"} typing...",
+                                    maxLines = 1,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(
+                                        horizontal = smallPadding,
+                                        vertical = extraSmallPadding
+                                    )
                                 )
                             }
-                        ) { typingUsersText ->
-                            Text(
-                                text = "$typingUsersText ${if (typingUsers.size == 1) "is" else "are"} typing...",
-                                maxLines = 1,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(
-                                    horizontal = smallPadding,
-                                    vertical = extraSmallPadding
-                                )
-                            )
-                        }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            BubbleTypingIndicator()
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                BubbleTypingIndicator()
+                            }
                         }
                     }
                 }
             }
 
             val reversedMessages = messages.reversed()
-            itemsIndexed(reversedMessages) { index, message ->
+            itemsIndexed(
+                items = reversedMessages,
+                key = { index, message -> message.id }
+            ) { index, message ->
                 val showDayHeader = shouldShowDayHeader(
                     message,
                     if (index > 0) reversedMessages[index - 1] else null
@@ -359,10 +362,23 @@ fun Messages(
                 if (showDayHeader) {
                     DayHeader(getDateString(message.rawTimestamp))
                 }
-                MessageItem(
-                    message = message,
-                    isUserMe = message.authorId == currentUserId,
-                )
+                AnimatedVisibility(
+                    visible = true,
+                    enter = slideInVertically(
+                        initialOffsetY = { fullHeight -> fullHeight / 2 },
+                        animationSpec = tween(durationMillis = 200)
+                    ) + fadeIn(animationSpec = tween(durationMillis = 200)),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight / 2 },
+                        animationSpec = tween(durationMillis = 200)
+                    ) + fadeOut(animationSpec = tween(durationMillis = 200)),
+                    modifier = Modifier.animateItem()
+                ) {
+                    MessageItem(
+                        message = message,
+                        isUserMe = message.authorId == currentUserId,
+                    )
+                }
             }
         }
 
