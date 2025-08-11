@@ -16,10 +16,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,8 +50,10 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystemlib.ui.theme.component.ISmallerTextField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
+import com.serranoie.app.designsystemlib.ui.theme.component.LabelChip
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpInputField
+import com.serranoie.app.designsystemlib.ui.theme.component.PagerIndicator
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
 import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeableCard
 import com.serranoie.app.designsystemlib.ui.utils.Utils.confirmFeedback
@@ -107,6 +111,44 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         AtomicSection(title = "06 Feedback Tester") {
             FeedbackTester()
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 07 - LabelChip 
+        AtomicSection(title = "07 LabelChip ") {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LabelChip(text = "Default")
+                LabelChip(
+                    text = "Custom",
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    textColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 08 - PagerIndicator 
+        AtomicSection(title = "08 PagerIndicator ") {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                PagerIndicator(
+                    pagesSize = 5,
+                    selectedPage = 2
+                )
+                PagerIndicator(
+                    pagesSize = 3,
+                    selectedPage = 0,
+                    selectedColor = MaterialTheme.colorScheme.secondary,
+                    unselectedColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 09 - NetworkStatusBar 
+        // Removed this section as it needs special annotations
+
     }
 }
 

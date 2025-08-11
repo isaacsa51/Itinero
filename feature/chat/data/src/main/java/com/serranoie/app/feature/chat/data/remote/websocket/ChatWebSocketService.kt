@@ -37,9 +37,6 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * Sealed class representing different types of WebSocket events
- */
 sealed class WebSocketEvent {
     data class MessageReceived(val message: ChatMessage) : WebSocketEvent()
     data class TypingStart(val typingIndicator: TypingIndicator) : WebSocketEvent()
@@ -78,7 +75,6 @@ class ChatWebSocketService(
                     headers.append("Authorization", "Bearer $authToken")
                 }) {
 
-                // Store the session for typing events and message sending
                 if (this is DefaultClientWebSocketSession) {
                     activeSessions[groupCode] = this
                 }
