@@ -14,13 +14,11 @@ package com.serranoie.app.feature.chat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage as UiChatMessage
-import com.serranoie.app.feature.chat.domain.model.ChatMessage as DomainChatMessage
 import com.serranoie.app.feature.chat.domain.model.MessageType
+import com.serranoie.app.feature.chat.domain.repository.ChatEvent
 import com.serranoie.app.feature.chat.domain.usecase.ConnectToChatUseCase
 import com.serranoie.app.feature.chat.domain.usecase.GetMessagesUseCase
 import com.serranoie.app.feature.chat.domain.usecase.SendMessageUseCase
-import com.serranoie.app.feature.chat.domain.repository.ChatEvent
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +26,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage as UiChatMessage
+import com.serranoie.app.feature.chat.domain.model.ChatMessage as DomainChatMessage
 
 class ChatViewModel(
     private val getMessagesUseCase: GetMessagesUseCase,
@@ -35,14 +35,12 @@ class ChatViewModel(
     private val connectToChatUseCase: ConnectToChatUseCase,
     private val getCurrentUserId: () -> String,
     private val getCurrentUserName: () -> String,
-    private val getAuthToken: () -> String
+    private val getAuthToken: suspend () -> String
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         ChatScreenUiState(
-            channelName = "",
-            channelMembers = 0,
-            initialMessages = emptyList()
+            channelName = "", channelMembers = 0, initialMessages = emptyList()
         )
     )
     val uiState: StateFlow<ChatScreenUiState> = _uiState.asStateFlow()
@@ -67,9 +65,7 @@ class ChatViewModel(
 
         _uiState.update { currentState ->
             currentState.copy(
-                channelName = groupName,
-                channelMembers = memberCount,
-                initialMessages = emptyList()
+                channelName = groupName, channelMembers = memberCount, initialMessages = emptyList()
             )
         }
 
@@ -82,28 +78,26 @@ class ChatViewModel(
             _isLoading.value = true
             _error.value = null
 
-            getMessagesUseCase(groupCode, getAuthToken(), limit, offset)
-                .onSuccess { messages ->
-                    val uiMessages = messages.map { domainMessage ->
-                        UiChatMessage(
-                            id = domainMessage.id.toString(),
-                            content = domainMessage.message,
-                            authorId = domainMessage.senderId.toString(),
-                            authorName = domainMessage.senderName,
-                            timestamp = formatTimestamp(domainMessage.timestamp),
-                            rawTimestamp = domainMessage.timestamp // Pass through original timestamp
-                        )
-                    }
+            getMessagesUseCase(groupCode, getAuthToken(), limit, offset).onSuccess { messages ->
+                val uiMessages = messages.map { domainMessage ->
+                    UiChatMessage(
+                        id = domainMessage.id.toString(),
+                        content = domainMessage.message,
+                        authorId = domainMessage.senderId.toString(),
+                        authorName = domainMessage.senderName,
+                        timestamp = formatTimestamp(domainMessage.timestamp),
+                        rawTimestamp = domainMessage.timestamp
+                    )
+                }
 
-                    _uiState.update { currentState ->
-                        currentState.copy(initialMessages = uiMessages)
-                    }
-                    _isLoading.value = false
+                _uiState.update { currentState ->
+                    currentState.copy(initialMessages = uiMessages)
                 }
-                .onFailure { exception ->
-                    _error.value = "Failed to load messages: ${exception.message}"
-                    _isLoading.value = false
-                }
+                _isLoading.value = false
+            }.onFailure { exception ->
+                _error.value = "Failed to load messages: ${exception.message}"
+                _isLoading.value = false
+            }
         }
     }
 
@@ -115,65 +109,60 @@ class ChatViewModel(
             try {
                 _isConnected.value = false
 
-                connectToChatUseCase(groupCode, getAuthToken())
-                    .catch { exception ->
-                        _isConnected.value = false
-                        _error.value = "Connection failed: ${exception.message}"
-                    }
-                    .collect { event ->
-                        when (event) {
-                            is ChatEvent.MessageReceived -> {
-                                if (!_isConnected.value) {
-                                    _isConnected.value = true
-                                    _error.value = null
-                                }
-
-                                val domainMessage = event.message
-                                val newUiMessage = UiChatMessage(
-                                    id = domainMessage.id.toString(),
-                                    content = domainMessage.message,
-                                    authorId = domainMessage.senderId.toString(),
-                                    authorName = domainMessage.senderName,
-                                    timestamp = formatTimestamp(domainMessage.timestamp),
-                                    rawTimestamp = domainMessage.timestamp // Pass through original timestamp
-                                )
-
-                                _uiState.update { currentState ->
-                                    val existingMessageIds =
-                                        currentState.initialMessages.map { it.id }.toSet()
-                                    if (newUiMessage.id !in existingMessageIds) {
-                                        currentState.copy(
-                                            initialMessages = currentState.initialMessages + newUiMessage
-                                        )
-                                    } else {
-                                        currentState
-                                    }
-                                }
-                            }
-                            is ChatEvent.TypingStarted -> {
-                                val currentUserName = getCurrentUserName()
-                                if (event.userName != currentUserName) {
-                                    _typingUsers.update { typingSet ->
-                                        typingSet + event.userName
-                                    }
-                                }
+                connectToChatUseCase(groupCode, getAuthToken()).catch { exception ->
+                    _isConnected.value = false
+                    _error.value = "Connection failed: ${exception.message}"
+                }.collect { event ->
+                    when (event) {
+                        is ChatEvent.MessageReceived -> {
+                            if (!_isConnected.value) {
+                                _isConnected.value = true
+                                _error.value = null
                             }
 
-                            is ChatEvent.TypingStopped -> {
-                                _typingUsers.update { typingSet ->
-                                    typingSet - event.userName
+                            val domainMessage = event.message
+                            val newUiMessage = UiChatMessage(
+                                id = domainMessage.id.toString(),
+                                content = domainMessage.message,
+                                authorId = domainMessage.senderId.toString(),
+                                authorName = domainMessage.senderName,
+                                timestamp = formatTimestamp(domainMessage.timestamp),
+                                rawTimestamp = domainMessage.timestamp
+                            )
+
+                            _uiState.update { currentState ->
+                                val existingMessageIds =
+                                    currentState.initialMessages.map { it.id }.toSet()
+                                if (newUiMessage.id !in existingMessageIds) {
+                                    currentState.copy(
+                                        initialMessages = currentState.initialMessages + newUiMessage
+                                    )
+                                } else {
+                                    currentState
                                 }
-                            }
-
-                            is ChatEvent.UserJoined -> {
-                                // Handle user joined - could show a system message or update member count
-                            }
-
-                            is ChatEvent.UserLeft -> {
-                                // Handle user left - could show a system message or update member count
                             }
                         }
+
+                        is ChatEvent.TypingStarted -> {
+                            val currentUserName = getCurrentUserName()
+                            if (event.userName != currentUserName) {
+                                _typingUsers.update { typingSet ->
+                                    typingSet + event.userName
+                                }
+                            }
+                        }
+
+                        is ChatEvent.TypingStopped -> {
+                            _typingUsers.update { typingSet ->
+                                typingSet - event.userName
+                            }
+                        }
+
+                        is ChatEvent.UserJoined -> {}
+
+                        is ChatEvent.UserLeft -> {}
                     }
+                }
             } catch (e: Exception) {
                 _isConnected.value = false
                 _error.value = "WebSocket error: ${e.message}"
@@ -190,7 +179,7 @@ class ChatViewModel(
         val message = DomainChatMessage(
             id = 0L,
             groupCode = currentGroupCode,
-            senderId = currentUserId.toLongOrNull() ?: 0L, 
+            senderId = currentUserId.toLongOrNull() ?: 0L,
             senderName = getCurrentUserName(),
             message = content.trim(),
             messageType = MessageType.TEXT,
@@ -200,12 +189,9 @@ class ChatViewModel(
         )
 
         viewModelScope.launch {
-            sendMessageUseCase(message, getAuthToken())
-                .onSuccess {
-                }
-                .onFailure { exception ->
-                    _error.value = "Failed to send message: ${exception.message}"
-                }
+            sendMessageUseCase(message, getAuthToken()).onSuccess {}.onFailure { exception ->
+                _error.value = "Failed to send message: ${exception.message}"
+            }
         }
     }
 
@@ -219,9 +205,7 @@ class ChatViewModel(
         if (currentGroupCode.isNotBlank()) {
             viewModelScope.launch {
                 connectToChatUseCase.sendTypingEvent(
-                    isTyping = false,
-                    groupCode = currentGroupCode,
-                    authToken = getAuthToken()
+                    isTyping = false, groupCode = currentGroupCode, authToken = getAuthToken()
                 ).onFailure { exception ->
                     Log.e(TAG, "Failed to send typing stopped: ${exception.message}")
                 }
@@ -233,9 +217,7 @@ class ChatViewModel(
         if (currentGroupCode.isNotBlank()) {
             viewModelScope.launch {
                 connectToChatUseCase.sendTypingEvent(
-                    isTyping = true,
-                    groupCode = currentGroupCode,
-                    authToken = getAuthToken()
+                    isTyping = true, groupCode = currentGroupCode, authToken = getAuthToken()
                 ).onFailure { exception ->
                     Log.e(TAG, "Failed to send typing started: ${exception.message}")
                 }
@@ -245,21 +227,6 @@ class ChatViewModel(
 
     fun clearError() {
         _error.value = null
-    }
-
-    // Temporary test method - remove after server is fixed
-    fun testTypingIndicator(userName: String, isTyping: Boolean) {
-        if (isTyping) {
-            _typingUsers.update { typingSet ->
-                val newSet = typingSet + userName
-                newSet
-            }
-        } else {
-            _typingUsers.update { typingSet ->
-                val newSet = typingSet - userName
-                newSet
-            }
-        }
     }
 
     private fun formatTimestamp(timestamp: String): String {

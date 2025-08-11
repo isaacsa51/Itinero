@@ -14,7 +14,6 @@ package com.serranoie.app.feature.chat.di
 import com.serranoie.app.feature.chat.ChatViewModel
 import com.serranoie.itinero.core.domain.usecase.GetAuthTokenUseCase
 import com.serranoie.itinero.core.domain.usecase.GetCurrentUserIdUseCase
-import kotlinx.coroutines.runBlocking
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -33,12 +32,10 @@ val chatViewModelModule = module {
                     get<com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository>()
                 authPreferencesRepository.getUserName() ?: "You"
             },
-            getAuthToken = {
+            getAuthToken = suspend {
                 val authUseCase: GetAuthTokenUseCase = get()
                 runCatching {
-                    runBlocking {
-                        authUseCase.invoke() ?: ""
-                    }
+                    authUseCase.invoke() ?: ""
                 }.getOrElse { "" }
             }
         )

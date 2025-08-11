@@ -96,14 +96,14 @@ class ChatRepositoryImpl(
 
                     is WebSocketEvent.UserJoined -> {
                         ChatEvent.UserJoined(
-                            webSocketEvent.userId,
+                            webSocketEvent.userId.toLong(),
                             webSocketEvent.userName
                         )
                     }
 
                     is WebSocketEvent.UserLeft -> {
                         ChatEvent.UserLeft(
-                            webSocketEvent.userId,
+                            webSocketEvent.userId.toLong(),
                             webSocketEvent.userName
                         )
                     }

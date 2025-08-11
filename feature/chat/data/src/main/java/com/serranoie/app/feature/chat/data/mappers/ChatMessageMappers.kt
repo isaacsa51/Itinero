@@ -15,16 +15,41 @@ import com.serranoie.app.feature.chat.data.local.entity.ChatMessageEntity
 import com.serranoie.app.feature.chat.data.remote.dto.ChatMessageDto
 import com.serranoie.app.feature.chat.domain.model.ChatMessage
 import com.serranoie.app.feature.chat.domain.model.MessageType
-import kotlin.collections.map
+
+private fun ChatMessageDto.resolveSenderId(): Long {
+    val authorIdValue = this.authorId.takeIf { it.isNotEmpty() }
+    if (authorIdValue != null) {
+        val parsed = authorIdValue.toLongOrNull() ?: 0L
+        return parsed
+    }
+
+    val senderIdValue = this.senderId?.takeIf { it.isNotEmpty() }
+    if (senderIdValue != null) {
+        val parsed = senderIdValue.toLongOrNull() ?: 0L
+
+        return parsed
+    }
+
+    return 0L
+}
+
+private fun ChatMessageDto.resolveSenderName(): String {
+    val authorNameValue = this.authorName.takeIf { it.isNotEmpty() }
+    if (authorNameValue != null) return authorNameValue
+
+    val senderNameValue = this.senderName?.takeIf { it.isNotEmpty() }
+    if (senderNameValue != null) return senderNameValue
+
+    return "Unknown"
+}
 
 fun ChatMessageDto.toDomain(): ChatMessage {
     return ChatMessage(
         id = this.id,
         groupCode = this.groupCode,
-        senderId = (this.authorId.takeIf { it.isNotEmpty() } ?: this.senderId ?: "0").toLongOrNull()
-            ?: 0L,
-        senderName = this.authorName.takeIf { it.isNotEmpty() } ?: this.senderName ?: "Unknown",
-        message = this.message.takeIf { it.isNotEmpty() } ?: this.content ?: "",
+        senderId = this.resolveSenderId(),
+        senderName = this.resolveSenderName(),
+        message = this.message,
         messageType = MessageType.fromString(this.messageType),
         timestamp = this.timestamp,
         isEdited = this.isEdited,
@@ -64,16 +89,13 @@ fun ChatMessage.toDto(): ChatMessageDto {
     return ChatMessageDto(
         id = this.id,
         groupCode = this.groupCode,
-        authorId = "",
-        authorName = "",
-        senderId = this.senderId.toString(),
-        senderName = this.senderName,
-        message = "",
+        authorId = this.senderId.toString(),
+        authorName = this.senderName,
+        message = this.message,
         messageType = this.messageType.value,
         timestamp = this.timestamp,
         isEdited = this.isEdited,
-        replyToId = this.replyToMessageId,
-        content = this.message
+        replyToId = this.replyToMessageId
     )
 }
 

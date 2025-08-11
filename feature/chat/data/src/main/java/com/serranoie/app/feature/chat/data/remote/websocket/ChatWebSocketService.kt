@@ -26,6 +26,10 @@ import com.serranoie.itinero.core.domain.exception.UnauthorizedException
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.RedirectResponseException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.http.HttpStatusCode
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
@@ -219,28 +223,38 @@ class ChatWebSocketService(
             }
         } catch (e: ChatApiException) {
             throw e
+        } catch (e: ClientRequestException) {
+            Log.e(
+                TAG,
+                "HTTP error during WebSocket connect to group $groupCode: ${e.message}",
+                e
+            )
+            when (e.response.status) {
+                HttpStatusCode.NotFound -> throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group $groupCode")
+                HttpStatusCode.Unauthorized -> throw UnauthorizedException("Authentication failed while connecting to chat for group $groupCode")
+                HttpStatusCode.Forbidden -> throw ChatApiException("Access denied to chat group $groupCode")
+                else -> throw ChatApiException("Unable to connect to chat for group $groupCode", e)
+            }
+        } catch (e: ServerResponseException) {
+            Log.e(TAG, "Server error during WebSocket connect to group $groupCode: ${e.message}", e)
+            throw ChatApiException("Server error while connecting to chat for group $groupCode", e)
+        } catch (e: RedirectResponseException) {
+            Log.e(
+                TAG,
+                "Unexpected redirect during WebSocket connect to group $groupCode: ${e.message}",
+                e
+            )
+            throw ChatApiException(
+                "Unexpected redirect while connecting to chat for group $groupCode",
+                e
+            )
         } catch (e: Exception) {
             Log.e(
                 TAG,
                 "Failed to establish WebSocket connection for group $groupCode: ${e.message}",
                 e
             )
-            val errorMessage = e.message ?: ""
-            when {
-                errorMessage.contains("404 Not Found") -> {
-                    throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group $groupCode")
-                }
-                errorMessage.contains("401") || errorMessage.contains("Unauthorized") -> {
-                    throw UnauthorizedException("Authentication failed while connecting to chat for group $groupCode")
-                }
-
-                errorMessage.contains("403") || errorMessage.contains("Forbidden") -> {
-                    throw ChatApiException("Access denied to chat group $groupCode")
-                }
-                else -> {
-                    throw ChatApiException("Unable to connect to chat for group $groupCode", e)
-                }
-            }
+            throw ChatApiException("Unable to connect to chat for group $groupCode", e)
         }
     }
 
@@ -331,36 +345,75 @@ class ChatWebSocketService(
             throw e
         } catch (e: CancellationException) {
             throw e
+        } catch (e: ClientRequestException) {
+            Log.e(
+                TAG,
+                "HTTP error while sending message to group ${message.groupCode}: ${e.message}",
+                e
+            )
+            when (e.response.status) {
+                HttpStatusCode.NotFound -> throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group ${message.groupCode}")
+                HttpStatusCode.Unauthorized -> throw UnauthorizedException("Authentication failed while sending message to group ${message.groupCode}")
+                HttpStatusCode.Forbidden -> throw ChatApiException("Access denied to chat group ${message.groupCode}")
+                else -> throw ChatApiException(
+                    "Unable to send message to group ${message.groupCode}",
+                    e
+                )
+            }
+        } catch (e: ServerResponseException) {
+            Log.e(
+                TAG,
+                "Server error while sending message to group ${message.groupCode}: ${e.message}",
+                e
+            )
+            throw ChatApiException(
+                "Server error while sending message to group ${message.groupCode}",
+                e
+            )
+        } catch (e: RedirectResponseException) {
+            Log.e(
+                TAG,
+                "Unexpected redirect while sending message to group ${message.groupCode}: ${e.message}",
+                e
+            )
+            throw ChatApiException(
+                "Unexpected redirect while sending message to group ${message.groupCode}",
+                e
+            )
         } catch (e: Exception) {
             Log.e(
                 TAG,
                 "Failed to establish WebSocket connection for sending message to group ${message.groupCode}: ${e.message}",
                 e
             )
-            val errorMessage = e.message ?: ""
-            when {
-                errorMessage.contains("404 Not Found") -> {
-                    throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group ${message.groupCode}")
-                }
-                errorMessage.contains("401") || errorMessage.contains("Unauthorized") -> {
-                    throw UnauthorizedException("Authentication failed while sending message to group ${message.groupCode}")
-                }
-
-                errorMessage.contains("403") || errorMessage.contains("Forbidden") -> {
-                    throw ChatApiException("Access denied to chat group ${message.groupCode}")
+            // Handle specific network exceptions or fall back to string matching as last resort
+            when (e) {
+                is io.ktor.client.network.sockets.ConnectTimeoutException,
+                is io.ktor.client.network.sockets.SocketTimeoutException,
+                is java.net.UnknownHostException -> {
+                    throw NetworkException(
+                        "Network connection failed while sending message to group ${message.groupCode}",
+                        e
+                    )
                 }
                 else -> {
-                    when (e) {
-                        is io.ktor.client.network.sockets.ConnectTimeoutException, is io.ktor.client.network.sockets.SocketTimeoutException, is java.net.UnknownHostException -> {
-                            throw NetworkException(
-                                "Network connection failed while sending message to group ${message.groupCode}",
-                                e
-                            )
+                    // Fall back to string matching as last resort
+                    val errorMessage = e.message ?: ""
+                    when {
+                        errorMessage.contains("404 Not Found") -> {
+                            throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group ${message.groupCode}")
+                        }
+                        errorMessage.contains("401") || errorMessage.contains("Unauthorized") -> {
+                            throw UnauthorizedException("Authentication failed while sending message to group ${message.groupCode}")
                         }
 
+                        errorMessage.contains("403") || errorMessage.contains("Forbidden") -> {
+                            throw ChatApiException("Access denied to chat group ${message.groupCode}")
+                        }
                         else -> {
                             throw ChatApiException(
-                                "Unable to send message to group ${message.groupCode}", e
+                                "Unable to send message to group ${message.groupCode}",
+                                e
                             )
                         }
                     }

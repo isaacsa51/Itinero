@@ -72,7 +72,6 @@ import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -103,10 +102,7 @@ fun UserInputPreview() {
 fun UserInputWithAttachmentMenuPreview() {
     PreviewWrapper {
         Column {
-            AttachmentMenu(
-                onDismiss = { },
-                onOptionSelected = { }
-            )
+            AttachmentMenu(onDismiss = { }, onOptionSelected = { })
 
             Surface(tonalElevation = 2.dp, contentColor = MaterialTheme.colorScheme.secondary) {
                 Column {
@@ -117,8 +113,7 @@ fun UserInputWithAttachmentMenuPreview() {
                         onTextFieldFocused = { },
                         onMessageSent = { },
                         focusState = false,
-                        onAttachmentClick = { }
-                    )
+                        onAttachmentClick = { })
                 }
             }
         }
@@ -149,51 +144,36 @@ fun UserInput(
     var isCurrentlyTyping by remember { mutableStateOf(false) }
     var lastTypingTime by remember { mutableStateOf(0L) }
 
-    // Handle typing detection with debouncing
-    LaunchedEffect(textState.text) {
-        val currentTime = System.currentTimeMillis()
-        lastTypingTime = currentTime
+    LaunchedEffect(textState.text, textFieldFocusState) {
+        val hasText = textState.text.isNotEmpty()
+        val shouldStopTyping = !hasText || !textFieldFocusState
 
-        if (textState.text.isNotEmpty() && !isCurrentlyTyping) {
-            isCurrentlyTyping = true
-            onTypingStarted()
-        } else if (textState.text.isEmpty() && isCurrentlyTyping) {
+        if (shouldStopTyping && isCurrentlyTyping) {
             isCurrentlyTyping = false
             onTypingStopped()
+        } else if (hasText && textFieldFocusState && !isCurrentlyTyping) {
+            isCurrentlyTyping = true
+            onTypingStarted()
         }
 
-        if (isCurrentlyTyping) {
+        if (hasText && textFieldFocusState) {
+            val startTime = System.currentTimeMillis()
+            lastTypingTime = startTime
             delay(2000)
-            if (currentTime == lastTypingTime && isCurrentlyTyping) {
+            if (startTime == lastTypingTime && isCurrentlyTyping) {
                 isCurrentlyTyping = false
                 onTypingStopped()
             }
         }
     }
 
-    LaunchedEffect(textFieldFocusState) {
-        if (!textFieldFocusState && isCurrentlyTyping) {
-            isCurrentlyTyping = false
-            onTypingStopped()
-        }
-    }
-
-    LaunchedEffect(textState.text.isEmpty()) {
-        if (textState.text.isEmpty() && isCurrentlyTyping) {
-            isCurrentlyTyping = false
-            onTypingStopped()
-        }
-    }
-
     Surface(tonalElevation = 2.dp, contentColor = MaterialTheme.colorScheme.secondary) {
         Column(modifier = modifier) {
             AnimatedVisibility(
-                visible = showAttachmentMenu,
-                enter = slideInVertically(
+                visible = showAttachmentMenu, enter = slideInVertically(
                     initialOffsetY = { fullHeight -> fullHeight },
                     animationSpec = tween(durationMillis = 300)
-                ) + fadeIn(animationSpec = tween(durationMillis = 300)),
-                exit = slideOutVertically(
+                ) + fadeIn(animationSpec = tween(durationMillis = 300)), exit = slideOutVertically(
                     targetOffsetY = { fullHeight -> fullHeight },
                     animationSpec = tween(durationMillis = 200)
                 ) + fadeOut(animationSpec = tween(durationMillis = 200))
@@ -202,8 +182,7 @@ fun UserInput(
                     onDismiss = { showAttachmentMenu = false },
                     onOptionSelected = { option ->
                         showAttachmentMenu = false
-                    }
-                )
+                    })
             }
 
             UserInputText(
@@ -224,8 +203,7 @@ fun UserInput(
                     resetScroll()
                 },
                 focusState = textFieldFocusState,
-                onAttachmentClick = { showAttachmentMenu = !showAttachmentMenu }
-            )
+                onAttachmentClick = { showAttachmentMenu = !showAttachmentMenu })
         }
     }
 }
@@ -283,8 +261,7 @@ private fun UserInputText(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = onAttachmentClick,
-                        modifier = Modifier.padding(4.dp)
+                        onClick = onAttachmentClick, modifier = Modifier.padding(4.dp)
                     ) {
                         Icon(
                             Icons.Default.AttachFile,
@@ -404,13 +381,11 @@ private fun BoxScope.UserInputTextField(
             textStyle = LocalTextStyle.current.copy(color = LocalContentColor.current),
             decorationBox = { innerTextField ->
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.CenterStart
+                    modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart
                 ) {
                     innerTextField()
                 }
-            }
-        )
+            })
     }
 
     if (textFieldValue.text.isEmpty() && !focusState) {
@@ -448,15 +423,14 @@ private fun RecordingIndicator(swipeOffset: () -> Float) {
             ),
             label = "pulse",
         )
-        Box(
-            Modifier
-                .size(56.dp)
-                .padding(24.dp)
-                .graphicsLayer {
-                    scaleX = animatedPulse.value; scaleY = animatedPulse.value
-                }
-                .clip(CircleShape)
-                .background(Color.Red))
+        Box(Modifier
+            .size(56.dp)
+            .padding(24.dp)
+            .graphicsLayer {
+                scaleX = animatedPulse.value; scaleY = animatedPulse.value
+            }
+            .clip(CircleShape)
+            .background(Color.Red))
 
         Box(
             Modifier
@@ -497,8 +471,7 @@ fun FunctionalityNotAvailablePopup(onDismiss: () -> Unit) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AttachmentMenu(
-    onDismiss: () -> Unit,
-    onOptionSelected: (String) -> Unit
+    onDismiss: () -> Unit, onOptionSelected: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -522,29 +495,25 @@ fun AttachmentMenu(
                 AttachmentOption(
                     icon = Icons.Filled.Camera,
                     label = "Camera",
-                    onClick = { onOptionSelected("camera") }
-                )
+                    onClick = { onOptionSelected("camera") })
             }
             item {
                 AttachmentOption(
                     icon = Icons.Filled.AttachFile,
                     label = "Document",
-                    onClick = { onOptionSelected("document") }
-                )
+                    onClick = { onOptionSelected("document") })
             }
             item {
                 AttachmentOption(
                     icon = Icons.Outlined.InsertPhoto,
                     label = "Gallery",
-                    onClick = { onOptionSelected("gallery") }
-                )
+                    onClick = { onOptionSelected("gallery") })
             }
             item {
                 AttachmentOption(
                     icon = Icons.Filled.LocationOn,
                     label = "Location",
-                    onClick = { onOptionSelected("location") }
-                )
+                    onClick = { onOptionSelected("location") })
             }
         }
     }
@@ -552,9 +521,7 @@ fun AttachmentMenu(
 
 @Composable
 private fun AttachmentOption(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit
+    icon: ImageVector, label: String, onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

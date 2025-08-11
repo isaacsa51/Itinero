@@ -43,18 +43,13 @@ data class ChatMessageDto(
     @SerialName("replyToId")
     val replyToId: Long? = null,
 
-    // Alternative field names the server might use
     @SerialName("senderId")
     val senderId: String? = null,
 
     @SerialName("senderName")
-    val senderName: String? = null,
-
-    @SerialName("content")
-    val content: String? = null
+    val senderName: String? = null
 )
 
-// Base WebSocket message from server
 @Serializable
 data class ServerWebSocketMessage(
     @SerialName("type")
@@ -63,27 +58,22 @@ data class ServerWebSocketMessage(
     @SerialName("groupCode")
     val groupCode: String? = null,
 
-    // For USER_JOINED/USER_LEFT messages
     @SerialName("userId")
     val userId: Int? = null,
 
     @SerialName("userName")
     val userName: String? = null,
 
-    // For MESSAGE_RECEIVED notifications - the actual message data
     @SerialName("message")
     val message: ChatMessageDto? = null,
 
-    // Alternative field name in case server uses 'data'
     @SerialName("data")
     val data: ChatMessageDto? = null,
 
-    // For typing indicators
     @SerialName("typingIndicator")
     val typingIndicator: TypingIndicator? = null
 )
 
-// User activity messages
 @Serializable
 data class UserActivityMessage(
     @SerialName("type")
@@ -99,7 +89,6 @@ data class UserActivityMessage(
     val userName: String
 )
 
-// WebSocket message format for sending to backend
 @Serializable
 data class WebSocketMessage(
     @SerialName("type")
@@ -109,10 +98,9 @@ data class WebSocketMessage(
     val groupCode: String,
 
     @SerialName("data")
-    val data: String // JSON string of the actual message data
+    val data: String
 )
 
-// Message data format (what goes inside the "data" field when sending)
 @Serializable
 data class MessageData(
     @SerialName("message")
@@ -122,7 +110,6 @@ data class MessageData(
     val messageType: String = "TEXT"
 )
 
-// Typing indicator data from server
 @Serializable
 data class TypingIndicator(
     @SerialName("userId")
@@ -135,7 +122,6 @@ data class TypingIndicator(
     val isTyping: Boolean
 )
 
-// Chat notification from server (for MESSAGE_RECEIVED)
 @Serializable
 data class ChatNotification(
     @SerialName("type")
