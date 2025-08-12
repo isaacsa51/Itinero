@@ -11,7 +11,6 @@
 
 package com.serranoie.app.designsystemlib.ui.theme.component.card
 
-import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -20,6 +19,8 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,8 +61,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -96,6 +101,7 @@ import kotlin.math.roundToInt
  * @param showTimestamp Whether to show the timestamp
  * @param replyAuthorName Optional author name of the message being replied to
  * @param replyMessage Optional message content being replied to
+ * @param onLongClick Callback for when the message bubble is long-clicked
  * @param modifier Modifier to be applied to the component
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -113,6 +119,7 @@ fun ChatBubble(
     showTimestamp: Boolean = true,
     replyAuthorName: String? = null,
     replyMessage: String? = null,
+    onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val bubbleShape = shape ?: getChatBubbleShape(isUserMe)
@@ -135,8 +142,8 @@ fun ChatBubble(
             color = bubbleColor,
             shape = bubbleShape,
             modifier = Modifier
-                .widthIn(max = 280.dp) // Constrain maximum width for long messages
-                .bounceClick { onMessageClick(message) }) {
+                .widthIn(max = 320.dp)
+        ) {
             Column {
                 if (replyAuthorName != null && replyMessage != null) {
                     ReplyMessageBubble(
@@ -154,7 +161,8 @@ fun ChatBubble(
                     message = message,
                     contentColor = contentColor,
                     onMessageClick = onMessageClick,
-                    onLinkClick = onLinkClick
+                    onLinkClick = onLinkClick,
+                    onLongClick = onLongClick
                 )
             }
         }
@@ -207,7 +215,7 @@ fun ChatBubble(
  * @param replyMessage Optional message content being replied to
  * @param modifier Modifier to be applied to the component
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ChatBubbleWithAvatar(
     message: String,
@@ -221,7 +229,9 @@ fun ChatBubbleWithAvatar(
     onBubbleSwipe: (ChatMessage) -> Unit = {},
     replyAuthorName: String? = null,
     replyMessage: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val swipeOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
@@ -278,43 +288,60 @@ fun ChatBubbleWithAvatar(
                 Spacer(modifier = Modifier.height(extraSmallPadding))
             }
 
-            Box(modifier = Modifier
-                .offset { IntOffset(swipeOffset.value.roundToInt(), 0) }
-                .then(if (!isUserMe) Modifier.pointerInput(message) {
-                    detectHorizontalDragGestures(onDragStart = {
-                        actionTriggered.value = false
-                    }, onDragEnd = {
-                        coroutineScope.launch {
-                            swipeOffset.animateTo(0f)
-                        }
-                        actionTriggered.value = false
-                    }) { change, dragAmount ->
-                        val newOffset = (swipeOffset.value + dragAmount).coerceAtLeast(0f)
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(swipeOffset.value.roundToInt(), 0) }
+                    .then(if (!isUserMe) Modifier.pointerInput(message) {
+                        detectHorizontalDragGestures(onDragStart = {
+                            actionTriggered.value = false
+                        }, onDragEnd = {
+                            coroutineScope.launch {
+                                swipeOffset.animateTo(0f)
+                            }
+                            actionTriggered.value = false
+                        }) { change, dragAmount ->
+                            val newOffset = (swipeOffset.value + dragAmount).coerceAtLeast(0f)
 
-                        if (newOffset > maxOffsetPx && !actionTriggered.value) {
-                            actionTriggered.value = true
-                            val chatMessage = ChatMessage(
-                                id = messageId,
-                                content = message,
-                                authorId = "", // This would come from the actual message data
-                                authorName = authorName,
-                                timestamp = timestamp,
-                                rawTimestamp = timestamp,
-                                replyToMessageId = null,
-                                replyAuthorName = replyAuthorName,
-                                replyMessage = replyMessage
+                            if (newOffset > maxOffsetPx && !actionTriggered.value) {
+                                actionTriggered.value = true
+                                val chatMessage = ChatMessage(
+                                    id = messageId,
+                                    content = message,
+                                    authorId = "", // This would come from the actual message data
+                                    authorName = authorName,
+                                    timestamp = timestamp,
+                                    rawTimestamp = timestamp,
+                                    replyToMessageId = null,
+                                    replyAuthorName = replyAuthorName,
+                                    replyMessage = replyMessage
+                                )
+                                onBubbleSwipe(chatMessage)
+                            }
+
+                            val cappedOffset = newOffset.coerceAtMost(maxOffsetPx * 1.2f)
+
+                            coroutineScope.launch {
+                                swipeOffset.snapTo(cappedOffset)
+                            }
+                        }
+                    } else Modifier)
+                    .combinedClickable(
+                        onClick = {
+                            // This handles all bubble clicks (for selection when in selection mode)
+                            onMessageClick(message)
+                        },
+                        onLongClick = onLongClick
+                    )
+                    .then(
+                        if (isSelected) Modifier
+                            .border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = getChatBubbleShape(isUserMe)
                             )
-                            onBubbleSwipe(chatMessage)
-                        }
-
-                        val cappedOffset = newOffset.coerceAtMost(maxOffsetPx * 1.2f)
-
-                        coroutineScope.launch {
-                            swipeOffset.snapTo(cappedOffset)
-                        }
-                    }
-                }
-                else Modifier)) {
+                        else Modifier
+                    )
+            ) {
                 if (!isUserMe && swipeOffset.value > 18f) {
                     val iconScale = if (swipeOffset.value > maxOffsetPx) 1.2f else 1f
                     val iconAlpha = (swipeOffset.value / maxOffsetPx).coerceAtMost(1f)
@@ -336,10 +363,14 @@ fun ChatBubbleWithAvatar(
                     message = message,
                     isUserMe = isUserMe,
                     timestamp = timestamp,
-                    onMessageClick = onMessageClick,
+                    onMessageClick = { clickedMessage ->
+                        // This is now handled by the Box's combinedClickable
+                        // onMessageClick(clickedMessage)
+                    },
                     replyAuthorName = replyAuthorName,
                     replyMessage = replyMessage,
-                    showTimestamp = false
+                    showTimestamp = false,
+                    onLongClick = onLongClick
                 )
             }
 
@@ -364,6 +395,8 @@ fun ChatBubbleWithAvatar(
  * @param onMessageClick Callback for when a message is clicked
  * @param onAvatarClick Callback for when an avatar is clicked
  * @param onBubbleSwipe Callback for when a message bubble is swiped
+ * @param selectedMessageId ID of the currently selected message, null if none selected
+ * @param onMessageLongClick Callback for when a message is long-clicked
  * @param modifier Modifier to be applied to the component
  */
 @Composable
@@ -373,6 +406,8 @@ fun ChatConversation(
     onMessageClick: (String) -> Unit = {},
     onAvatarClick: (String) -> Unit = {},
     onBubbleSwipe: (ChatMessage) -> Unit = {},
+    selectedMessageId: String? = null,
+    onMessageLongClick: (ChatMessage) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -383,10 +418,8 @@ fun ChatConversation(
             val previousMessage = messages.getOrNull(index - 1)
             val nextMessage = messages.getOrNull(index + 1)
 
-            // Show avatar only for the last message in a group from the same author
             val showAvatar = nextMessage?.authorId != message.authorId
 
-            // Show author name only for the first message in a group from the same author
             val showAuthor = previousMessage?.authorId != message.authorId
 
             ChatBubbleWithAvatar(
@@ -401,6 +434,10 @@ fun ChatConversation(
                 onBubbleSwipe = onBubbleSwipe,
                 replyAuthorName = message.replyAuthorName,
                 replyMessage = message.replyMessage,
+                isSelected = message.id == selectedMessageId,
+                onLongClick = {
+                    onMessageLongClick(message)
+                },
                 modifier = Modifier
             )
         }
@@ -443,9 +480,9 @@ private fun InitialsAvatar(
 }
 
 private fun getInitials(name: String): String {
-    return name.trim().split(" ").take(2) // Take only first two words (first name and last name)
+    return name.trim().split(" ").take(2)
         .mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")
-        .ifEmpty { "?" } // Fallback if name is empty
+        .ifEmpty { "?" }
 }
 
 @Composable
@@ -488,34 +525,82 @@ private fun getDarkerColor(color: Color): Color {
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun ChatBubbleContent(
     message: String,
     contentColor: Color,
     onMessageClick: (String) -> Unit,
-    onLinkClick: (String) -> Unit
+    onLinkClick: (String) -> Unit,
+    onLongClick: (() -> Unit)? = null
 ) {
     val uriHandler = LocalUriHandler.current
 
-    // For now, we'll use a simple AnnotatedString
-    // In a real implementation, you'd use a proper message formatter
-    val styledMessage = buildAnnotatedString {
-        append(message)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val styledMessage = remember(message, primaryColor) {
+        buildAnnotatedString {
+            val urlPattern = Regex(
+                """https?://(?:[-\w.])+(?:\:[0-9]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:[\w.])*)?)?"""
+            )
+
+            var lastIndex = 0
+            urlPattern.findAll(message).forEach { matchResult ->
+                val url = matchResult.value
+                val start = matchResult.range.first
+                val end = matchResult.range.last + 1
+
+                if (start > lastIndex) {
+                    append(message.substring(lastIndex, start))
+                }
+
+                pushStringAnnotation(tag = "URL", annotation = url)
+                withStyle(
+                    style = SpanStyle(
+                        color = primaryColor,
+                        textDecoration = TextDecoration.Underline
+                    )
+                ) {
+                    append(url)
+                }
+                pop()
+
+                lastIndex = end
+            }
+
+            if (lastIndex < message.length) {
+                append(message.substring(lastIndex))
+            }
+        }
     }
 
     ClickableText(
         text = styledMessage,
         style = MaterialTheme.typography.bodyMedium.copy(color = contentColor),
-        modifier = Modifier.standardPadding(
-            horizontal = basePadding, vertical = smallPadding
-        ),
+        modifier = Modifier
+            .standardPadding(horizontal = basePadding, vertical = smallPadding)
+            .combinedClickable(
+                onClick = { /* Handled by the main onClick below */ },
+                onLongClick = onLongClick
+            ),
         onClick = { offset ->
-            // Handle clicks on the message
-            onMessageClick(message)
-
-            // Handle link clicks (you would implement proper link detection here)
-            // For now, this is a placeholder for the link handling logic
-        })
+            // Check if clicked on a link
+            styledMessage.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    val url = annotation.item
+                    try {
+                        // Try to open the URL with the system browser
+                        uriHandler.openUri(url)
+                        onLinkClick(url)
+                    } catch (e: Exception) {
+                        // Fallback: just call the onLinkClick callback
+                        onLinkClick(url)
+                    }
+                } ?: run {
+                // If not clicking on a link, handle as regular message click
+                onMessageClick(message)
+            }
+        }
+    )
 }
 
 private fun getChatBubbleShape(isUserMe: Boolean): Shape = if (isUserMe) {
@@ -547,9 +632,9 @@ fun ReplyMessageBubble(
     replyAuthorName: String, replyMessage: String, modifier: Modifier = Modifier
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.2f),
+        color = Color(0xFF888888).copy(alpha = 0.25f),
         shape = RoundedCornerShape(commonCornerRadius),
-        modifier = modifier.fillMaxWidth() // Fill the width of the parent bubble
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(smallPadding)
@@ -568,7 +653,7 @@ fun ReplyMessageBubble(
                     replyMessage
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 3
             )
         }
@@ -640,7 +725,7 @@ data class ChatMessage(
     val authorId: String,
     val authorName: String,
     val timestamp: String,
-    val rawTimestamp: String = timestamp, // Raw timestamp for date comparison
+    val rawTimestamp: String = timestamp,
     val replyToMessageId: String? = null,
     val replyAuthorName: String? = null,
     val replyMessage: String? = null
@@ -653,7 +738,6 @@ private fun ChatBubblePreview() {
         Column(
             verticalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(16.dp)
         ) {
-            // Regular chat bubbles
             val sampleMessages = listOf(
                 ChatMessage(
                     id = "1",
@@ -676,7 +760,6 @@ private fun ChatBubblePreview() {
                 )
             )
 
-            // Show regular conversation first
             ChatConversation(
                 messages = sampleMessages,
                 currentUserId = "me",
@@ -688,15 +771,12 @@ private fun ChatBubblePreview() {
                 },
                 onBubbleSwipe = { message ->
                     // Handle bubble swipe
+                },
+                selectedMessageId = null,
+                onMessageLongClick = { message ->
+                    // Handle message long click
                 })
 
-            Text(
-                text = "Reply Messages Example:",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-
-            // Chat bubble with reply (from other user)
             ChatBubbleWithAvatar(
                 message = "Great work, Andrea! Looking forward to it.",
                 isUserMe = false,
@@ -707,7 +787,6 @@ private fun ChatBubblePreview() {
                 replyMessage = "Perfect! I've prepared the presentation."
             )
 
-            // Chat bubble with reply (from current user)
             ChatBubbleWithAvatar(
                 message = "Thanks Isaac! Should we start with the overview?",
                 isUserMe = true,
@@ -719,7 +798,6 @@ private fun ChatBubblePreview() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Another reply example with longer message
             ChatBubbleWithAvatar(
                 message = "Perfect!",
                 isUserMe = false,
@@ -729,18 +807,6 @@ private fun ChatBubblePreview() {
                 replyAuthorName = "Me",
                 replyMessage = "Thanks Isaac! Should we start with the overview? I think we have everything prepared and ready to go.",
                 modifier = Modifier
-            )
-
-            // Reply message bubble standalone
-            Text(
-                text = "Reply Bubble Standalone:",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-
-            ReplyMessageBubble(
-                replyAuthorName = "John Doe",
-                replyMessage = "This is a really long message that will be truncated when displayed in the reply bubble to keep it concise and readable within the chat interface."
             )
 
             BubbleTypingIndicator()

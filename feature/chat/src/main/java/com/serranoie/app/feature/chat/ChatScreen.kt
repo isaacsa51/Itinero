@@ -27,6 +27,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -52,7 +55,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.DevicePreview
@@ -97,6 +102,9 @@ fun ChatScreen(
 
     var replyData by remember { mutableStateOf<ReplyData?>(null) }
 
+    // Selection state: store selected message IDs
+    var selectedMessages by remember { mutableStateOf<Set<String>>(emptySet()) }
+
     LaunchedEffect(groupCode) {
         onInitializeChat(groupCode, groupName, memberCount)
     }
@@ -116,13 +124,53 @@ fun ChatScreen(
 
     Scaffold(
         topBar = {
-        ChannelNameBar(
-            channelName = uiState.channelName,
-            channelMembers = uiState.channelMembers,
-            isConnected = isConnected,
-            onBackPressed = onBackPressed
-        )
-    },
+            val clipboard = LocalClipboardManager.current
+            AnimatedContent(
+                targetState = selectedMessages.isNotEmpty(),
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(200)).togetherWith(
+                        fadeOut(
+                            animationSpec = tween(200)
+                        )
+                    )
+                }
+            ) { selectionActive ->
+                if (selectionActive) {
+                    val selectedCount = selectedMessages.size
+                    val selectedAreAllMine = selectedMessages.all { id ->
+                        uiState.messages.any { it.id == id && it.authorId == currentUserId }
+                    }
+                    val showCopy = !selectedAreAllMine
+                    SelectionTopBar(
+                        selectedCount = selectedCount,
+                        showEditDelete = selectedAreAllMine,
+                        showCopy = showCopy,
+                        onClearSelection = { selectedMessages = emptySet() },
+                        onDeleteMessages = {
+                            // TODO: implement delete messages logic
+                            selectedMessages = emptySet()
+                        },
+                        onEditMessage = {
+                            // TODO: implement edit message logic (optional, for one selected message)
+                        },
+                        onCopyMessages = {
+                            val textToCopy = uiState.messages
+                                .filter { selectedMessages.contains(it.id) }
+                                .joinToString(separator = "\n") { it.content }
+                            clipboard.setText(AnnotatedString(textToCopy))
+                            selectedMessages = emptySet()
+                        }
+                    )
+                } else {
+                    ChannelNameBar(
+                        channelName = uiState.channelName,
+                        channelMembers = uiState.channelMembers,
+                        isConnected = isConnected,
+                        onBackPressed = onBackPressed
+                    )
+                }
+            }
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = TopAppBarDefaults.windowInsets,
         modifier = modifier
@@ -139,6 +187,7 @@ fun ChatScreen(
                 scrollState = scrollState,
                 modifier = Modifier.weight(1f),
                 typingUsers = typingUsers,
+                selectedMessages = selectedMessages,
                 onBubbleSwipe = { message ->
                     replyData = ReplyData(message.id, message.authorName, message.content)
                     Log.d(
@@ -146,16 +195,35 @@ fun ChatScreen(
                         "UI: User is replying to messageId=${message.id}, author=${message.authorName}, content=${message.content}"
                     )
                     onBubbleSwipe(message)
-                })
+                },
+                onMessageLongPress = { message ->
+                    selectedMessages = if (selectedMessages.contains(message.id)) {
+                        selectedMessages - message.id
+                    } else {
+                        selectedMessages + message.id
+                    }
+                },
+                onMessageClick = { message ->
+                    if (selectedMessages.isNotEmpty()) {
+                        // Toggle selection on click if selection is active
+                        selectedMessages = if (selectedMessages.contains(message.id)) {
+                            selectedMessages - message.id
+                        } else {
+                            selectedMessages + message.id
+                        }
+                    }
+                    // else, do normal click behavior if needed
+                }
+            )
             UserInput(
                 onMessageSent = { messageData ->
-                Log.d(
-                    "ChatScreen",
-                    "UI: Sending message with reply data - message='${messageData.message}', replyToMessageId=${messageData.replyToMessageId}"
-                )
-                onSendMessage(messageData)
-                replyData = null
-            },
+                    Log.d(
+                        "ChatScreen",
+                        "UI: Sending message with reply data - message='${messageData.message}', replyToMessageId=${messageData.replyToMessageId}"
+                    )
+                    onSendMessage(messageData)
+                    replyData = null
+                },
                 onTypingStarted = onTypingStarted,
                 onTypingStopped = onTypingStopped,
                 resetScroll = {
@@ -173,6 +241,52 @@ fun ChatScreen(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
+fun SelectionTopBar(
+    selectedCount: Int,
+    showEditDelete: Boolean,
+    showCopy: Boolean,
+    onClearSelection: () -> Unit,
+    onDeleteMessages: () -> Unit,
+    onEditMessage: () -> Unit,
+    onCopyMessages: () -> Unit,
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = "$selectedCount selected",
+                style = MaterialTheme.typography.titleMediumEmphasized
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onClearSelection) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Clear selection")
+            }
+        },
+        actions = {
+            if (showCopy) {
+                IconButton(onClick = onCopyMessages) {
+                    Icon(Icons.Filled.ContentCopy, contentDescription = "Copy message(s)")
+                }
+            }
+            if (showEditDelete) {
+                if (selectedCount == 1) {
+                    IconButton(onClick = onEditMessage) {
+                        Icon(Icons.Filled.Edit, contentDescription = "Edit message")
+                    }
+                }
+                IconButton(onClick = onDeleteMessages) {
+                    Icon(Icons.Filled.Delete, contentDescription = "Delete message(s)")
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
 fun ChannelNameBar(
     channelName: String,
     channelMembers: Int,
@@ -182,37 +296,37 @@ fun ChannelNameBar(
 ) {
     TopAppBar(
         title = {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(
-                verticalArrangement = Arrangement.Center,
+            Box(
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(
-                    text = channelName, style = MaterialTheme.typography.titleMediumEmphasized
-                )
-                Text(
-                    text = when {
-                        !isConnected -> "$channelMembers members • Offline"
-                        else -> "$channelMembers members"
-                    }, style = MaterialTheme.typography.bodySmall, color = if (isConnected) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    }
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = channelName, style = MaterialTheme.typography.titleMediumEmphasized
+                    )
+                    Text(
+                        text = when {
+                            !isConnected -> "$channelMembers members • Offline"
+                            else -> "$channelMembers members"
+                        }, style = MaterialTheme.typography.bodySmall, color = if (isConnected) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        }
+                    )
+                }
+            }
+        }, navigationIcon = {
+            IconButton(onClick = onBackPressed) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Navigate back",
                 )
             }
-        }
-    }, navigationIcon = {
-        IconButton(onClick = onBackPressed) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Navigate back",
-            )
-        }
-    }, colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = MaterialTheme.colorScheme.surface
-    ), modifier = modifier
+        }, colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ), modifier = modifier
     )
 }
 
@@ -292,7 +406,10 @@ fun Messages(
     scrollState: LazyListState,
     modifier: Modifier = Modifier,
     typingUsers: Set<String> = emptySet(),
-    onBubbleSwipe: (ChatMessage) -> Unit = {}
+    selectedMessages: Set<String> = emptySet(),
+    onBubbleSwipe: (ChatMessage) -> Unit = {},
+    onMessageLongPress: (ChatMessage) -> Unit = {},
+    onMessageClick: (ChatMessage) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
 
@@ -321,7 +438,6 @@ fun Messages(
                         )
                     ) {
                         Column {
-                            // Animated typing users text
                             AnimatedContent(
                                 targetState = typingUsers.joinToString(", "), transitionSpec = {
                                     fadeIn(animationSpec = tween(150)).togetherWith(
@@ -376,7 +492,10 @@ fun Messages(
                     MessageItem(
                         message = message,
                         isUserMe = message.authorId == currentUserId,
-                        onBubbleSwipe = onBubbleSwipe
+                        isSelected = selectedMessages.contains(message.id),
+                        onBubbleSwipe = onBubbleSwipe,
+                        onLongPress = { onMessageLongPress(message) },
+                        onClick = { onMessageClick(message) }
                     )
                 }
             }
@@ -401,26 +520,25 @@ fun Messages(
 
 @Composable
 fun MessageItem(
-    message: ChatMessage, isUserMe: Boolean, onBubbleSwipe: (ChatMessage) -> Unit = {}
+    message: ChatMessage,
+    isUserMe: Boolean,
+    isSelected: Boolean = false,
+    onBubbleSwipe: (ChatMessage) -> Unit = {},
+    onLongPress: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
-    // Debug logging for reply data
-    if (message.replyAuthorName != null || message.replyMessage != null) {
-        Log.d(
-            "ChatScreen",
-            "MessageItem: Displaying message with reply - messageId=${message.id}, replyAuthor=${message.replyAuthorName}, replyMessage=${message.replyMessage}"
-        )
-    }
-
     ChatBubbleWithAvatar(
         message = message.content,
         isUserMe = isUserMe,
         timestamp = message.timestamp,
         authorName = message.authorName,
         messageId = message.id,
-        onMessageClick = { /* Handle message click */ },
+        onMessageClick = { _ -> onClick() },
         onBubbleSwipe = onBubbleSwipe,
         replyAuthorName = message.replyAuthorName,
         replyMessage = message.replyMessage,
+        isSelected = isSelected,
+        onLongClick = onLongPress,
         modifier = Modifier.fillMaxWidth()
     )
 }
@@ -549,6 +667,9 @@ private fun ChatScreenContent(
 
     var replyData by remember { mutableStateOf<ReplyData?>(null) }
 
+    // Preview/demo: selection state for preview only
+    var selectedMessages by remember { mutableStateOf<Set<String>>(emptySet()) }
+
     LaunchedEffect(error) {
         error?.let {
             val result = snackbarHostState.showSnackbar(
@@ -563,13 +684,48 @@ private fun ChatScreenContent(
 
     Scaffold(
         topBar = {
-        ChannelNameBar(
-            channelName = uiState.channelName,
-            channelMembers = uiState.channelMembers,
-            isConnected = isConnected,
-            onBackPressed = onBackPressed
-        )
-    },
+            val clipboard = LocalClipboardManager.current
+            AnimatedContent(
+                targetState = selectedMessages.isNotEmpty(),
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(200)).togetherWith(
+                        fadeOut(
+                            animationSpec = tween(200)
+                        )
+                    )
+                }
+            ) { selectionActive ->
+                if (selectionActive) {
+                    val selectedCount = selectedMessages.size
+                    val selectedAreAllMine = selectedMessages.all { id ->
+                        uiState.messages.any { it.id == id && it.authorId == currentUserId }
+                    }
+                    val showCopy = !selectedAreAllMine
+                    SelectionTopBar(
+                        selectedCount = selectedCount,
+                        showEditDelete = selectedAreAllMine,
+                        showCopy = showCopy,
+                        onClearSelection = { selectedMessages = emptySet() },
+                        onDeleteMessages = { selectedMessages = emptySet() },
+                        onEditMessage = { /* preview noop */ },
+                        onCopyMessages = {
+                            val textToCopy = uiState.messages
+                                .filter { selectedMessages.contains(it.id) }
+                                .joinToString(separator = "\n") { it.content }
+                            clipboard.setText(AnnotatedString(textToCopy))
+                            selectedMessages = emptySet()
+                        }
+                    )
+                } else {
+                    ChannelNameBar(
+                        channelName = uiState.channelName,
+                        channelMembers = uiState.channelMembers,
+                        isConnected = isConnected,
+                        onBackPressed = onBackPressed
+                    )
+                }
+            }
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = TopAppBarDefaults.windowInsets,
         modifier = Modifier
@@ -604,6 +760,7 @@ private fun ChatScreenContent(
                             scrollState = scrollState,
                             modifier = Modifier.weight(1f),
                             typingUsers = typingUsers,
+                            selectedMessages = selectedMessages,
                             onBubbleSwipe = { message ->
                                 replyData =
                                     ReplyData(message.id, message.authorName, message.content)
@@ -612,7 +769,25 @@ private fun ChatScreenContent(
                                     "UI: User is replying to messageId=${message.id}, author=${message.authorName}, content=${message.content}"
                                 )
                                 onBubbleSwipe(message)
-                            })
+                            },
+                            onMessageLongPress = { message ->
+                                selectedMessages = if (selectedMessages.contains(message.id)) {
+                                    selectedMessages - message.id
+                                } else {
+                                    selectedMessages + message.id
+                                }
+                            },
+                            onMessageClick = { message ->
+                                if (selectedMessages.isNotEmpty()) {
+                                    selectedMessages = if (selectedMessages.contains(message.id)) {
+                                        selectedMessages - message.id
+                                    } else {
+                                        selectedMessages + message.id
+                                    }
+                                }
+                                // else, do normal click behavior if needed
+                            }
+                        )
                         UserInput(
                             onMessageSent = { messageData ->
                                 Log.d(
