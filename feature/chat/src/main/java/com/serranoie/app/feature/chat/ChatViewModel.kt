@@ -14,6 +14,7 @@ package com.serranoie.app.feature.chat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.serranoie.app.designsystemlib.ui.theme.component.MessageData
 import com.serranoie.app.feature.chat.domain.model.MessageType
 import com.serranoie.app.feature.chat.domain.repository.ChatEvent
 import com.serranoie.app.feature.chat.domain.usecase.ConnectToChatUseCase
@@ -60,6 +61,8 @@ class ChatViewModel(
     private var webSocketJob: Job? = null
     private var currentGroupCode: String = ""
 
+    private val _allMessages = MutableStateFlow<List<UiChatMessage>>(emptyList())
+
     fun initializeChat(groupCode: String, groupName: String, memberCount: Int) {
         currentGroupCode = groupCode
 
@@ -80,18 +83,28 @@ class ChatViewModel(
 
             getMessagesUseCase(groupCode, getAuthToken(), limit, offset).onSuccess { messages ->
                 val uiMessages = messages.map { domainMessage ->
+                    val (replyAuthorName, replyMessage) = resolveReplyInfo(
+                        domainMessage.replyToMessageId,
+                        messages
+                    )
                     UiChatMessage(
                         id = domainMessage.id.toString(),
                         content = domainMessage.message,
                         authorId = domainMessage.senderId.toString(),
                         authorName = domainMessage.senderName,
                         timestamp = formatTimestamp(domainMessage.timestamp),
-                        rawTimestamp = domainMessage.timestamp
+                        rawTimestamp = domainMessage.timestamp,
+                        replyToMessageId = domainMessage.replyToMessageId?.toString(),
+                        replyAuthorName = replyAuthorName,
+                        replyMessage = replyMessage
                     )
                 }
 
                 _uiState.update { currentState ->
                     currentState.copy(initialMessages = uiMessages)
+                }
+                _allMessages.update { currentState ->
+                    currentState + uiMessages
                 }
                 _isLoading.value = false
             }.onFailure { exception ->
@@ -121,13 +134,23 @@ class ChatViewModel(
                             }
 
                             val domainMessage = event.message
+                            val allCachedMessages = _allMessages.value
+
+                            val (replyAuthorName, replyMessage) = resolveReplyInfoFromUi(
+                                domainMessage.replyToMessageId,
+                                allCachedMessages
+                            )
+
                             val newUiMessage = UiChatMessage(
                                 id = domainMessage.id.toString(),
                                 content = domainMessage.message,
                                 authorId = domainMessage.senderId.toString(),
                                 authorName = domainMessage.senderName,
                                 timestamp = formatTimestamp(domainMessage.timestamp),
-                                rawTimestamp = domainMessage.timestamp
+                                rawTimestamp = domainMessage.timestamp,
+                                replyToMessageId = domainMessage.replyToMessageId?.toString(),
+                                replyAuthorName = replyAuthorName,
+                                replyMessage = replyMessage
                             )
 
                             _uiState.update { currentState ->
@@ -140,6 +163,9 @@ class ChatViewModel(
                                 } else {
                                     currentState
                                 }
+                            }
+                            _allMessages.update { currentState ->
+                                currentState + newUiMessage
                             }
                         }
 
@@ -170,27 +196,49 @@ class ChatViewModel(
         }
     }
 
-    fun sendMessage(content: String) {
-        if (content.isBlank() || currentGroupCode.isBlank()) {
-            return
-        }
-
-        val currentUserId = getCurrentUserId()
-        val message = DomainChatMessage(
-            id = 0L,
-            groupCode = currentGroupCode,
-            senderId = currentUserId.toLongOrNull() ?: 0L,
-            senderName = getCurrentUserName(),
-            message = content.trim(),
-            messageType = MessageType.TEXT,
-            timestamp = System.currentTimeMillis().toString(),
-            isEdited = false,
-            replyToMessageId = null
-        )
-
+    fun sendMessage(messageData: MessageData) {
         viewModelScope.launch {
-            sendMessageUseCase(message, getAuthToken()).onSuccess {}.onFailure { exception ->
-                _error.value = "Failed to send message: ${exception.message}"
+            try {
+                val currentUserId = getCurrentUserId()
+
+                // Debug logging for reply payload
+                Log.d(TAG, "=== SENDING MESSAGE WITH REPLY PAYLOAD ===")
+                Log.d(TAG, "Message content: '${messageData.message}'")
+                Log.d(TAG, "Reply to message ID: ${messageData.replyToMessageId}")
+                Log.d(TAG, "Current user ID: $currentUserId")
+                Log.d(TAG, "Current user name: ${getCurrentUserName()}")
+
+                val message = DomainChatMessage(
+                    id = 0L,
+                    groupCode = currentGroupCode,
+                    senderId = currentUserId.toLongOrNull() ?: 0L,
+                    senderName = getCurrentUserName(),
+                    message = messageData.message,
+                    messageType = MessageType.TEXT,
+                    timestamp = System.currentTimeMillis().toString(),
+                    isEdited = false,
+                    replyToMessageId = messageData.replyToMessageId?.toLongOrNull()
+                )
+
+                Log.d(TAG, "Domain message created:")
+                Log.d(TAG, "  - ID: ${message.id}")
+                Log.d(TAG, "  - Group Code: ${message.groupCode}")
+                Log.d(TAG, "  - Sender ID: ${message.senderId}")
+                Log.d(TAG, "  - Sender Name: ${message.senderName}")
+                Log.d(TAG, "  - Message: ${message.message}")
+                Log.d(TAG, "  - Message Type: ${message.messageType}")
+                Log.d(TAG, "  - Reply To Message ID: ${message.replyToMessageId}")
+                Log.d(TAG, "================================================")
+
+                sendMessageUseCase(message, getAuthToken()).onSuccess {
+                    Log.d(TAG, "✅ Message sent successfully")
+                }.onFailure { exception ->
+                    Log.e(TAG, "❌ Failed to send message: ${exception.message}")
+                    _error.value = "Failed to send message: ${exception.message}"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Exception while sending message: ${e.message}", e)
+                _error.value = "Failed to send message: ${e.message}"
             }
         }
     }
@@ -247,6 +295,36 @@ class ChatViewModel(
             }
         } catch (e: Exception) {
             timestamp
+        }
+    }
+
+    private fun resolveReplyInfo(
+        replyToMessageId: Long?,
+        allMessages: List<DomainChatMessage>
+    ): Pair<String?, String?> {
+        if (replyToMessageId == null) return null to null
+
+        val replyMessage = allMessages.find { it.id == replyToMessageId }
+        return if (replyMessage != null) {
+            replyMessage.senderName to replyMessage.message
+        } else {
+            null to null
+        }
+    }
+
+    private fun resolveReplyInfoFromUi(
+        replyToMessageId: Long?,
+        allUiMessages: List<UiChatMessage>
+    ): Pair<String?, String?> {
+        if (replyToMessageId == null) return null to null
+
+        val replyMessage = allUiMessages.find { it.id.toLongOrNull() == replyToMessageId }
+        return if (replyMessage != null) {
+            Log.d(TAG, "Found reply message: ${replyMessage.authorName}: ${replyMessage.content}")
+            replyMessage.authorName to replyMessage.content
+        } else {
+            Log.w(TAG, "Could not find reply message with ID: $replyToMessageId")
+            null to null
         }
     }
 

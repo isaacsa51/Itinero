@@ -115,10 +115,19 @@ class ChatRepositoryImpl(
         message: ChatMessage, authToken: String
     ): Result<Unit> {
         return try {
+            Log.d("ChatRepositoryImpl", "=== REPOSITORY SENDING MESSAGE ===")
+            Log.d("ChatRepositoryImpl", "Message content: '${message.message}'")
+            Log.d("ChatRepositoryImpl", "Reply to message ID: ${message.replyToMessageId}")
+            Log.d("ChatRepositoryImpl", "Group code: ${message.groupCode}")
+            Log.d("ChatRepositoryImpl", "Sender ID: ${message.senderId}")
+            Log.d("ChatRepositoryImpl", "Sender name: ${message.senderName}")
+            Log.d("ChatRepositoryImpl", "===================================")
+
             webSocketService.sendMessage(message, authToken)
+            Log.d("ChatRepositoryImpl", " Message sent via WebSocket service")
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(TAG, "Error sending message: ${e.message}", e)
+            Log.e("ChatRepositoryImpl", " Failed to send message: ${e.message}", e)
             Result.failure(e)
         }
     }

@@ -107,7 +107,10 @@ data class MessageData(
     val message: String,
 
     @SerialName("messageType")
-    val messageType: String = "TEXT"
+    val messageType: String = "TEXT",
+
+    @SerialName("replyToMessageId")
+    val replyToMessageId: Long? = null
 )
 
 @Serializable

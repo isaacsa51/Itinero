@@ -94,15 +94,60 @@ class ChatWebSocketService(
 
                                     when (serverMessage.type) {
                                         "MESSAGE_RECEIVED" -> {
-                                            val messageDto: ChatMessageDto? =
-                                                serverMessage.message ?: serverMessage.data
-                                            if (messageDto != null) {
-                                                emit(WebSocketEvent.MessageReceived(messageDto.toDomain()))
-                                            } else {
-                                                Log.e(
+                                            Log.d(TAG, "=== RECEIVED MESSAGE FROM WEBSOCKET ===")
+                                            serverMessage.message?.let { receivedMessage ->
+                                                Log.d(TAG, "Received message:")
+                                                Log.d(TAG, "  - ID: ${receivedMessage.id}")
+                                                Log.d(
                                                     TAG,
-                                                    "MESSAGE_RECEIVED event missing message data for group $groupCode"
+                                                    "  - Group Code: ${receivedMessage.groupCode}"
                                                 )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Author ID: ${receivedMessage.authorId}"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Author Name: ${receivedMessage.authorName}"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Message: '${receivedMessage.message}'"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Message Type: ${receivedMessage.messageType}"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Reply To ID: ${receivedMessage.replyToId}"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Sender ID: ${receivedMessage.senderId}"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Sender Name: ${receivedMessage.senderName}"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "  - Timestamp: ${receivedMessage.timestamp}"
+                                                )
+                                                Log.d(
+                                                    TAG,
+                                                    "======================================="
+                                                )
+                                                val messageDto: ChatMessageDto? =
+                                                    serverMessage.message ?: serverMessage.data
+                                                if (messageDto != null) {
+                                                    emit(WebSocketEvent.MessageReceived(messageDto.toDomain()))
+                                                } else {
+                                                    Log.e(
+                                                        TAG,
+                                                        "MESSAGE_RECEIVED event missing message data for group $groupCode"
+                                                    )
+                                                }
                                             }
                                         }
 
@@ -279,18 +324,32 @@ class ChatWebSocketService(
         try {
             val messageData = MessageData(
                 message = message.message,
-                messageType = message.messageType.value
+                messageType = message.messageType.value,
+                replyToMessageId = message.replyToMessageId
             )
-            val messageDataJson = json.encodeToString(messageData)
+
+            // Debug logging for WebSocket payload
+            Log.d(TAG, "=== WEBSOCKET SEND MESSAGE PAYLOAD ===")
+            Log.d(TAG, "Group Code: ${message.groupCode}")
+            Log.d(TAG, "Message Data:")
+            Log.d(TAG, "  - message: '${messageData.message}'")
+            Log.d(TAG, "  - messageType: ${messageData.messageType}")
+            Log.d(TAG, "  - replyToMessageId: ${messageData.replyToMessageId}")
+
+            val messageJson = json.encodeToString(messageData)
+            Log.d(TAG, "Serialized message data JSON: $messageJson")
 
             val webSocketMessage = WebSocketMessage(
                 type = "SEND_MESSAGE",
                 groupCode = message.groupCode,
-                data = messageDataJson
+                data = messageJson
             )
-            val webSocketMessageJson = json.encodeToString(webSocketMessage)
 
-            session.send(Frame.Text(webSocketMessageJson))
+            val fullPayloadJson = json.encodeToString(webSocketMessage)
+            Log.d(TAG, "Full WebSocket payload: $fullPayloadJson")
+            Log.d(TAG, "=======================================")
+
+            session.send(Frame.Text(fullPayloadJson))
         } catch (e: Exception) {
             Log.e(
                 TAG,
@@ -318,18 +377,32 @@ class ChatWebSocketService(
                 try {
                     val messageData = MessageData(
                         message = message.message,
-                        messageType = message.messageType.value
+                        messageType = message.messageType.value,
+                        replyToMessageId = message.replyToMessageId
                     )
-                    val messageDataJson = json.encodeToString(messageData)
+
+                    // Debug logging for WebSocket payload
+                    Log.d(TAG, "=== WEBSOCKET SEND MESSAGE PAYLOAD ===")
+                    Log.d(TAG, "Group Code: ${message.groupCode}")
+                    Log.d(TAG, "Message Data:")
+                    Log.d(TAG, "  - message: '${messageData.message}'")
+                    Log.d(TAG, "  - messageType: ${messageData.messageType}")
+                    Log.d(TAG, "  - replyToMessageId: ${messageData.replyToMessageId}")
+
+                    val messageJson = json.encodeToString(messageData)
+                    Log.d(TAG, "Serialized message data JSON: $messageJson")
 
                     val webSocketMessage = WebSocketMessage(
                         type = "SEND_MESSAGE",
                         groupCode = message.groupCode,
-                        data = messageDataJson
+                        data = messageJson
                     )
-                    val webSocketMessageJson = json.encodeToString(webSocketMessage)
 
-                    send(Frame.Text(webSocketMessageJson))
+                    val fullPayloadJson = json.encodeToString(webSocketMessage)
+                    Log.d(TAG, "Full WebSocket payload: $fullPayloadJson")
+                    Log.d(TAG, "=======================================")
+
+                    send(Frame.Text(fullPayloadJson))
                 } catch (e: Exception) {
                     Log.e(
                         TAG,
