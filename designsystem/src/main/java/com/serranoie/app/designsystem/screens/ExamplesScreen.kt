@@ -71,10 +71,13 @@ import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
 import com.serranoie.app.designsystemlib.ui.theme.component.DateRangeToolbar
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.JumpToBottom
+import com.serranoie.app.designsystemlib.ui.theme.component.LabelChip
 import com.serranoie.app.designsystemlib.ui.theme.component.OtpDisplayField
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
+import com.serranoie.app.designsystemlib.ui.theme.component.PagerIndicator
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithAvatar
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
@@ -311,6 +314,33 @@ fun MockTripSettingsContent() {
     Column(modifier = Modifier.fillMaxWidth()) {
         // Group Code Card
         MockGroupCodeCard()
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Demo of LabelChip for member roles
+        Text(
+            text = "GROUP MEMBERS",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(bottom = 16.dp)
+        ) {
+            LabelChip(text = "OWNER")
+            LabelChip(
+                text = "MEMBER",
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                textColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            LabelChip(
+                text = "PENDING",
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                textColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -890,6 +920,52 @@ fun ItineraryExampleContent() {
         MockItineraryDateSection(
             date = LocalDate.now().plusDays(2), title = "Day 3 - December 17, 2024"
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Example of TicketView for travel documents
+        Text(
+            text = "Travel Documents",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        TicketView(
+            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+            teethWidthDp = 10f,
+            teethHeightDp = 5f,
+            onClick = { /* Handle boarding pass click */ }
+        ) {
+            Column {
+                Text(
+                    text = "BOARDING PASS",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = "Japan Airlines",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    text = "LAX → NRT",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    text = "Flight JL062 • Seat 14F",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                )
+                Text(
+                    text = "Departure: Dec 14, 11:50 PM",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                )
+            }
+        }
     }
 }
 
@@ -1048,6 +1124,32 @@ fun ExpensesExampleContent() {
 
         MockExpenseDateSection(
             date = LocalDate.now().plusDays(-2), title = "December 13, 2024"
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Pagination indicator for expense history
+        Text(
+            text = "Expense History Pages",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        PagerIndicator(
+            pagesSize = 7,
+            selectedPage = 2,
+            selectedColor = MaterialTheme.colorScheme.primary,
+            unselectedColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
+        )
+
+        Text(
+            text = "Page 3 of 7 - December 2024",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp)
         )
     }
 }
@@ -1225,7 +1327,6 @@ fun ChatExampleContent() {
                         timestamp = message.timestamp,
                         authorName = message.authorName,
                         onMessageClick = { },
-                        onAvatarClick = { },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

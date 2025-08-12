@@ -17,12 +17,30 @@ import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.repository.TravelRepository
 import com.serranoie.itinero.core.domain.usecase.LogoutObserverUseCase
+import com.serranoie.app.feature.chat.data.remote.api.ChatApiService
+import com.serranoie.app.feature.chat.data.remote.websocket.ChatWebSocketService
+import com.serranoie.app.feature.chat.data.repository.ChatRepositoryImpl
+import com.serranoie.app.feature.chat.domain.repository.ChatRepository
+import com.serranoie.app.feature.chat.data.BuildConfig as ChatBuildConfig
 import org.koin.dsl.module
 
 val repositoryModule = module {
     single<ItineroApi> { ItineroApiImpl(get()) }
     single<ItineraryApi> { ItineraryApiImpl(get()) }
     single<ExpensesApi> { ExpensesApiImpl(get()) }
+
+    single {
+        ChatApiService(
+            httpClient = get(),
+            baseUrl = ChatBuildConfig.API_BASE_URL
+        )
+    }
+    single {
+        ChatWebSocketService(
+            httpClient = get(),
+            baseUrl = ChatBuildConfig.WEBSOCKET_BASE_URL
+        )
+    }
 
     single<AuthRepository> {
         val authPrefs = get<AuthPreferencesRepository>()
@@ -54,6 +72,13 @@ val repositoryModule = module {
         ItineraryRepositoryImpl(
             get(),
             get()
+        )
+    }
+
+    single<ChatRepository> {
+        ChatRepositoryImpl(
+            apiService = get(),
+            webSocketService = get()
         )
     }
 }

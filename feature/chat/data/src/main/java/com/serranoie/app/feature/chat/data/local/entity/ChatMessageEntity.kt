@@ -15,9 +15,6 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * Data class representing a chat message entity
- */
 @Entity(
     tableName = "chat_messages",
     indices = [Index(value = ["groupCode", "timestamp"])]

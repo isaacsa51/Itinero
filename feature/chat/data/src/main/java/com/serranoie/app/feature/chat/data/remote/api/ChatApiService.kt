@@ -61,10 +61,8 @@ class ChatApiService(
         val urlBuilder = URLBuilder(baseUrl)
         val pathParts = mutableListOf<String>()
 
-        // Add base path parts
         pathParts.addAll(basePath.split("/").filter { it.isNotEmpty() })
 
-        // Add and encode path segments
         pathSegments.forEach { segment ->
             pathParts.add(URLEncoder.encode(segment, StandardCharsets.UTF_8.toString()))
         }
@@ -78,7 +76,6 @@ class ChatApiService(
     ): List<ChatMessageDto> {
         validateGroupCode(groupCode)
 
-        // Validate input parameters
         if (limit <= 0 || limit > 100) {
             throw ChatApiException("Limit must be between 1 and 100")
         }
@@ -89,7 +86,7 @@ class ChatApiService(
         return try {
             Log.d(TAG, "Fetching messages for group: $groupCode")
 
-            val safeUrl = buildSafeUrl("chat/groups", groupCode, "messages")
+            val safeUrl = buildSafeUrl("chat/", groupCode, "messages")
             val response: HttpResponse = httpClient.get {
                 expectSuccess = false
                 url(safeUrl)
@@ -147,7 +144,6 @@ class ChatApiService(
     suspend fun updateMessage(
         messageId: Long, updateMessageDto: UpdateMessageDto, authToken: String
     ): String {
-        // Validate input parameters
         if (messageId <= 0) {
             throw ChatApiException("Invalid message ID")
         }
@@ -215,7 +211,6 @@ class ChatApiService(
     suspend fun deleteMessage(
         messageId: Long, authToken: String
     ): String {
-        // Validate input parameters
         if (messageId <= 0) {
             throw ChatApiException("Invalid message ID")
         }

@@ -32,12 +32,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.serranoie.app.designsystemlib.ui.theme.ItineroTheme
 import com.serranoie.app.designsystemlib.ui.theme.component.AnimatedStrikethroughText
 import com.serranoie.app.designsystemlib.ui.theme.component.BalanceCircles
 import com.serranoie.app.designsystemlib.ui.theme.component.BottomSheetContent
+import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedExpandableItem
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomPaddedListItem
 import com.serranoie.app.designsystemlib.ui.theme.component.CustomSettingsItem
@@ -46,23 +48,30 @@ import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
 import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInputType
 import com.serranoie.app.designsystemlib.ui.theme.component.FlexibleListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.LargeDropdownMenu
+import com.serranoie.app.designsystemlib.ui.theme.component.LabelChip
 import com.serranoie.app.designsystemlib.ui.theme.component.ListItem
 import com.serranoie.app.designsystemlib.ui.theme.component.LocationInput
 import com.serranoie.app.designsystemlib.ui.theme.component.MarqueeText
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListGroup
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItem
 import com.serranoie.app.designsystemlib.ui.theme.component.PaddedListItemPosition
+import com.serranoie.app.designsystemlib.ui.theme.component.PagerIndicator
 import com.serranoie.app.designsystemlib.ui.theme.component.RecordButton
 import com.serranoie.app.designsystemlib.ui.theme.component.SwipeButton
 import com.serranoie.app.designsystemlib.ui.theme.component.UserInput
+import com.serranoie.app.designsystemlib.ui.theme.component.card.BubbleTypingIndicator
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubble
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithAvatar
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatConversation
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
-import com.serranoie.app.designsystemlib.ui.theme.component.card.CompactChatBubble
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ICard
 import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeCardAction
 import com.serranoie.app.designsystemlib.ui.theme.component.card.SwipeableCard
+import com.serranoie.app.designsystemlib.ui.theme.component.card.TicketView
+import com.serranoie.app.designsystemlib.ui.theme.component.ITimePicker
+import com.serranoie.app.designsystemlib.ui.theme.component.IBackground
+import com.serranoie.app.designsystemlib.ui.theme.component.IButton
+import com.serranoie.app.designsystemlib.ui.theme.component.ITextButton
 import com.serranoie.app.designsystemlib.ui.utils.AIShimmer
 import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
 import com.serranoie.app.designsystemlib.ui.utils.shimmerable
@@ -152,6 +161,41 @@ fun ComponentsScreen() {
         // Modifier Extensions Section
         ComponentSection(title = "Modifier Extensions") {
             ModifierExtensionsShowcase()
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // IBackground Section
+        ComponentSection(title = "IBackground Components") {
+            IBackgroundShowcase()
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // LabelChip Section
+        ComponentSection(title = "LabelChip Components") {
+            LabelChipShowcase()
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // PagerIndicator Section
+        ComponentSection(title = "PagerIndicator Components") {
+            PagerIndicatorShowcase()
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // ITimePicker Section
+        ComponentSection(title = "ITimePicker Components") {
+            ITimePickerShowcase()
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // TicketView Section
+        ComponentSection(title = "TicketView Components") {
+            TicketViewShowcase()
         }
     }
 }
@@ -498,9 +542,8 @@ fun ChatComponentsShowcase() {
 
         HorizontalDivider()
 
-        // Compact Chat Bubbles
         Text(
-            text = "Compact Chat Bubbles",
+            text = "Typing indicator",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -509,20 +552,7 @@ fun ChatComponentsShowcase() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            CompactChatBubble(
-                message = "This is a compact message for previews or lists",
-                isUserMe = false,
-                maxLines = 2,
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            CompactChatBubble(
-                message = "Compact user message",
-                isUserMe = true,
-                maxLines = 1,
-                modifier = Modifier.weight(1f)
+            BubbleTypingIndicator(
             )
         }
 
@@ -573,6 +603,14 @@ fun InteractiveComponentsShowcase() {
             color = MaterialTheme.colorScheme.onSurface
         )
 
+        // SlideToConfirm Swipe Button (from SlideToConfirm.kt)
+        SwipeButton(
+            text = "Slide to confirm",
+            isComplete = swipeComplete,
+            onSwipe = { swipeComplete = !swipeComplete }
+        )
+
+        // Old SwipeButton for comparison (from SwipeButton.kt)
         SwipeButton(
             text = "Swipe to activate",
             isComplete = swipeComplete,
@@ -1389,6 +1427,278 @@ fun ModifierExtensionsShowcase() {
                 },
                 onClick = { isAiShimmering = !isAiShimmering }
             )
+        }
+    }
+}
+
+@Composable
+fun IBackgroundShowcase() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "IBackground Component",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        IBackground(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+        ) {
+            Text(
+                text = "Content inside IBackground",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun LabelChipShowcase() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Label Chips",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            LabelChip(text = "OWNER")
+            LabelChip(text = "MEMBER")
+            LabelChip(text = "ADMIN")
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            LabelChip(
+                text = "Custom Colors",
+                color = MaterialTheme.colorScheme.primaryContainer,
+                textColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                borderColor = MaterialTheme.colorScheme.primary
+            )
+            LabelChip(
+                text = "Long Label Text",
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                textColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    }
+}
+
+@Composable
+fun PagerIndicatorShowcase() {
+    var selectedPage by remember { mutableIntStateOf(2) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Pager Indicators",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = "3 pages - Selected: ${selectedPage + 1}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        PagerIndicator(
+            pagesSize = 3,
+            selectedPage = selectedPage,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "5 pages - Selected: 1",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        PagerIndicator(
+            pagesSize = 5,
+            selectedPage = 0,
+            selectedColor = MaterialTheme.colorScheme.secondary,
+            unselectedColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            IButton(
+                text = { Text("Prev") },
+                onClick = { if (selectedPage > 0) selectedPage-- },
+                importance = ButtonImportance.Secondary,
+                enabled = selectedPage > 0,
+                modifier = Modifier.weight(1f)
+            )
+            IButton(
+                text = { Text("Next") },
+                onClick = { if (selectedPage < 2) selectedPage++ },
+                importance = ButtonImportance.Secondary,
+                enabled = selectedPage < 2,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun ITimePickerShowcase() {
+    var showTimePicker by remember { mutableStateOf(false) }
+    var selectedTime by remember { mutableStateOf("12:00 PM") }
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Time Picker Dialog",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = "Selected Time: $selectedTime",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        IButton(
+            text = { Text("Show Time Picker") },
+            onClick = { showTimePicker = true },
+            importance = ButtonImportance.Primary
+        )
+
+        if (showTimePicker) {
+            ITimePicker(
+                dialogTitle = "Select Time",
+                onDismissed = { showTimePicker = false },
+                onConfirmButtonClicked = {
+                    IButton(
+                        text = { Text("OK") },
+                        onClick = {
+                            selectedTime = "2:30 PM" // Mock time selection
+                            showTimePicker = false
+                        },
+                        importance = ButtonImportance.Primary
+                    )
+                },
+                onDismissButtonClicked = {
+                    ITextButton(
+                        text = { Text("Cancel") },
+                        onClick = { showTimePicker = false }
+                    )
+                },
+                timePickerContent = {
+                    Text(
+                        text = "Time picker content would go here",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(24.dp)
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun TicketViewShowcase() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Ticket Shapes",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        // Basic ticket
+        TicketView(
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            teethWidthDp = 12f,
+            teethHeightDp = 6f
+        ) {
+            Column {
+                Text(
+                    text = "Flight AB123",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "NYC → LAX",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Concert ticket
+        TicketView(
+            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+            teethWidthDp = 15f,
+            teethHeightDp = 4f,
+            onClick = { /* Handle ticket click */ }
+        ) {
+            Column {
+                Text(
+                    text = "Concert Ticket",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "The Rolling Stones",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Madison Square Garden",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+                Text(
+                    text = "Dec 15, 2025 • 8:00 PM",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+            }
+        }
+
+        // Boarding pass
+        TicketView(
+            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+            teethWidthDp = 10f,
+            teethHeightDp = 5f,
+            onClick = { /* Handle boarding pass click */ }
+        ) {
+            Column {
+                Text(
+                    text = "BOARDING PASS",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = "American Airlines",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    text = "JFK → LAX",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    text = "Flight AA1234 • Seat 12A",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                )
+            }
         }
     }
 }

@@ -15,6 +15,10 @@ import android.util.Log
 import com.serranoie.app.feature.chat.data.mappers.toDomain
 import com.serranoie.app.feature.chat.data.mappers.toDto
 import com.serranoie.app.feature.chat.data.remote.dto.ChatMessageDto
+import com.serranoie.app.feature.chat.data.remote.dto.ServerWebSocketMessage
+import com.serranoie.app.feature.chat.data.remote.dto.WebSocketMessage
+import com.serranoie.app.feature.chat.data.remote.dto.MessageData
+import com.serranoie.app.feature.chat.data.remote.dto.TypingIndicator
 import com.serranoie.app.feature.chat.domain.model.ChatMessage
 import com.serranoie.itinero.core.domain.exception.ChatApiException
 import com.serranoie.itinero.core.domain.exception.NetworkException
@@ -22,6 +26,10 @@ import com.serranoie.itinero.core.domain.exception.UnauthorizedException
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.RedirectResponseException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.http.HttpStatusCode
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
@@ -32,6 +40,14 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException
+
+sealed class WebSocketEvent {
+    data class MessageReceived(val message: ChatMessage) : WebSocketEvent()
+    data class TypingStart(val typingIndicator: TypingIndicator) : WebSocketEvent()
+    data class TypingStop(val typingIndicator: TypingIndicator) : WebSocketEvent()
+    data class UserJoined(val userId: Int, val userName: String) : WebSocketEvent()
+    data class UserLeft(val userId: Int, val userName: String) : WebSocketEvent()
+}
 
 class ChatWebSocketService(
     private val httpClient: HttpClient, private val baseUrl: String, private val json: Json = Json {
@@ -45,7 +61,6 @@ class ChatWebSocketService(
         private const val GROUP_CODE_PATTERN = "^[A-Z]{3}-\\d{5}$"
     }
 
-    // Store active WebSocket sessions for reuse
     private val activeSessions = ConcurrentHashMap<String, DefaultClientWebSocketSession>()
 
     private fun validateGroupCode(groupCode: String) {
@@ -55,17 +70,18 @@ class ChatWebSocketService(
         }
     }
 
-    suspend fun connectToChat(groupCode: String, authToken: String): Flow<ChatMessage> = flow {
+    fun connectToChat(groupCode: String, authToken: String): Flow<WebSocketEvent> = flow {
         validateGroupCode(groupCode)
 
         try {
-            Log.d(TAG, "Attempting to connect to WebSocket for group: $groupCode")
-
             httpClient.webSocket(
-                urlString = "$baseUrl/chat/groups/$groupCode", request = {
+                urlString = "$baseUrl/chat/$groupCode", request = {
                     headers.append("Authorization", "Bearer $authToken")
                 }) {
-                Log.i(TAG, "WebSocket connection established for group: $groupCode")
+
+                if (this is DefaultClientWebSocketSession) {
+                    activeSessions[groupCode] = this
+                }
 
                 try {
                     for (frame in incoming) {
@@ -73,11 +89,108 @@ class ChatWebSocketService(
                             is Frame.Text -> {
                                 try {
                                     val messageText = frame.readText()
-                                    Log.d(TAG, "Received WebSocket message for group $groupCode")
+                                    val serverMessage =
+                                        json.decodeFromString<ServerWebSocketMessage>(messageText)
 
-                                    val messageDto =
-                                        json.decodeFromString<ChatMessageDto>(messageText)
-                                    emit(messageDto.toDomain())
+                                    when (serverMessage.type) {
+                                        "MESSAGE_RECEIVED" -> {
+                                            val messageDto: ChatMessageDto? =
+                                                serverMessage.message ?: serverMessage.data
+                                            if (messageDto != null) {
+                                                emit(WebSocketEvent.MessageReceived(messageDto.toDomain()))
+                                            } else {
+                                                Log.e(
+                                                    TAG,
+                                                    "MESSAGE_RECEIVED event missing message data for group $groupCode"
+                                                )
+                                            }
+                                        }
+
+                                        "USER_JOINED" -> {
+                                            serverMessage.userId?.let { userId ->
+                                                serverMessage.userName?.let { userName ->
+                                                    emit(
+                                                        WebSocketEvent.UserJoined(
+                                                            userId,
+                                                            userName
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        "USER_LEFT" -> {
+                                            serverMessage.userId?.let { userId ->
+                                                serverMessage.userName?.let { userName ->
+                                                    emit(
+                                                        WebSocketEvent.UserLeft(
+                                                            userId,
+                                                            userName
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        "TYPING_START" -> {
+                                            serverMessage.typingIndicator?.let { indicator ->
+                                                emit(WebSocketEvent.TypingStart(indicator))
+                                            } ?: Log.e(
+                                                TAG,
+                                                "TYPING_START event missing typingIndicator data"
+                                            )
+                                        }
+
+                                        "TYPING_STOP" -> {
+                                            serverMessage.typingIndicator?.let { indicator ->
+                                                emit(WebSocketEvent.TypingStop(indicator))
+                                            } ?: Log.e(
+                                                TAG,
+                                                "TYPING_STOP event missing typingIndicator data"
+                                            )
+                                        }
+
+                                        null -> {
+                                            try {
+                                                val directMessage =
+                                                    json.decodeFromString<ChatMessageDto>(
+                                                        messageText
+                                                    )
+                                                emit(WebSocketEvent.MessageReceived(directMessage.toDomain()))
+                                            } catch (fallbackException: Exception) {
+                                                Log.e(
+                                                    TAG,
+                                                    "Failed to parse message in both formats for group $groupCode",
+                                                    fallbackException
+                                                )
+                                            }
+                                        }
+
+                                        else -> {
+                                            // Handle typing patterns with different type names
+                                            if (serverMessage.type?.contains(
+                                                    "TYPING",
+                                                    ignoreCase = true
+                                                ) == true
+                                            ) {
+                                                serverMessage.typingIndicator?.let { indicator ->
+                                                    if (serverMessage.type?.contains(
+                                                            "START",
+                                                            ignoreCase = true
+                                                        ) == true
+                                                    ) {
+                                                        emit(WebSocketEvent.TypingStart(indicator))
+                                                    } else if (serverMessage.type?.contains(
+                                                            "STOP",
+                                                            ignoreCase = true
+                                                        ) == true
+                                                    ) {
+                                                        emit(WebSocketEvent.TypingStop(indicator))
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 } catch (e: Exception) {
                                     Log.e(
                                         TAG,
@@ -87,25 +200,18 @@ class ChatWebSocketService(
                                 }
                             }
 
-                            is Frame.Binary -> {
-                                Log.w(TAG, "Received unexpected binary frame for group $groupCode")
-                            }
-
                             is Frame.Close -> {
-                                Log.i(TAG, "WebSocket connection closed for group: $groupCode")
                                 activeSessions.remove(groupCode)
                                 break
                             }
 
                             else -> {
-                                Log.d(
-                                    TAG, "Received other frame type: ${frame.javaClass.simpleName}"
-                                )
+                                // Ignore other frame types
                             }
                         }
                     }
                 } catch (e: ClosedReceiveChannelException) {
-                    Log.w(
+                    Log.e(
                         TAG, "WebSocket receive channel closed for group $groupCode: ${e.message}"
                     )
                     activeSessions.remove(groupCode)
@@ -117,27 +223,38 @@ class ChatWebSocketService(
             }
         } catch (e: ChatApiException) {
             throw e
+        } catch (e: ClientRequestException) {
+            Log.e(
+                TAG,
+                "HTTP error during WebSocket connect to group $groupCode: ${e.message}",
+                e
+            )
+            when (e.response.status) {
+                HttpStatusCode.NotFound -> throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group $groupCode")
+                HttpStatusCode.Unauthorized -> throw UnauthorizedException("Authentication failed while connecting to chat for group $groupCode")
+                HttpStatusCode.Forbidden -> throw ChatApiException("Access denied to chat group $groupCode")
+                else -> throw ChatApiException("Unable to connect to chat for group $groupCode", e)
+            }
+        } catch (e: ServerResponseException) {
+            Log.e(TAG, "Server error during WebSocket connect to group $groupCode: ${e.message}", e)
+            throw ChatApiException("Server error while connecting to chat for group $groupCode", e)
+        } catch (e: RedirectResponseException) {
+            Log.e(
+                TAG,
+                "Unexpected redirect during WebSocket connect to group $groupCode: ${e.message}",
+                e
+            )
+            throw ChatApiException(
+                "Unexpected redirect while connecting to chat for group $groupCode",
+                e
+            )
         } catch (e: Exception) {
             Log.e(
                 TAG,
                 "Failed to establish WebSocket connection for group $groupCode: ${e.message}",
                 e
             )
-            when (e) {
-                is io.ktor.client.network.sockets.ConnectTimeoutException, is io.ktor.client.network.sockets.SocketTimeoutException, is java.net.UnknownHostException -> {
-                    throw NetworkException(
-                        "Network connection failed while connecting to chat for group $groupCode", e
-                    )
-                }
-
-                else -> {
-                    // Check for authentication errors based on exception message or type
-                    if (e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true) {
-                        throw UnauthorizedException("Authentication failed while connecting to chat for group $groupCode")
-                    }
-                    throw ChatApiException("Unable to connect to chat for group $groupCode", e)
-                }
-            }
+            throw ChatApiException("Unable to connect to chat for group $groupCode", e)
         }
     }
 
@@ -147,39 +264,33 @@ class ChatWebSocketService(
         val existingSession = activeSessions[message.groupCode]
 
         if (existingSession != null && !existingSession.outgoing.isClosedForSend) {
-            // Use existing session
             try {
-                Log.d(
-                    TAG,
-                    "Sending message through existing WebSocket session for group: ${message.groupCode}"
-                )
                 sendMessageThroughSession(existingSession, message)
             } catch (e: Exception) {
-                Log.w(
-                    TAG,
-                    "Failed to send through existing session for group ${message.groupCode}, creating new connection: ${e.message}"
-                )
                 activeSessions.remove(message.groupCode)
                 sendMessageWithNewConnection(message, authToken)
             }
         } else {
-            Log.d(
-                TAG,
-                "Creating new WebSocket connection to send message for group: ${message.groupCode}"
-            )
             sendMessageWithNewConnection(message, authToken)
         }
     }
 
     private suspend fun sendMessageThroughSession(session: WebSocketSession, message: ChatMessage) {
         try {
-            val messageDto = message.toDto()
-            val messageJson = json.encodeToString(messageDto)
-            session.send(Frame.Text(messageJson))
-            Log.i(
-                TAG,
-                "Message sent successfully through existing session for group: ${message.groupCode}"
+            val messageData = MessageData(
+                message = message.message,
+                messageType = message.messageType.value
             )
+            val messageDataJson = json.encodeToString(messageData)
+
+            val webSocketMessage = WebSocketMessage(
+                type = "SEND_MESSAGE",
+                groupCode = message.groupCode,
+                data = messageDataJson
+            )
+            val webSocketMessageJson = json.encodeToString(webSocketMessage)
+
+            session.send(Frame.Text(webSocketMessageJson))
         } catch (e: Exception) {
             Log.e(
                 TAG,
@@ -196,26 +307,29 @@ class ChatWebSocketService(
     private suspend fun sendMessageWithNewConnection(message: ChatMessage, authToken: String) {
         try {
             httpClient.webSocket(
-                urlString = "$baseUrl/chat/groups/${message.groupCode}", request = {
+                urlString = "$baseUrl/chat/${message.groupCode}", request = {
                     headers.append("Authorization", "Bearer $authToken")
                 }) {
-                Log.d(
-                    TAG,
-                    "New WebSocket connection established for sending message to group: ${message.groupCode}"
-                )
 
                 if (this is DefaultClientWebSocketSession) {
                     activeSessions[message.groupCode] = this
                 }
 
                 try {
-                    val messageDto = message.toDto()
-                    val messageJson = json.encodeToString(messageDto)
-                    send(Frame.Text(messageJson))
-                    Log.i(
-                        TAG,
-                        "Message sent successfully through new connection for group: ${message.groupCode}"
+                    val messageData = MessageData(
+                        message = message.message,
+                        messageType = message.messageType.value
                     )
+                    val messageDataJson = json.encodeToString(messageData)
+
+                    val webSocketMessage = WebSocketMessage(
+                        type = "SEND_MESSAGE",
+                        groupCode = message.groupCode,
+                        data = messageDataJson
+                    )
+                    val webSocketMessageJson = json.encodeToString(webSocketMessage)
+
+                    send(Frame.Text(webSocketMessageJson))
                 } catch (e: Exception) {
                     Log.e(
                         TAG,
@@ -230,29 +344,79 @@ class ChatWebSocketService(
         } catch (e: ChatApiException) {
             throw e
         } catch (e: CancellationException) {
-            Log.d(TAG, "sendMessageWithNewConnection cancelled for group ${message.groupCode}")
             throw e
+        } catch (e: ClientRequestException) {
+            Log.e(
+                TAG,
+                "HTTP error while sending message to group ${message.groupCode}: ${e.message}",
+                e
+            )
+            when (e.response.status) {
+                HttpStatusCode.NotFound -> throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group ${message.groupCode}")
+                HttpStatusCode.Unauthorized -> throw UnauthorizedException("Authentication failed while sending message to group ${message.groupCode}")
+                HttpStatusCode.Forbidden -> throw ChatApiException("Access denied to chat group ${message.groupCode}")
+                else -> throw ChatApiException(
+                    "Unable to send message to group ${message.groupCode}",
+                    e
+                )
+            }
+        } catch (e: ServerResponseException) {
+            Log.e(
+                TAG,
+                "Server error while sending message to group ${message.groupCode}: ${e.message}",
+                e
+            )
+            throw ChatApiException(
+                "Server error while sending message to group ${message.groupCode}",
+                e
+            )
+        } catch (e: RedirectResponseException) {
+            Log.e(
+                TAG,
+                "Unexpected redirect while sending message to group ${message.groupCode}: ${e.message}",
+                e
+            )
+            throw ChatApiException(
+                "Unexpected redirect while sending message to group ${message.groupCode}",
+                e
+            )
         } catch (e: Exception) {
             Log.e(
                 TAG,
                 "Failed to establish WebSocket connection for sending message to group ${message.groupCode}: ${e.message}",
                 e
             )
+            // Handle specific network exceptions or fall back to string matching as last resort
             when (e) {
-                is io.ktor.client.network.sockets.ConnectTimeoutException, is io.ktor.client.network.sockets.SocketTimeoutException, is java.net.UnknownHostException -> {
+                is io.ktor.client.network.sockets.ConnectTimeoutException,
+                is io.ktor.client.network.sockets.SocketTimeoutException,
+                is java.net.UnknownHostException -> {
                     throw NetworkException(
                         "Network connection failed while sending message to group ${message.groupCode}",
                         e
                     )
                 }
-
                 else -> {
-                    if (e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true) {
-                        throw UnauthorizedException("Authentication failed while sending message to group ${message.groupCode}")
+                    // Fall back to string matching as last resort
+                    val errorMessage = e.message ?: ""
+                    when {
+                        errorMessage.contains("404 Not Found") -> {
+                            throw ChatApiException("Chat group not found or WebSocket endpoint unavailable for group ${message.groupCode}")
+                        }
+                        errorMessage.contains("401") || errorMessage.contains("Unauthorized") -> {
+                            throw UnauthorizedException("Authentication failed while sending message to group ${message.groupCode}")
+                        }
+
+                        errorMessage.contains("403") || errorMessage.contains("Forbidden") -> {
+                            throw ChatApiException("Access denied to chat group ${message.groupCode}")
+                        }
+                        else -> {
+                            throw ChatApiException(
+                                "Unable to send message to group ${message.groupCode}",
+                                e
+                            )
+                        }
                     }
-                    throw ChatApiException(
-                        "Unable to send message to group ${message.groupCode}", e
-                    )
                 }
             }
         }
@@ -261,26 +425,19 @@ class ChatWebSocketService(
     suspend fun closeConnection(groupCode: String) {
         try {
             val session = activeSessions.remove(groupCode)
-            if (session != null) {
-                session.close()
-                Log.i(TAG, "WebSocket connection closed for group: $groupCode")
-            } else {
-                Log.d(TAG, "No active WebSocket connection found for group: $groupCode")
-            }
+            session?.close()
         } catch (e: Exception) {
             Log.e(TAG, "Error closing WebSocket connection for group $groupCode: ${e.message}", e)
         }
     }
 
     suspend fun closeAllConnections() {
-        Log.i(TAG, "Closing all active WebSocket connections")
         val sessionsToClose = activeSessions.toMap()
         activeSessions.clear()
 
         for ((groupCode, session) in sessionsToClose) {
             try {
                 session.close()
-                Log.d(TAG, "Closed connection for group: $groupCode")
             } catch (e: Exception) {
                 Log.e(TAG, "Error closing connection for group $groupCode: ${e.message}", e)
             }
@@ -289,8 +446,46 @@ class ChatWebSocketService(
 
     fun hasActiveConnection(groupCode: String): Boolean {
         val session = activeSessions[groupCode]
-        val isActive = session != null && !session.outgoing.isClosedForSend
-        Log.d(TAG, "Active connection check for group $groupCode: $isActive")
-        return isActive
+        return session != null && !session.outgoing.isClosedForSend
+    }
+
+    suspend fun sendTypingStart(groupCode: String, authToken: String) {
+        validateGroupCode(groupCode)
+
+        val existingSession = activeSessions[groupCode]
+        if (existingSession != null && !existingSession.outgoing.isClosedForSend) {
+            try {
+                val webSocketMessage = WebSocketMessage(
+                    type = "TYPING_START",
+                    groupCode = groupCode,
+                    data = "{}"
+                )
+                val messageJson = json.encodeToString(webSocketMessage)
+
+                existingSession.send(Frame.Text(messageJson))
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sending typing start for group $groupCode: ${e.message}", e)
+            }
+        }
+    }
+
+    suspend fun sendTypingStop(groupCode: String, authToken: String) {
+        validateGroupCode(groupCode)
+
+        val existingSession = activeSessions[groupCode]
+        if (existingSession != null && !existingSession.outgoing.isClosedForSend) {
+            try {
+                val webSocketMessage = WebSocketMessage(
+                    type = "TYPING_STOP",
+                    groupCode = groupCode,
+                    data = "{}"
+                )
+                val messageJson = json.encodeToString(webSocketMessage)
+
+                existingSession.send(Frame.Text(messageJson))
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sending typing stop for group $groupCode: ${e.message}", e)
+            }
+        }
     }
 }

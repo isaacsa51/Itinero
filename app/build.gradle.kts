@@ -192,6 +192,8 @@ dependencies {
     implementation(project(":feature:expenses"))
     implementation(project(":feature:expenses:data"))
     implementation(project(":feature:chat"))
+    implementation(project(":feature:chat:data"))
+    implementation(project(":feature:chat:domain"))
     implementation(project(":feature:settings"))
 
     implementation(libs.androidx.core.ktx)

@@ -16,9 +16,12 @@ import com.serranoie.app.feature.chat.data.mappers.toDomain
 import com.serranoie.app.feature.chat.data.remote.api.ChatApiService
 import com.serranoie.app.feature.chat.data.remote.dto.UpdateMessageDto
 import com.serranoie.app.feature.chat.data.remote.websocket.ChatWebSocketService
+import com.serranoie.app.feature.chat.data.remote.websocket.WebSocketEvent
 import com.serranoie.app.feature.chat.domain.model.ChatMessage
 import com.serranoie.app.feature.chat.domain.repository.ChatRepository
+import com.serranoie.app.feature.chat.domain.repository.ChatEvent
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class ChatRepositoryImpl(
@@ -69,8 +72,43 @@ class ChatRepositoryImpl(
 
     override suspend fun connectToChat(
         groupCode: String, authToken: String
-    ): Flow<ChatMessage> {
+    ): Flow<ChatEvent> {
         return webSocketService.connectToChat(groupCode, authToken)
+            .map { webSocketEvent ->
+                when (webSocketEvent) {
+                    is WebSocketEvent.MessageReceived -> {
+                        ChatEvent.MessageReceived(webSocketEvent.message)
+                    }
+
+                    is WebSocketEvent.TypingStart -> {
+                        ChatEvent.TypingStarted(
+                            webSocketEvent.typingIndicator.userId,
+                            webSocketEvent.typingIndicator.userName
+                        )
+                    }
+
+                    is WebSocketEvent.TypingStop -> {
+                        ChatEvent.TypingStopped(
+                            webSocketEvent.typingIndicator.userId,
+                            webSocketEvent.typingIndicator.userName
+                        )
+                    }
+
+                    is WebSocketEvent.UserJoined -> {
+                        ChatEvent.UserJoined(
+                            webSocketEvent.userId.toLong(),
+                            webSocketEvent.userName
+                        )
+                    }
+
+                    is WebSocketEvent.UserLeft -> {
+                        ChatEvent.UserLeft(
+                            webSocketEvent.userId.toLong(),
+                            webSocketEvent.userName
+                        )
+                    }
+                }
+            }
     }
 
     override suspend fun sendMessage(
@@ -81,6 +119,24 @@ class ChatRepositoryImpl(
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error sending message: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendTypingEvent(
+        isTyping: Boolean,
+        groupCode: String,
+        authToken: String
+    ): Result<Unit> {
+        return try {
+            if (isTyping) {
+                webSocketService.sendTypingStart(groupCode, authToken)
+            } else {
+                webSocketService.sendTypingStop(groupCode, authToken)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending typing event: ${e.message}", e)
             Result.failure(e)
         }
     }

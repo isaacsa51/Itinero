@@ -4,6 +4,7 @@ import com.serranoie.itinero.core.data.network.NetworkConnectivityManager
 import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
@@ -31,7 +32,7 @@ val networkModule = module {
     factory {
         val authPreferencesRepository = get<AuthPreferencesRepository>()
 
-        HttpClient(Android) {
+        HttpClient(OkHttp) {
 
             expectSuccess = false
 

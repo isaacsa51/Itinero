@@ -17,6 +17,7 @@ val apiBaseUrl: String = localProperties.getProperty("API_BASE_URL")
     ?: throw GradleException("API_BASE_URL must be defined in local.properties")
 val websocketUrl: String =
     localProperties.getProperty("WEBSOCKET_BASE_URL") ?: apiBaseUrl.replace("http", "ws")
+val websocketPath: String = localProperties.getProperty("WEBSOCKET_PATH") ?: "/ws"
 
 android {
     namespace = "com.serranoie.app.feature.chat.data"
@@ -30,6 +31,7 @@ android {
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "WEBSOCKET_BASE_URL", "\"$websocketUrl\"")
+        buildConfigField("String", "WEBSOCKET_PATH", "\"$websocketPath\"")
     }
 
     buildFeatures {
@@ -47,6 +49,7 @@ android {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             buildConfigField("String", "WEBSOCKET_BASE_URL", "\"$websocketUrl\"")
+            buildConfigField("String", "WEBSOCKET_PATH", "\"$websocketPath\"")
         }
     }
     compileOptions {
