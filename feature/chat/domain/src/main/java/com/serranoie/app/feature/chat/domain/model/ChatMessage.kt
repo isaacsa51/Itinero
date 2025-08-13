@@ -11,9 +11,6 @@
 
 package com.serranoie.app.feature.chat.domain.model
 
-/**
- * Domain model representing a chat message
- */
 data class ChatMessage(
     val id: Long,
     val groupCode: String,
@@ -26,9 +23,6 @@ data class ChatMessage(
     val replyToMessageId: Long?
 )
 
-/**
- * Enum representing the type of message
- */
 enum class MessageType(val value: String) {
     TEXT("TEXT"),
     IMAGE("IMAGE"),

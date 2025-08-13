@@ -3,6 +3,7 @@ package com.serranoie.app.designsystemlib.ui.theme.component
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -38,7 +39,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Reply
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.InsertPhoto
 import androidx.compose.material3.AlertDialog
@@ -87,7 +91,159 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
+
+data class ReplyData(
+    val messageId: String,
+    val authorName: String,
+    val message: String,
+    val isEditing: Boolean = false
+)
+
+data class MessageData(
+    val message: String,
+    val replyToMessageId: String? = null
+)
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ReplyPreview(
+    replyData: ReplyData,
+    onCancelReply: (() -> Unit)?
+) {
+    val iconScale = remember { Animatable(0.8f) }
+    val textAlpha = remember { Animatable(0f) }
+    val surfaceElevation = remember { Animatable(4f) }
+
+    var isExiting by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        launch {
+            iconScale.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 400)
+            )
+        }
+        launch {
+            delay(100)
+            textAlpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 300)
+            )
+        }
+        launch {
+            surfaceElevation.animateTo(
+                targetValue = 8f,
+                animationSpec = tween(durationMillis = 500)
+            )
+        }
+    }
+
+    LaunchedEffect(isExiting) {
+        if (isExiting) {
+            launch {
+                iconScale.animateTo(
+                    targetValue = 0.6f,
+                    animationSpec = tween(durationMillis = 200)
+                )
+            }
+            launch {
+                textAlpha.animateTo(
+                    targetValue = 0f,
+                    animationSpec = tween(durationMillis = 200)
+                )
+            }
+            launch {
+                surfaceElevation.animateTo(
+                    targetValue = 2f,
+                    animationSpec = tween(durationMillis = 200)
+                )
+            }
+            delay(150)
+            onCancelReply?.invoke()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(smallPadding)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(commonCornerRadius),
+            color = MaterialTheme.colorScheme.surfaceDim,
+            tonalElevation = surfaceElevation.value.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopStart)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = basePadding, vertical = smallPadding),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(end = smallPadding)
+                        .size(18.dp)
+                ) {
+                    Icon(
+                        imageVector = if (replyData.isEditing) Icons.Filled.Edit else Icons.Filled.Reply,
+                        contentDescription = if (replyData.isEditing) "Edit" else "Reply",
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                scaleX = iconScale.value
+                                scaleY = iconScale.value
+                            }
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .graphicsLayer {
+                            alpha = textAlpha.value
+                        }
+                ) {
+                    Text(
+                        text = if (replyData.isEditing) "Editing message:" else "Replying to ${replyData.authorName}:",
+                        style = MaterialTheme.typography.labelSmallEmphasized,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = if (replyData.message.length > 50) "${replyData.message.take(50)}..." else replyData.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2
+                    )
+                }
+
+                if (onCancelReply != null) {
+                    IconButton(
+                        onClick = {
+                            isExiting = true
+                        },
+                        modifier = Modifier
+                            .size(28.dp)
+                            .graphicsLayer {
+                                alpha = textAlpha.value
+                            }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Cancel reply",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 @ComponentPreview
 @Composable
@@ -120,14 +276,55 @@ fun UserInputWithAttachmentMenuPreview() {
     }
 }
 
+@ComponentPreview
+@Composable
+fun UserInputWithReplyPreview() {
+    PreviewWrapper {
+        UserInput(
+            onMessageSent = {},
+            onTypingStarted = {},
+            onTypingStopped = {},
+            replyData = ReplyData(
+                "1",
+                "John Doe",
+                "Hey everyone! This is a really long message that should be truncated in the reply preview to show how it looks with longer messages that people typically send in chat conversations.",
+                isEditing = false
+            ),
+            onCancelReply = {}
+        )
+    }
+}
+
+@ComponentPreview
+@Composable
+fun UserInputWithEditPreview() {
+    PreviewWrapper {
+        UserInput(
+            onMessageSent = {},
+            onTypingStarted = {},
+            onTypingStopped = {},
+            replyData = ReplyData(
+                "1",
+                "John Doe",
+                "Hey everyone! This is a really long message that should be truncated in the reply preview to show how it looks with longer messages that people typically send in chat conversations.",
+                isEditing = true
+            ),
+            onCancelReply = {}
+        )
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UserInput(
-    onMessageSent: (String) -> Unit,
+    onMessageSent: (MessageData) -> Unit,
     modifier: Modifier = Modifier,
     resetScroll: () -> Unit = {},
     onTypingStarted: () -> Unit = {},
     onTypingStopped: () -> Unit = {},
+    replyData: ReplyData? = null,
+    onCancelReply: (() -> Unit)? = null,
+    initialText: String? = null,
 ) {
     var showAttachmentMenu by remember { mutableStateOf(false) }
 
@@ -137,6 +334,12 @@ fun UserInput(
 
     var textState by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
+    }
+
+    LaunchedEffect(initialText) {
+        if (initialText != null) {
+            textState = TextFieldValue(initialText)
+        }
     }
 
     var textFieldFocusState by remember { mutableStateOf(false) }
@@ -170,6 +373,25 @@ fun UserInput(
     Surface(tonalElevation = 2.dp, contentColor = MaterialTheme.colorScheme.secondary) {
         Column(modifier = modifier) {
             AnimatedVisibility(
+                visible = replyData != null,
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(durationMillis = 300)
+                ) + fadeIn(animationSpec = tween(durationMillis = 300)),
+                exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(durationMillis = 250)
+                ) + fadeOut(animationSpec = tween(durationMillis = 250))
+            ) {
+                replyData?.let { data ->
+                    ReplyPreview(
+                        replyData = data,
+                        onCancelReply = onCancelReply
+                    )
+                }
+            }
+
+            AnimatedVisibility(
                 visible = showAttachmentMenu, enter = slideInVertically(
                     initialOffsetY = { fullHeight -> fullHeight },
                     animationSpec = tween(durationMillis = 300)
@@ -192,15 +414,24 @@ fun UserInput(
                 onTextFieldFocused = { focused ->
                     if (focused) {
                         resetScroll()
-                        // Close attachment menu when text field gets focus
                         showAttachmentMenu = false
                     }
                     textFieldFocusState = focused
                 },
                 onMessageSent = {
-                    onMessageSent(textState.text)
+                    val replyId =
+                        replyData?.let { data -> if (!data.isEditing) data.messageId else null }
+                    onMessageSent(
+                        MessageData(
+                            message = textState.text,
+                            replyToMessageId = replyId
+                        )
+                    )
                     textState = TextFieldValue()
                     resetScroll()
+                    if (replyData != null) {
+                        onCancelReply?.invoke()
+                    }
                 },
                 focusState = textFieldFocusState,
                 onAttachmentClick = { showAttachmentMenu = !showAttachmentMenu })
@@ -297,7 +528,6 @@ private fun UserInputText(
             targetState = hasText, label = "button-state", modifier = Modifier.fillMaxHeight()
         ) { showSendIcon ->
             if (showSendIcon) {
-                // Send button
                 IconButton(
                     onClick = {
                         if (textFieldValue.text.isNotBlank()) {
@@ -476,7 +706,7 @@ fun AttachmentMenu(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .standardPadding(horizontal = basePadding, vertical = mediumPadding)
+            .padding(horizontal = basePadding, vertical = mediumPadding)
     ) {
         Text(
             text = "Attach",

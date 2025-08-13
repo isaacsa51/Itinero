@@ -171,6 +171,12 @@ fun HomeRootScreen(
                         },
                         onTypingStopped = {
                             chatViewModel.sendTypingStopped()
+                        },
+                        onDeleteMessages = { messageIds ->
+                            chatViewModel.deleteMessages(messageIds)
+                        },
+                        onEditMessage = { messageId, newText ->
+                            chatViewModel.editMessage(messageId, newText)
                         }
                     )
                 }

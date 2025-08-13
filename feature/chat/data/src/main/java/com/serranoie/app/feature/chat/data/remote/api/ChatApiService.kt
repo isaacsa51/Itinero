@@ -19,6 +19,8 @@ import com.serranoie.itinero.core.domain.exception.NetworkException
 import com.serranoie.itinero.core.domain.exception.UnauthorizedException
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -84,8 +86,6 @@ class ChatApiService(
         }
 
         return try {
-            Log.d(TAG, "Fetching messages for group: $groupCode")
-
             val safeUrl = buildSafeUrl("chat/", groupCode, "messages")
             val response: HttpResponse = httpClient.get {
                 expectSuccess = false
@@ -128,7 +128,7 @@ class ChatApiService(
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching messages: ${e.message}", e)
             when (e) {
-                is io.ktor.client.network.sockets.ConnectTimeoutException, is io.ktor.client.network.sockets.SocketTimeoutException, is java.net.UnknownHostException -> {
+                is ConnectTimeoutException, is SocketTimeoutException, is java.net.UnknownHostException -> {
                     throw NetworkException(
                         "Network connection failed. Please check your internet connection.", e
                     )
@@ -152,8 +152,6 @@ class ChatApiService(
         }
 
         return try {
-            Log.d(TAG, "Updating message with ID: $messageId")
-
             val safeUrl = buildSafeUrl("chat/messages", messageId.toString())
             val response: HttpResponse = httpClient.put {
                 url(safeUrl)
@@ -195,7 +193,7 @@ class ChatApiService(
         } catch (e: Exception) {
             Log.e(TAG, "Error updating message: ${e.message}", e)
             when (e) {
-                is io.ktor.client.network.sockets.ConnectTimeoutException, is io.ktor.client.network.sockets.SocketTimeoutException, is java.net.UnknownHostException -> {
+                is ConnectTimeoutException, is SocketTimeoutException, is java.net.UnknownHostException -> {
                     throw NetworkException(
                         "Network connection failed. Please check your internet connection.", e
                     )
@@ -216,8 +214,6 @@ class ChatApiService(
         }
 
         return try {
-            Log.d(TAG, "Deleting message with ID: $messageId")
-
             val safeUrl = buildSafeUrl("chat/messages", messageId.toString())
             val response: HttpResponse = httpClient.delete {
                 url(safeUrl)

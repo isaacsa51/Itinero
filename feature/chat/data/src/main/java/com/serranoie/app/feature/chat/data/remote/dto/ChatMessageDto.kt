@@ -107,7 +107,10 @@ data class MessageData(
     val message: String,
 
     @SerialName("messageType")
-    val messageType: String = "TEXT"
+    val messageType: String = "TEXT",
+
+    @SerialName("replyToMessageId")
+    val replyToMessageId: Long? = null
 )
 
 @Serializable
@@ -129,4 +132,19 @@ data class ChatNotification(
 
     @SerialName("data")
     val data: ChatMessageDto
+)
+
+@Serializable
+data class EditMessageData(
+    @SerialName("messageId")
+    val messageId: Long,
+
+    @SerialName("newMessage")
+    val newMessage: String
+)
+
+@Serializable
+data class DeleteMessageData(
+    @SerialName("messageId")
+    val messageId: Long
 )
