@@ -94,6 +94,8 @@ fun ChatScreen(
     onTypingStarted: () -> Unit,
     onTypingStopped: () -> Unit,
     onBubbleSwipe: (ChatMessage) -> Unit = {},
+    onEditMessage: (messageId: String, newText: String) -> Unit = { _, _ -> },
+    onDeleteMessages: (ids: List<String>) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberLazyListState()
@@ -104,6 +106,10 @@ fun ChatScreen(
 
     // Selection state: store selected message IDs
     var selectedMessages by remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    // Editing state
+    var editingMessageId by remember { mutableStateOf<String?>(null) }
+    var editingInitialText by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(groupCode) {
         onInitializeChat(groupCode, groupName, memberCount)
@@ -147,11 +153,21 @@ fun ChatScreen(
                         showCopy = showCopy,
                         onClearSelection = { selectedMessages = emptySet() },
                         onDeleteMessages = {
-                            // TODO: implement delete messages logic
+                            onDeleteMessages(selectedMessages.toList())
                             selectedMessages = emptySet()
                         },
                         onEditMessage = {
-                            // TODO: implement edit message logic (optional, for one selected message)
+                            if (selectedMessages.size == 1) {
+                                val id = selectedMessages.first()
+                                val msg = uiState.messages.firstOrNull { it.id == id }
+                                if (msg != null) {
+                                    editingMessageId = id
+                                    editingInitialText = msg.content
+                                    replyData =
+                                        ReplyData(id, msg.authorName, msg.content, isEditing = true)
+                                }
+                            }
+                            selectedMessages = emptySet()
                         },
                         onCopyMessages = {
                             val textToCopy = uiState.messages
@@ -205,24 +221,29 @@ fun ChatScreen(
                 },
                 onMessageClick = { message ->
                     if (selectedMessages.isNotEmpty()) {
-                        // Toggle selection on click if selection is active
                         selectedMessages = if (selectedMessages.contains(message.id)) {
                             selectedMessages - message.id
                         } else {
                             selectedMessages + message.id
                         }
                     }
-                    // else, do normal click behavior if needed
                 }
             )
             UserInput(
                 onMessageSent = { messageData ->
-                    Log.d(
-                        "ChatScreen",
-                        "UI: Sending message with reply data - message='${messageData.message}', replyToMessageId=${messageData.replyToMessageId}"
-                    )
-                    onSendMessage(messageData)
-                    replyData = null
+                    val editingId = editingMessageId
+                    if (editingId != null) {
+                        onEditMessage(editingId, messageData.message)
+                        editingMessageId = null
+                        editingInitialText = null
+                        replyData = null
+                    } else {
+                        Log.d(
+                            "ChatScreen",
+                            "UI: Sending message with reply data - message='${messageData.message}', replyToMessageId=${messageData.replyToMessageId}"
+                        )
+                        onSendMessage(messageData)
+                    }
                 },
                 onTypingStarted = onTypingStarted,
                 onTypingStopped = onTypingStopped,
@@ -232,7 +253,12 @@ fun ChatScreen(
                     }
                 },
                 replyData = replyData,
-                onCancelReply = { replyData = null },
+                onCancelReply = {
+                    replyData = null
+                    editingMessageId = null
+                    editingInitialText = null
+                },
+                initialText = editingInitialText,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
@@ -335,7 +361,6 @@ fun ChannelNameBar(
  */
 private fun getDateString(rawTimestamp: String): String {
     return try {
-        // First try to parse as Long (milliseconds)
         val timeValue = rawTimestamp.toLongOrNull()
         val messageDate: java.util.Date = if (timeValue != null) {
             java.util.Date(timeValue)
@@ -381,7 +406,6 @@ private fun getDateString(rawTimestamp: String): String {
             }
         }
     } catch (e: Exception) {
-        // Default fallback
         "Today"
     }
 }
@@ -539,6 +563,9 @@ fun MessageItem(
         replyMessage = message.replyMessage,
         isSelected = isSelected,
         onLongClick = onLongPress,
+        isDeleted = message.isDeleted,
+        deletedByName = message.deletedByName,
+        showEditedLabel = message.isEdited,
         modifier = Modifier.fillMaxWidth()
     )
 }
@@ -588,7 +615,6 @@ fun DayHeaderPrev() {
 @Composable
 private fun ChatScreenPreview() {
     PreviewWrapper {
-        // Preview with mock data for design system testing
         val mockUiState = ChatScreenUiState(
             channelName = "Design Preview", channelMembers = 3, initialMessages = listOf(
                 ChatMessage(
@@ -639,7 +665,6 @@ private fun ChatScreenPreview() {
             onTypingStarted = {},
             onTypingStopped = {},
             onBubbleSwipe = { message ->
-                // Handle bubble swipe in preview
             })
     }
 }
@@ -667,7 +692,6 @@ private fun ChatScreenContent(
 
     var replyData by remember { mutableStateOf<ReplyData?>(null) }
 
-    // Preview/demo: selection state for preview only
     var selectedMessages by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     LaunchedEffect(error) {

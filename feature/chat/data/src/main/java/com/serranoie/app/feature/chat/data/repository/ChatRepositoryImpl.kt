@@ -18,10 +18,10 @@ import com.serranoie.app.feature.chat.data.remote.dto.UpdateMessageDto
 import com.serranoie.app.feature.chat.data.remote.websocket.ChatWebSocketService
 import com.serranoie.app.feature.chat.data.remote.websocket.WebSocketEvent
 import com.serranoie.app.feature.chat.domain.model.ChatMessage
-import com.serranoie.app.feature.chat.domain.repository.ChatRepository
 import com.serranoie.app.feature.chat.domain.repository.ChatEvent
+import com.serranoie.app.feature.chat.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
 class ChatRepositoryImpl(
@@ -74,7 +74,7 @@ class ChatRepositoryImpl(
         groupCode: String, authToken: String
     ): Flow<ChatEvent> {
         return webSocketService.connectToChat(groupCode, authToken)
-            .map { webSocketEvent ->
+            .mapNotNull { webSocketEvent ->
                 when (webSocketEvent) {
                     is WebSocketEvent.MessageReceived -> {
                         ChatEvent.MessageReceived(webSocketEvent.message)
@@ -107,6 +107,23 @@ class ChatRepositoryImpl(
                             webSocketEvent.userName
                         )
                     }
+
+                    is WebSocketEvent.MessageEdited -> {
+                        ChatEvent.MessageEdited(
+                            webSocketEvent.editedMessageId,
+                            webSocketEvent.editedMessage,
+                            webSocketEvent.userId?.toLong(),
+                            webSocketEvent.userName
+                        )
+                    }
+
+                    is WebSocketEvent.MessageDeleted -> {
+                        ChatEvent.MessageDeleted(
+                            webSocketEvent.deletedMessageId,
+                            webSocketEvent.userId?.toLong(),
+                            webSocketEvent.userName
+                        )
+                    }
                 }
             }
     }
@@ -115,16 +132,7 @@ class ChatRepositoryImpl(
         message: ChatMessage, authToken: String
     ): Result<Unit> {
         return try {
-            Log.d("ChatRepositoryImpl", "=== REPOSITORY SENDING MESSAGE ===")
-            Log.d("ChatRepositoryImpl", "Message content: '${message.message}'")
-            Log.d("ChatRepositoryImpl", "Reply to message ID: ${message.replyToMessageId}")
-            Log.d("ChatRepositoryImpl", "Group code: ${message.groupCode}")
-            Log.d("ChatRepositoryImpl", "Sender ID: ${message.senderId}")
-            Log.d("ChatRepositoryImpl", "Sender name: ${message.senderName}")
-            Log.d("ChatRepositoryImpl", "===================================")
-
             webSocketService.sendMessage(message, authToken)
-            Log.d("ChatRepositoryImpl", " Message sent via WebSocket service")
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e("ChatRepositoryImpl", " Failed to send message: ${e.message}", e)
@@ -150,7 +158,37 @@ class ChatRepositoryImpl(
         }
     }
 
+    suspend fun editMessageOverSocket(
+        groupCode: String,
+        messageId: Long,
+        newMessage: String,
+        authToken: String
+    ): Result<Unit> {
+        return try {
+            webSocketService.sendEditMessage(groupCode, messageId, newMessage, authToken)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending edit over socket: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteMessageOverSocket(
+        groupCode: String,
+        messageId: Long,
+        authToken: String
+    ): Result<Unit> {
+        return try {
+            webSocketService.sendDeleteMessage(groupCode, messageId, authToken)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending delete over socket: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
     override fun disconnect() {
+        // TODO: Is this correct?
         // Note: We can't call suspend functions from non-suspend context
         // For now, we'll use a fire-and-forget approach
         kotlinx.coroutines.GlobalScope.launch {

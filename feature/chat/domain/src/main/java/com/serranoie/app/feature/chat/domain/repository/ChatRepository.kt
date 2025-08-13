@@ -20,6 +20,15 @@ sealed class ChatEvent {
     data class TypingStopped(val userId: Long, val userName: String) : ChatEvent()
     data class UserJoined(val userId: Long, val userName: String) : ChatEvent()
     data class UserLeft(val userId: Long, val userName: String) : ChatEvent()
+    data class MessageDeleted(val messageId: Long, val userId: Long?, val userName: String?) :
+        ChatEvent()
+
+    data class MessageEdited(
+        val messageId: Long,
+        val newMessage: String,
+        val userId: Long?,
+        val userName: String?
+    ) : ChatEvent()
 }
 
 interface ChatRepository {

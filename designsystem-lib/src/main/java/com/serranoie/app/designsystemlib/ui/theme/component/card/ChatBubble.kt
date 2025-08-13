@@ -16,10 +16,10 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -61,11 +61,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -79,7 +79,6 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.iconSize
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.designsystemlib.ui.utils.animateVisibility
-import com.serranoie.app.designsystemlib.ui.utils.bounceClick
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -102,6 +101,7 @@ import kotlin.math.roundToInt
  * @param replyAuthorName Optional author name of the message being replied to
  * @param replyMessage Optional message content being replied to
  * @param onLongClick Callback for when the message bubble is long-clicked
+ * @param showEditedLabel Whether to show the "Edited" label
  * @param modifier Modifier to be applied to the component
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -120,6 +120,7 @@ fun ChatBubble(
     replyAuthorName: String? = null,
     replyMessage: String? = null,
     onLongClick: (() -> Unit)? = null,
+    showEditedLabel: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val bubbleShape = shape ?: getChatBubbleShape(isUserMe)
@@ -139,10 +140,7 @@ fun ChatBubble(
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start, modifier = modifier
     ) {
         Surface(
-            color = bubbleColor,
-            shape = bubbleShape,
-            modifier = Modifier
-                .widthIn(max = 320.dp)
+            color = bubbleColor, shape = bubbleShape, modifier = Modifier.widthIn(max = 320.dp)
         ) {
             Column {
                 if (replyAuthorName != null && replyMessage != null) {
@@ -164,6 +162,26 @@ fun ChatBubble(
                     onLinkClick = onLinkClick,
                     onLongClick = onLongClick
                 )
+
+                if (showEditedLabel) {
+                    Box(
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        Text(
+                            text = "Edited",
+                            style = MaterialTheme.typography.labelSmallEmphasized,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(
+                                    top = 0.dp,
+                                    start = basePadding,
+                                    end = basePadding,
+                                    bottom = smallPadding
+                                )
+                        )
+                    }
+                }
             }
         }
 
@@ -232,6 +250,9 @@ fun ChatBubbleWithAvatar(
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    isDeleted: Boolean = false,
+    deletedByName: String? = null,
+    showEditedLabel: Boolean = false,
 ) {
     val swipeOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
@@ -307,7 +328,7 @@ fun ChatBubbleWithAvatar(
                                 val chatMessage = ChatMessage(
                                     id = messageId,
                                     content = message,
-                                    authorId = "", // This would come from the actual message data
+                                    authorId = "",
                                     authorName = authorName,
                                     timestamp = timestamp,
                                     rawTimestamp = timestamp,
@@ -327,51 +348,54 @@ fun ChatBubbleWithAvatar(
                     } else Modifier)
                     .combinedClickable(
                         onClick = {
-                            // This handles all bubble clicks (for selection when in selection mode)
                             onMessageClick(message)
-                        },
-                        onLongClick = onLongClick
+                        }, onLongClick = onLongClick
                     )
                     .then(
-                        if (isSelected) Modifier
-                            .border(
-                                width = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = getChatBubbleShape(isUserMe)
-                            )
+                        if (isSelected) Modifier.border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = getChatBubbleShape(isUserMe)
+                        )
                         else Modifier
                     )
             ) {
-                if (!isUserMe && swipeOffset.value > 18f) {
-                    val iconScale = if (swipeOffset.value > maxOffsetPx) 1.2f else 1f
-                    val iconAlpha = (swipeOffset.value / maxOffsetPx).coerceAtMost(1f)
+                if (isDeleted) {
+                    DeletedMessageBubble(
+                        deletedByName = deletedByName ?: authorName,
+                        isUserMe = isUserMe,
+                        timestamp = timestamp
+                    )
+                } else {
+                    if (!isUserMe && swipeOffset.value > 18f) {
+                        val iconScale = if (swipeOffset.value > maxOffsetPx) 1.2f else 1f
+                        val iconAlpha = (swipeOffset.value / maxOffsetPx).coerceAtMost(1f)
 
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Reply,
-                        contentDescription = "Reply",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = 4.dp, end = 6.dp)
-                            .graphicsLayer {
-                                scaleX = iconScale
-                                scaleY = iconScale
-                                alpha = iconAlpha
-                            })
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Reply,
+                            contentDescription = "Reply",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = 4.dp, end = 6.dp)
+                                .graphicsLayer {
+                                    scaleX = iconScale
+                                    scaleY = iconScale
+                                    alpha = iconAlpha
+                                })
+                    }
+                    ChatBubble(
+                        message = message,
+                        isUserMe = isUserMe,
+                        timestamp = timestamp,
+                        onMessageClick = { },
+                        replyAuthorName = replyAuthorName,
+                        replyMessage = replyMessage,
+                        showTimestamp = false,
+                        onLongClick = onLongClick,
+                        showEditedLabel = showEditedLabel
+                    )
                 }
-                ChatBubble(
-                    message = message,
-                    isUserMe = isUserMe,
-                    timestamp = timestamp,
-                    onMessageClick = { clickedMessage ->
-                        // This is now handled by the Box's combinedClickable
-                        // onMessageClick(clickedMessage)
-                    },
-                    replyAuthorName = replyAuthorName,
-                    replyMessage = replyMessage,
-                    showTimestamp = false,
-                    onLongClick = onLongClick
-                )
             }
 
             if (isUserMe) {
@@ -480,9 +504,8 @@ private fun InitialsAvatar(
 }
 
 private fun getInitials(name: String): String {
-    return name.trim().split(" ").take(2)
-        .mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")
-        .ifEmpty { "?" }
+    return name.trim().split(" ").take(2).mapNotNull { it.firstOrNull()?.uppercase() }
+        .joinToString("").ifEmpty { "?" }
 }
 
 @Composable
@@ -556,8 +579,7 @@ private fun ChatBubbleContent(
                 pushStringAnnotation(tag = "URL", annotation = url)
                 withStyle(
                     style = SpanStyle(
-                        color = primaryColor,
-                        textDecoration = TextDecoration.Underline
+                        color = primaryColor, textDecoration = TextDecoration.Underline
                     )
                 ) {
                     append(url)
@@ -579,28 +601,22 @@ private fun ChatBubbleContent(
         modifier = Modifier
             .standardPadding(horizontal = basePadding, vertical = smallPadding)
             .combinedClickable(
-                onClick = { /* Handled by the main onClick below */ },
-                onLongClick = onLongClick
+                onClick = { /* Handled by the main onClick below */ }, onLongClick = onLongClick
             ),
         onClick = { offset ->
-            // Check if clicked on a link
             styledMessage.getStringAnnotations(tag = "URL", start = offset, end = offset)
                 .firstOrNull()?.let { annotation ->
                     val url = annotation.item
                     try {
-                        // Try to open the URL with the system browser
                         uriHandler.openUri(url)
                         onLinkClick(url)
                     } catch (e: Exception) {
-                        // Fallback: just call the onLinkClick callback
                         onLinkClick(url)
                     }
                 } ?: run {
-                // If not clicking on a link, handle as regular message click
                 onMessageClick(message)
             }
-        }
-    )
+        })
 }
 
 private fun getChatBubbleShape(isUserMe: Boolean): Shape = if (isUserMe) {
@@ -655,6 +671,33 @@ fun ReplyMessageBubble(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 3
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun DeletedMessageBubble(
+    deletedByName: String,
+    isUserMe: Boolean,
+    timestamp: String,
+    showTimestamp: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start, modifier = modifier
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer, shape = getChatBubbleShape(isUserMe)
+        ) {
+            Text(
+                text = "$deletedByName deleted this message",
+                style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.standardPadding(
+                    horizontal = basePadding, vertical = smallPadding
+                )
             )
         }
     }
@@ -728,7 +771,10 @@ data class ChatMessage(
     val rawTimestamp: String = timestamp,
     val replyToMessageId: String? = null,
     val replyAuthorName: String? = null,
-    val replyMessage: String? = null
+    val replyMessage: String? = null,
+    val isEdited: Boolean = false,
+    val isDeleted: Boolean = false,
+    val deletedByName: String? = null
 )
 
 @ComponentPreview
@@ -751,12 +797,6 @@ private fun ChatBubblePreview() {
                     authorId = "me",
                     authorName = "Me",
                     timestamp = "09:01 AM"
-                ), ChatMessage(
-                    id = "3",
-                    content = "Perfect!",
-                    authorId = "andrea",
-                    authorName = "Andrea Mena",
-                    timestamp = "09:02 AM"
                 )
             )
 
@@ -764,21 +804,17 @@ private fun ChatBubblePreview() {
                 messages = sampleMessages,
                 currentUserId = "me",
                 onMessageClick = { message ->
-                    // Handle message click 
                 },
                 onAvatarClick = { authorId ->
-                    // Handle avatar click
                 },
                 onBubbleSwipe = { message ->
-                    // Handle bubble swipe
                 },
                 selectedMessageId = null,
                 onMessageLongClick = { message ->
-                    // Handle message long click
                 })
 
             ChatBubbleWithAvatar(
-                message = "Great work, Andrea! Looking forward to it.",
+                message = "Great work!",
                 isUserMe = false,
                 timestamp = "09:03 AM",
                 authorName = "Isaac Serrano",
@@ -795,18 +831,33 @@ private fun ChatBubblePreview() {
                 messageId = "5",
                 replyAuthorName = "Isaac Serrano",
                 replyMessage = "Great work, Andrea! Looking forward to it.",
-                modifier = Modifier.fillMaxWidth()
             )
 
             ChatBubbleWithAvatar(
-                message = "Perfect!",
+                message = "Actually, let me update that - I think we should start with the overview first!",
                 isUserMe = false,
-                timestamp = "09:05 AM",
+                timestamp = "09:06 AM",
                 authorName = "Andrea Mena",
-                messageId = "6",
-                replyAuthorName = "Me",
-                replyMessage = "Thanks Isaac! Should we start with the overview? I think we have everything prepared and ready to go.",
+                messageId = "7",
+                showEditedLabel = true,
                 modifier = Modifier
+            )
+
+            ChatBubbleWithAvatar(
+                message = "Sounds good!",
+                isUserMe = true,
+                timestamp = "09:07 AM",
+                authorName = "Me",
+                messageId = "8",
+                showEditedLabel = true,
+            )
+
+            DeletedMessageBubble(
+                deletedByName = "Isaac Serrano", isUserMe = false, timestamp = "09:06 AM"
+            )
+
+            DeletedMessageBubble(
+                deletedByName = "Me", isUserMe = true, timestamp = "09:07 AM"
             )
 
             BubbleTypingIndicator()

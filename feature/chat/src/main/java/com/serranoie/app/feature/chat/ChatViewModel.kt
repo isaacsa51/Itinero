@@ -17,7 +17,10 @@ import androidx.lifecycle.viewModelScope
 import com.serranoie.app.designsystemlib.ui.theme.component.MessageData
 import com.serranoie.app.feature.chat.domain.model.MessageType
 import com.serranoie.app.feature.chat.domain.repository.ChatEvent
+import com.serranoie.app.feature.chat.domain.repository.ChatRepository
 import com.serranoie.app.feature.chat.domain.usecase.ConnectToChatUseCase
+import com.serranoie.app.feature.chat.domain.usecase.DeleteMessageUseCase
+import com.serranoie.app.feature.chat.domain.usecase.EditMessageUseCase
 import com.serranoie.app.feature.chat.domain.usecase.GetMessagesUseCase
 import com.serranoie.app.feature.chat.domain.usecase.SendMessageUseCase
 import kotlinx.coroutines.Job
@@ -34,6 +37,9 @@ class ChatViewModel(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val connectToChatUseCase: ConnectToChatUseCase,
+    private val deleteMessageUseCase: DeleteMessageUseCase,
+    private val editMessageUseCase: EditMessageUseCase,
+    private val chatRepository: ChatRepository,
     private val getCurrentUserId: () -> String,
     private val getCurrentUserName: () -> String,
     private val getAuthToken: suspend () -> String
@@ -84,8 +90,7 @@ class ChatViewModel(
             getMessagesUseCase(groupCode, getAuthToken(), limit, offset).onSuccess { messages ->
                 val uiMessages = messages.map { domainMessage ->
                     val (replyAuthorName, replyMessage) = resolveReplyInfo(
-                        domainMessage.replyToMessageId,
-                        messages
+                        domainMessage.replyToMessageId, messages
                     )
                     UiChatMessage(
                         id = domainMessage.id.toString(),
@@ -96,7 +101,8 @@ class ChatViewModel(
                         rawTimestamp = domainMessage.timestamp,
                         replyToMessageId = domainMessage.replyToMessageId?.toString(),
                         replyAuthorName = replyAuthorName,
-                        replyMessage = replyMessage
+                        replyMessage = replyMessage,
+                        isEdited = domainMessage.isEdited
                     )
                 }
 
@@ -137,8 +143,7 @@ class ChatViewModel(
                             val allCachedMessages = _allMessages.value
 
                             val (replyAuthorName, replyMessage) = resolveReplyInfoFromUi(
-                                domainMessage.replyToMessageId,
-                                allCachedMessages
+                                domainMessage.replyToMessageId, allCachedMessages
                             )
 
                             val newUiMessage = UiChatMessage(
@@ -150,7 +155,8 @@ class ChatViewModel(
                                 rawTimestamp = domainMessage.timestamp,
                                 replyToMessageId = domainMessage.replyToMessageId?.toString(),
                                 replyAuthorName = replyAuthorName,
-                                replyMessage = replyMessage
+                                replyMessage = replyMessage,
+                                isEdited = domainMessage.isEdited
                             )
 
                             _uiState.update { currentState ->
@@ -187,6 +193,18 @@ class ChatViewModel(
                         is ChatEvent.UserJoined -> {}
 
                         is ChatEvent.UserLeft -> {}
+
+                        is ChatEvent.MessageDeleted -> {
+                            val messageId = event.messageId.toString()
+                            val deletedByName = event.userName ?: "Unknown"
+                            updateMessageAsDeleted(messageId, deletedByName)
+                        }
+
+                        is ChatEvent.MessageEdited -> {
+                            val messageId = event.messageId.toString()
+                            val newMessage = event.newMessage
+                            updateMessageAsEdited(messageId, newMessage, true)
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -200,14 +218,6 @@ class ChatViewModel(
         viewModelScope.launch {
             try {
                 val currentUserId = getCurrentUserId()
-
-                // Debug logging for reply payload
-                Log.d(TAG, "=== SENDING MESSAGE WITH REPLY PAYLOAD ===")
-                Log.d(TAG, "Message content: '${messageData.message}'")
-                Log.d(TAG, "Reply to message ID: ${messageData.replyToMessageId}")
-                Log.d(TAG, "Current user ID: $currentUserId")
-                Log.d(TAG, "Current user name: ${getCurrentUserName()}")
-
                 val message = DomainChatMessage(
                     id = 0L,
                     groupCode = currentGroupCode,
@@ -219,25 +229,12 @@ class ChatViewModel(
                     isEdited = false,
                     replyToMessageId = messageData.replyToMessageId?.toLongOrNull()
                 )
-
-                Log.d(TAG, "Domain message created:")
-                Log.d(TAG, "  - ID: ${message.id}")
-                Log.d(TAG, "  - Group Code: ${message.groupCode}")
-                Log.d(TAG, "  - Sender ID: ${message.senderId}")
-                Log.d(TAG, "  - Sender Name: ${message.senderName}")
-                Log.d(TAG, "  - Message: ${message.message}")
-                Log.d(TAG, "  - Message Type: ${message.messageType}")
-                Log.d(TAG, "  - Reply To Message ID: ${message.replyToMessageId}")
-                Log.d(TAG, "================================================")
-
-                sendMessageUseCase(message, getAuthToken()).onSuccess {
-                    Log.d(TAG, "✅ Message sent successfully")
-                }.onFailure { exception ->
-                    Log.e(TAG, "❌ Failed to send message: ${exception.message}")
+                sendMessageUseCase(message, getAuthToken()).onFailure { exception ->
+                    Log.e(TAG, "Failed to send message: ${exception.message}")
                     _error.value = "Failed to send message: ${exception.message}"
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Exception while sending message: ${e.message}", e)
+                Log.e(TAG, "Exception while sending message: ${e.message}", e)
                 _error.value = "Failed to send message: ${e.message}"
             }
         }
@@ -277,6 +274,105 @@ class ChatViewModel(
         _error.value = null
     }
 
+    fun deleteMessages(messageIds: List<String>) {
+        viewModelScope.launch {
+            val currentUserId = getCurrentUserId()
+            val currentUserName = getCurrentUserName()
+
+            messageIds.forEach { messageId ->
+                val messageIdLong = messageId.toLongOrNull()
+                if (messageIdLong != null) {
+                    try {
+                        deleteMessageUseCase(messageIdLong, getAuthToken()).onSuccess {
+                            updateMessageAsDeleted(messageId, currentUserName)
+                        }.onFailure { exception ->
+                            Log.e(TAG, "Failed to delete message: ${exception.message}")
+                            _error.value = "Failed to delete message: ${exception.message}"
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Exception while deleting message: ${e.message}", e)
+                        _error.value = "Failed to delete message: ${e.message}"
+                    }
+                }
+            }
+        }
+    }
+
+    fun editMessage(messageId: String, newText: String) {
+        viewModelScope.launch {
+            val messageIdLong = messageId.toLongOrNull()
+            if (messageIdLong != null) {
+                try {
+                    editMessageUseCase(messageIdLong, newText, getAuthToken()).onSuccess {
+                        updateMessageAsEdited(messageId, newText, true)
+                    }.onFailure { exception ->
+                        Log.e(TAG, "Failed to edit message: ${exception.message}")
+                        _error.value = "Failed to edit message: ${exception.message}"
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception while editing message: ${e.message}", e)
+                    _error.value = "Failed to edit message: ${e.message}"
+                }
+            }
+        }
+    }
+
+    private fun updateMessageAsDeleted(messageId: String, deletedByName: String) {
+        _uiState.update { currentState ->
+            val updatedMessages = currentState.initialMessages.map { message ->
+                if (message.id == messageId) {
+                    message.copy(
+                        isDeleted = true, deletedByName = deletedByName
+                    )
+                } else {
+                    message
+                }
+            }
+            currentState.copy(initialMessages = updatedMessages)
+        }
+
+        _allMessages.update { currentMessages ->
+            currentMessages.map { message ->
+                if (message.id == messageId) {
+                    message.copy(
+                        isDeleted = true, deletedByName = deletedByName
+                    )
+                } else {
+                    message
+                }
+            }
+        }
+    }
+
+    private fun updateMessageAsEdited(
+        messageId: String, newMessage: String, isEdited: Boolean = false
+    ) {
+        _uiState.update { currentState ->
+            val updatedMessages = currentState.initialMessages.map { message ->
+                if (message.id == messageId) {
+                    message.copy(
+                        content = newMessage, isEdited = isEdited
+                    )
+                } else {
+                    message
+                }
+            }
+            currentState.copy(initialMessages = updatedMessages)
+        }
+
+        _allMessages.update { currentMessages ->
+            currentMessages.map { message ->
+                if (message.id == messageId) {
+                    message.copy(
+                        content = newMessage, isEdited = isEdited
+                    )
+                } else {
+                    message
+                }
+            }
+        }
+    }
+
     private fun formatTimestamp(timestamp: String): String {
         return try {
             val time = timestamp.toLongOrNull()
@@ -299,8 +395,7 @@ class ChatViewModel(
     }
 
     private fun resolveReplyInfo(
-        replyToMessageId: Long?,
-        allMessages: List<DomainChatMessage>
+        replyToMessageId: Long?, allMessages: List<DomainChatMessage>
     ): Pair<String?, String?> {
         if (replyToMessageId == null) return null to null
 
@@ -313,14 +408,12 @@ class ChatViewModel(
     }
 
     private fun resolveReplyInfoFromUi(
-        replyToMessageId: Long?,
-        allUiMessages: List<UiChatMessage>
+        replyToMessageId: Long?, allUiMessages: List<UiChatMessage>
     ): Pair<String?, String?> {
         if (replyToMessageId == null) return null to null
 
         val replyMessage = allUiMessages.find { it.id.toLongOrNull() == replyToMessageId }
         return if (replyMessage != null) {
-            Log.d(TAG, "Found reply message: ${replyMessage.authorName}: ${replyMessage.content}")
             replyMessage.authorName to replyMessage.content
         } else {
             Log.w(TAG, "Could not find reply message with ID: $replyToMessageId")

@@ -19,6 +19,8 @@ import com.serranoie.app.feature.chat.data.remote.dto.ServerWebSocketMessage
 import com.serranoie.app.feature.chat.data.remote.dto.WebSocketMessage
 import com.serranoie.app.feature.chat.data.remote.dto.MessageData
 import com.serranoie.app.feature.chat.data.remote.dto.TypingIndicator
+import com.serranoie.app.feature.chat.data.remote.dto.EditMessageData
+import com.serranoie.app.feature.chat.data.remote.dto.DeleteMessageData
 import com.serranoie.app.feature.chat.domain.model.ChatMessage
 import com.serranoie.itinero.core.domain.exception.ChatApiException
 import com.serranoie.itinero.core.domain.exception.NetworkException
@@ -47,6 +49,15 @@ sealed class WebSocketEvent {
     data class TypingStop(val typingIndicator: TypingIndicator) : WebSocketEvent()
     data class UserJoined(val userId: Int, val userName: String) : WebSocketEvent()
     data class UserLeft(val userId: Int, val userName: String) : WebSocketEvent()
+    data class MessageEdited(
+        val editedMessageId: Long,
+        val editedMessage: String,
+        val userId: Int?,
+        val userName: String?
+    ) : WebSocketEvent()
+
+    data class MessageDeleted(val deletedMessageId: Long, val userId: Int?, val userName: String?) :
+        WebSocketEvent()
 }
 
 class ChatWebSocketService(
@@ -94,50 +105,7 @@ class ChatWebSocketService(
 
                                     when (serverMessage.type) {
                                         "MESSAGE_RECEIVED" -> {
-                                            Log.d(TAG, "=== RECEIVED MESSAGE FROM WEBSOCKET ===")
                                             serverMessage.message?.let { receivedMessage ->
-                                                Log.d(TAG, "Received message:")
-                                                Log.d(TAG, "  - ID: ${receivedMessage.id}")
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Group Code: ${receivedMessage.groupCode}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Author ID: ${receivedMessage.authorId}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Author Name: ${receivedMessage.authorName}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Message: '${receivedMessage.message}'"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Message Type: ${receivedMessage.messageType}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Reply To ID: ${receivedMessage.replyToId}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Sender ID: ${receivedMessage.senderId}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Sender Name: ${receivedMessage.senderName}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "  - Timestamp: ${receivedMessage.timestamp}"
-                                                )
-                                                Log.d(
-                                                    TAG,
-                                                    "======================================="
-                                                )
                                                 val messageDto: ChatMessageDto? =
                                                     serverMessage.message ?: serverMessage.data
                                                 if (messageDto != null) {
@@ -212,7 +180,6 @@ class ChatWebSocketService(
                                         }
 
                                         else -> {
-                                            // Handle typing patterns with different type names
                                             if (serverMessage.type?.contains(
                                                     "TYPING",
                                                     ignoreCase = true
@@ -233,6 +200,59 @@ class ChatWebSocketService(
                                                         emit(WebSocketEvent.TypingStop(indicator))
                                                     }
                                                 }
+                                            } else if (serverMessage.type?.equals(
+                                                    "EDIT_MESSAGE",
+                                                    ignoreCase = true
+                                                ) == true
+                                            ) {
+                                                val raw = messageText
+                                                try {
+                                                    val editedId =
+                                                        Regex("\"editedMessageId\":(\\d+)")
+                                                            .find(raw)?.groupValues?.getOrNull(1)
+                                                            ?.toLongOrNull()
+                                                    val editedMsg =
+                                                        Regex("\"editedMessage\":\"(.*?)\"")
+                                                            .find(raw)?.groupValues?.getOrNull(1)
+                                                    val uid = serverMessage.userId
+                                                    val uname = serverMessage.userName
+                                                    if (editedId != null && editedMsg != null) {
+                                                        emit(
+                                                            WebSocketEvent.MessageEdited(
+                                                                editedId,
+                                                                editedMsg,
+                                                                uid,
+                                                                uname
+                                                            )
+                                                        )
+                                                    }
+                                                } catch (_: Exception) {
+                                                }
+                                            } else if (serverMessage.type?.equals(
+                                                    "DELETE_MESSAGE",
+                                                    ignoreCase = true
+                                                ) == true
+                                            ) {
+                                                val raw = messageText
+                                                Log.d(TAG, "DELETE_MESSAGE event: $raw")
+                                                try {
+                                                    val deletedId =
+                                                        Regex("\"deletedMessageId\":(\\d+)")
+                                                            .find(raw)?.groupValues?.getOrNull(1)
+                                                            ?.toLongOrNull()
+                                                    val uid = serverMessage.userId
+                                                    val uname = serverMessage.userName
+                                                    if (deletedId != null) {
+                                                        emit(
+                                                            WebSocketEvent.MessageDeleted(
+                                                                deletedId,
+                                                                uid,
+                                                                uname
+                                                            )
+                                                        )
+                                                    }
+                                                } catch (_: Exception) {
+                                                }
                                             }
                                         }
                                     }
@@ -250,9 +270,7 @@ class ChatWebSocketService(
                                 break
                             }
 
-                            else -> {
-                                // Ignore other frame types
-                            }
+                            else -> { }
                         }
                     }
                 } catch (e: ClosedReceiveChannelException) {
@@ -327,28 +345,13 @@ class ChatWebSocketService(
                 messageType = message.messageType.value,
                 replyToMessageId = message.replyToMessageId
             )
-
-            // Debug logging for WebSocket payload
-            Log.d(TAG, "=== WEBSOCKET SEND MESSAGE PAYLOAD ===")
-            Log.d(TAG, "Group Code: ${message.groupCode}")
-            Log.d(TAG, "Message Data:")
-            Log.d(TAG, "  - message: '${messageData.message}'")
-            Log.d(TAG, "  - messageType: ${messageData.messageType}")
-            Log.d(TAG, "  - replyToMessageId: ${messageData.replyToMessageId}")
-
             val messageJson = json.encodeToString(messageData)
-            Log.d(TAG, "Serialized message data JSON: $messageJson")
-
             val webSocketMessage = WebSocketMessage(
                 type = "SEND_MESSAGE",
                 groupCode = message.groupCode,
                 data = messageJson
             )
-
             val fullPayloadJson = json.encodeToString(webSocketMessage)
-            Log.d(TAG, "Full WebSocket payload: $fullPayloadJson")
-            Log.d(TAG, "=======================================")
-
             session.send(Frame.Text(fullPayloadJson))
         } catch (e: Exception) {
             Log.e(
@@ -380,28 +383,13 @@ class ChatWebSocketService(
                         messageType = message.messageType.value,
                         replyToMessageId = message.replyToMessageId
                     )
-
-                    // Debug logging for WebSocket payload
-                    Log.d(TAG, "=== WEBSOCKET SEND MESSAGE PAYLOAD ===")
-                    Log.d(TAG, "Group Code: ${message.groupCode}")
-                    Log.d(TAG, "Message Data:")
-                    Log.d(TAG, "  - message: '${messageData.message}'")
-                    Log.d(TAG, "  - messageType: ${messageData.messageType}")
-                    Log.d(TAG, "  - replyToMessageId: ${messageData.replyToMessageId}")
-
                     val messageJson = json.encodeToString(messageData)
-                    Log.d(TAG, "Serialized message data JSON: $messageJson")
-
                     val webSocketMessage = WebSocketMessage(
                         type = "SEND_MESSAGE",
                         groupCode = message.groupCode,
                         data = messageJson
                     )
-
                     val fullPayloadJson = json.encodeToString(webSocketMessage)
-                    Log.d(TAG, "Full WebSocket payload: $fullPayloadJson")
-                    Log.d(TAG, "=======================================")
-
                     send(Frame.Text(fullPayloadJson))
                 } catch (e: Exception) {
                     Log.e(
@@ -459,7 +447,6 @@ class ChatWebSocketService(
                 "Failed to establish WebSocket connection for sending message to group ${message.groupCode}: ${e.message}",
                 e
             )
-            // Handle specific network exceptions or fall back to string matching as last resort
             when (e) {
                 is io.ktor.client.network.sockets.ConnectTimeoutException,
                 is io.ktor.client.network.sockets.SocketTimeoutException,
@@ -470,7 +457,6 @@ class ChatWebSocketService(
                     )
                 }
                 else -> {
-                    // Fall back to string matching as last resort
                     val errorMessage = e.message ?: ""
                     when {
                         errorMessage.contains("404 Not Found") -> {
@@ -558,6 +544,49 @@ class ChatWebSocketService(
                 existingSession.send(Frame.Text(messageJson))
             } catch (e: Exception) {
                 Log.e(TAG, "Error sending typing stop for group $groupCode: ${e.message}", e)
+            }
+        }
+    }
+
+    suspend fun sendEditMessage(
+        groupCode: String,
+        messageId: Long,
+        newMessage: String,
+        authToken: String
+    ) {
+        validateGroupCode(groupCode)
+        val session = activeSessions[groupCode]
+        val data = EditMessageData(messageId, newMessage)
+        val dataJson = json.encodeToString(data)
+        val wsPayload =
+            WebSocketMessage(type = "EDIT_MESSAGE", groupCode = groupCode, data = dataJson)
+        val payloadJson = json.encodeToString(wsPayload)
+        if (session != null && !session.outgoing.isClosedForSend) {
+            session.send(Frame.Text(payloadJson))
+        } else {
+            httpClient.webSocket(urlString = "$baseUrl/chat/$groupCode", request = {
+                headers.append("Authorization", "Bearer $authToken")
+            }) {
+                send(Frame.Text(payloadJson))
+            }
+        }
+    }
+
+    suspend fun sendDeleteMessage(groupCode: String, messageId: Long, authToken: String) {
+        validateGroupCode(groupCode)
+        val session = activeSessions[groupCode]
+        val data = DeleteMessageData(messageId)
+        val dataJson = json.encodeToString(data)
+        val wsPayload =
+            WebSocketMessage(type = "DELETE_MESSAGE", groupCode = groupCode, data = dataJson)
+        val payloadJson = json.encodeToString(wsPayload)
+        if (session != null && !session.outgoing.isClosedForSend) {
+            session.send(Frame.Text(payloadJson))
+        } else {
+            httpClient.webSocket(urlString = "$baseUrl/chat/$groupCode", request = {
+                headers.append("Authorization", "Bearer $authToken")
+            }) {
+                send(Frame.Text(payloadJson))
             }
         }
     }

@@ -133,3 +133,18 @@ data class ChatNotification(
     @SerialName("data")
     val data: ChatMessageDto
 )
+
+@Serializable
+data class EditMessageData(
+    @SerialName("messageId")
+    val messageId: Long,
+
+    @SerialName("newMessage")
+    val newMessage: String
+)
+
+@Serializable
+data class DeleteMessageData(
+    @SerialName("messageId")
+    val messageId: Long
+)

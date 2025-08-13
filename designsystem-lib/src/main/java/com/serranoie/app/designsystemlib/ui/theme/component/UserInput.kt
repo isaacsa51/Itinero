@@ -40,6 +40,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Reply
 import androidx.compose.material.icons.filled.Send
@@ -96,7 +97,8 @@ import kotlin.math.absoluteValue
 data class ReplyData(
     val messageId: String,
     val authorName: String,
-    val message: String
+    val message: String,
+    val isEditing: Boolean = false
 )
 
 data class MessageData(
@@ -110,17 +112,13 @@ private fun ReplyPreview(
     replyData: ReplyData,
     onCancelReply: (() -> Unit)?
 ) {
-    // Animation states
     val iconScale = remember { Animatable(0.8f) }
     val textAlpha = remember { Animatable(0f) }
     val surfaceElevation = remember { Animatable(4f) }
 
-    // State to track if we're exiting
     var isExiting by remember { mutableStateOf(false) }
 
-    // Entry animations on composition
     LaunchedEffect(Unit) {
-        // Stagger animations for a polished effect
         launch {
             iconScale.animateTo(
                 targetValue = 1f,
@@ -128,7 +126,7 @@ private fun ReplyPreview(
             )
         }
         launch {
-            delay(100) // Small delay for stagger effect
+            delay(100)
             textAlpha.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(durationMillis = 300)
@@ -142,10 +140,8 @@ private fun ReplyPreview(
         }
     }
 
-    // Exit animations when cancelling
     LaunchedEffect(isExiting) {
         if (isExiting) {
-            // Animate out all elements simultaneously
             launch {
                 iconScale.animateTo(
                     targetValue = 0.6f,
@@ -164,7 +160,6 @@ private fun ReplyPreview(
                     animationSpec = tween(durationMillis = 200)
                 )
             }
-            // Small delay then call the actual cancel
             delay(150)
             onCancelReply?.invoke()
         }
@@ -173,7 +168,7 @@ private fun ReplyPreview(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .padding(smallPadding)
     ) {
         Surface(
             shape = RoundedCornerShape(commonCornerRadius),
@@ -188,15 +183,14 @@ private fun ReplyPreview(
                     .padding(horizontal = basePadding, vertical = smallPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Reply icon with bounce animation
                 Box(
                     modifier = Modifier
                         .padding(end = smallPadding)
                         .size(18.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Reply,
-                        contentDescription = "Reply",
+                        imageVector = if (replyData.isEditing) Icons.Filled.Edit else Icons.Filled.Reply,
+                        contentDescription = if (replyData.isEditing) "Edit" else "Reply",
                         tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier
                             .fillMaxSize()
@@ -207,7 +201,6 @@ private fun ReplyPreview(
                     )
                 }
 
-                // Text content with fade-in effect
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -216,7 +209,7 @@ private fun ReplyPreview(
                         }
                 ) {
                     Text(
-                        text = "Replying to ${replyData.authorName}:",
+                        text = if (replyData.isEditing) "Editing message:" else "Replying to ${replyData.authorName}:",
                         style = MaterialTheme.typography.labelSmallEmphasized,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -228,7 +221,6 @@ private fun ReplyPreview(
                     )
                 }
 
-                // Cancel button with hover effect
                 if (onCancelReply != null) {
                     IconButton(
                         onClick = {
@@ -237,7 +229,7 @@ private fun ReplyPreview(
                         modifier = Modifier
                             .size(28.dp)
                             .graphicsLayer {
-                                alpha = textAlpha.value // Fade in with text
+                                alpha = textAlpha.value
                             }
                     ) {
                         Icon(
@@ -295,7 +287,27 @@ fun UserInputWithReplyPreview() {
             replyData = ReplyData(
                 "1",
                 "John Doe",
-                "Hey everyone! This is a really long message that should be truncated in the reply preview to show how it looks with longer messages that people typically send in chat conversations."
+                "Hey everyone! This is a really long message that should be truncated in the reply preview to show how it looks with longer messages that people typically send in chat conversations.",
+                isEditing = false
+            ),
+            onCancelReply = {}
+        )
+    }
+}
+
+@ComponentPreview
+@Composable
+fun UserInputWithEditPreview() {
+    PreviewWrapper {
+        UserInput(
+            onMessageSent = {},
+            onTypingStarted = {},
+            onTypingStopped = {},
+            replyData = ReplyData(
+                "1",
+                "John Doe",
+                "Hey everyone! This is a really long message that should be truncated in the reply preview to show how it looks with longer messages that people typically send in chat conversations.",
+                isEditing = true
             ),
             onCancelReply = {}
         )
@@ -312,6 +324,7 @@ fun UserInput(
     onTypingStopped: () -> Unit = {},
     replyData: ReplyData? = null,
     onCancelReply: (() -> Unit)? = null,
+    initialText: String? = null,
 ) {
     var showAttachmentMenu by remember { mutableStateOf(false) }
 
@@ -321,6 +334,12 @@ fun UserInput(
 
     var textState by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
+    }
+
+    LaunchedEffect(initialText) {
+        if (initialText != null) {
+            textState = TextFieldValue(initialText)
+        }
     }
 
     var textFieldFocusState by remember { mutableStateOf(false) }
@@ -353,7 +372,6 @@ fun UserInput(
 
     Surface(tonalElevation = 2.dp, contentColor = MaterialTheme.colorScheme.secondary) {
         Column(modifier = modifier) {
-            // Show reply preview if there's a reply message
             AnimatedVisibility(
                 visible = replyData != null,
                 enter = slideInVertically(
@@ -396,7 +414,6 @@ fun UserInput(
                 onTextFieldFocused = { focused ->
                     if (focused) {
                         resetScroll()
-                        // Close attachment menu when text field gets focus
                         showAttachmentMenu = false
                     }
                     textFieldFocusState = focused
@@ -506,7 +523,6 @@ private fun UserInputText(
             targetState = hasText, label = "button-state", modifier = Modifier.fillMaxHeight()
         ) { showSendIcon ->
             if (showSendIcon) {
-                // Send button
                 IconButton(
                     onClick = {
                         if (textFieldValue.text.isNotBlank()) {

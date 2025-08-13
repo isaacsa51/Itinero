@@ -23,6 +23,9 @@ val chatViewModelModule = module {
             getMessagesUseCase = get(),
             sendMessageUseCase = get(),
             connectToChatUseCase = get(),
+            deleteMessageUseCase = get(),
+            editMessageUseCase = get(),
+            chatRepository = get(),
             getCurrentUserId = {
                 val getCurrentUserIdUseCase = get<GetCurrentUserIdUseCase>()
                 getCurrentUserIdUseCase() ?: "unknown_user"
