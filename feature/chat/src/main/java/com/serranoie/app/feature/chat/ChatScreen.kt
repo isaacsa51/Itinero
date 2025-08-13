@@ -556,6 +556,7 @@ fun MessageItem(
         isUserMe = isUserMe,
         timestamp = message.timestamp,
         authorName = message.authorName,
+        authorId = message.authorId,
         messageId = message.id,
         onMessageClick = { _ -> onClick() },
         onBubbleSwipe = onBubbleSwipe,

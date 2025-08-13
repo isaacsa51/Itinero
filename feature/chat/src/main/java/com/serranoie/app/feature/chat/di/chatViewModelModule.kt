@@ -25,7 +25,7 @@ val chatViewModelModule = module {
             connectToChatUseCase = get(),
             deleteMessageUseCase = get(),
             editMessageUseCase = get(),
-            chatRepository = get(),
+            editMessageOverSocketUseCase = get(),
             getCurrentUserId = {
                 val getCurrentUserIdUseCase = get<GetCurrentUserIdUseCase>()
                 getCurrentUserIdUseCase() ?: "unknown_user"

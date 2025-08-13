@@ -56,5 +56,12 @@ interface ChatRepository {
         isTyping: Boolean, groupCode: String, authToken: String
     ): Result<Unit>
 
+    suspend fun editMessageOverSocket(
+        groupCode: String,
+        messageId: Long,
+        newMessage: String,
+        authToken: String
+    ): Result<Unit>
+
     fun disconnect()
 }

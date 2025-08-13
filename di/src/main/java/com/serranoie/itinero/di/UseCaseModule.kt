@@ -3,6 +3,7 @@ package com.serranoie.itinero.di
 import com.serranoie.app.feature.chat.domain.usecase.ConnectToChatUseCase
 import com.serranoie.app.feature.chat.domain.usecase.DeleteMessageUseCase
 import com.serranoie.app.feature.chat.domain.usecase.EditMessageUseCase
+import com.serranoie.app.feature.chat.domain.usecase.EditMessageOverSocketUseCase
 import com.serranoie.app.feature.chat.domain.usecase.GetMessagesUseCase
 import com.serranoie.app.feature.chat.domain.usecase.SendMessageUseCase
 import com.serranoie.app.feature.expenses.domain.usecase.AddExpenseUseCase
@@ -96,6 +97,7 @@ val useCaseModule = module {
     factory { ConnectToChatUseCase(get()) }
     factory { DeleteMessageUseCase(get()) }
     factory { EditMessageUseCase(get()) }
+    factory { EditMessageOverSocketUseCase(get()) }
 
     // Current user ID use case
     factory { GetCurrentUserIdUseCase(get()) }

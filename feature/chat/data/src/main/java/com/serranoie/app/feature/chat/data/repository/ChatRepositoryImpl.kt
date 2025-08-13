@@ -158,7 +158,7 @@ class ChatRepositoryImpl(
         }
     }
 
-    suspend fun editMessageOverSocket(
+    override suspend fun editMessageOverSocket(
         groupCode: String,
         messageId: Long,
         newMessage: String,

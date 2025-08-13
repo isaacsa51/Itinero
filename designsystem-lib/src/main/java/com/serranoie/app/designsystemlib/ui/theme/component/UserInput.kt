@@ -419,14 +419,19 @@ fun UserInput(
                     textFieldFocusState = focused
                 },
                 onMessageSent = {
+                    val replyId =
+                        replyData?.let { data -> if (!data.isEditing) data.messageId else null }
                     onMessageSent(
                         MessageData(
-                            textState.text,
-                            replyData?.messageId
+                            message = textState.text,
+                            replyToMessageId = replyId
                         )
                     )
                     textState = TextFieldValue()
                     resetScroll()
+                    if (replyData != null) {
+                        onCancelReply?.invoke()
+                    }
                 },
                 focusState = textFieldFocusState,
                 onAttachmentClick = { showAttachmentMenu = !showAttachmentMenu })

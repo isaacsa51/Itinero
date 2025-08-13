@@ -20,9 +20,11 @@ import com.serranoie.app.feature.chat.domain.repository.ChatEvent
 import com.serranoie.app.feature.chat.domain.repository.ChatRepository
 import com.serranoie.app.feature.chat.domain.usecase.ConnectToChatUseCase
 import com.serranoie.app.feature.chat.domain.usecase.DeleteMessageUseCase
+import com.serranoie.app.feature.chat.domain.usecase.EditMessageOverSocketUseCase
 import com.serranoie.app.feature.chat.domain.usecase.EditMessageUseCase
 import com.serranoie.app.feature.chat.domain.usecase.GetMessagesUseCase
 import com.serranoie.app.feature.chat.domain.usecase.SendMessageUseCase
+
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +41,7 @@ class ChatViewModel(
     private val connectToChatUseCase: ConnectToChatUseCase,
     private val deleteMessageUseCase: DeleteMessageUseCase,
     private val editMessageUseCase: EditMessageUseCase,
-    private val chatRepository: ChatRepository,
+    private val editMessageOverSocketUseCase: EditMessageOverSocketUseCase,
     private val getCurrentUserId: () -> String,
     private val getCurrentUserName: () -> String,
     private val getAuthToken: suspend () -> String
@@ -110,7 +112,7 @@ class ChatViewModel(
                     currentState.copy(initialMessages = uiMessages)
                 }
                 _allMessages.update { currentState ->
-                    currentState + uiMessages
+                    (currentState + uiMessages).distinctBy { it.id }
                 }
                 _isLoading.value = false
             }.onFailure { exception ->
@@ -303,14 +305,27 @@ class ChatViewModel(
             val messageIdLong = messageId.toLongOrNull()
             if (messageIdLong != null) {
                 try {
+                    val socketResult = editMessageOverSocketUseCase(
+                        groupCode = currentGroupCode,
+                        messageId = messageIdLong,
+                        newMessage = newText,
+                        authToken = getAuthToken()
+                    )
+                    socketResult.onSuccess {
+                        updateMessageAsEdited(messageId, newText, true)
+                        return@launch
+                    }.onFailure { ex ->
+                        Log.w(TAG, "WebSocket edit failed, falling back to HTTP: ${ex.message}")
+                    }
+
                     editMessageUseCase(messageIdLong, newText, getAuthToken()).onSuccess {
                         updateMessageAsEdited(messageId, newText, true)
                     }.onFailure { exception ->
-                        Log.e(TAG, "Failed to edit message: ${exception.message}")
+                        Log.e(TAG, "❌ Failed to edit message: ${exception.message}")
                         _error.value = "Failed to edit message: ${exception.message}"
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Exception while editing message: ${e.message}", e)
+                    Log.e(TAG, "❌ Exception while editing message: ${e.message}", e)
                     _error.value = "Failed to edit message: ${e.message}"
                 }
             }
@@ -416,7 +431,7 @@ class ChatViewModel(
         return if (replyMessage != null) {
             replyMessage.authorName to replyMessage.content
         } else {
-            Log.w(TAG, "Could not find reply message with ID: $replyToMessageId")
+            Log.e(TAG, "Could not find reply message with ID: $replyToMessageId")
             null to null
         }
     }

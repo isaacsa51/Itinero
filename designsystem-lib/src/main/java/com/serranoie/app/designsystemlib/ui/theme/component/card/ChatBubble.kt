@@ -224,6 +224,7 @@ fun ChatBubble(
  * @param timestamp The timestamp to display
  * @param avatarRes Avatar resource ID for the user
  * @param authorName Name of the message author
+ * @param authorId ID of the message author
  * @param showAvatar Whether to show the avatar (typically false for user messages)
  * @param showAuthor Whether to show the author name
  * @param onMessageClick Callback for when the message text is clicked
@@ -240,6 +241,7 @@ fun ChatBubbleWithAvatar(
     isUserMe: Boolean,
     timestamp: String,
     authorName: String = "",
+    authorId: String = "",
     messageId: String = "",
     showAvatar: Boolean = !isUserMe,
     showAuthor: Boolean = !isUserMe,
@@ -321,6 +323,7 @@ fun ChatBubbleWithAvatar(
                             }
                             actionTriggered.value = false
                         }) { change, dragAmount ->
+                            change.consume()
                             val newOffset = (swipeOffset.value + dragAmount).coerceAtLeast(0f)
 
                             if (newOffset > maxOffsetPx && !actionTriggered.value) {
@@ -328,7 +331,7 @@ fun ChatBubbleWithAvatar(
                                 val chatMessage = ChatMessage(
                                     id = messageId,
                                     content = message,
-                                    authorId = "",
+                                    authorId = authorId,
                                     authorName = authorName,
                                     timestamp = timestamp,
                                     rawTimestamp = timestamp,
@@ -451,6 +454,7 @@ fun ChatConversation(
                 isUserMe = isUserMe,
                 timestamp = message.timestamp,
                 authorName = message.authorName,
+                authorId = message.authorId,
                 messageId = message.id,
                 showAvatar = showAvatar,
                 showAuthor = showAuthor,
@@ -818,6 +822,7 @@ private fun ChatBubblePreview() {
                 isUserMe = false,
                 timestamp = "09:03 AM",
                 authorName = "Isaac Serrano",
+                authorId = "isaac",
                 messageId = "4",
                 replyAuthorName = "Andrea Mena",
                 replyMessage = "Perfect! I've prepared the presentation."
@@ -828,6 +833,7 @@ private fun ChatBubblePreview() {
                 isUserMe = true,
                 timestamp = "09:04 AM",
                 authorName = "Me",
+                authorId = "me",
                 messageId = "5",
                 replyAuthorName = "Isaac Serrano",
                 replyMessage = "Great work, Andrea! Looking forward to it.",
@@ -838,6 +844,7 @@ private fun ChatBubblePreview() {
                 isUserMe = false,
                 timestamp = "09:06 AM",
                 authorName = "Andrea Mena",
+                authorId = "andrea",
                 messageId = "7",
                 showEditedLabel = true,
                 modifier = Modifier
@@ -848,6 +855,7 @@ private fun ChatBubblePreview() {
                 isUserMe = true,
                 timestamp = "09:07 AM",
                 authorName = "Me",
+                authorId = "me",
                 messageId = "8",
                 showEditedLabel = true,
             )
