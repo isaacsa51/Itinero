@@ -2,17 +2,24 @@ package com.serranoie.app.feature.chat.data.remote.websocket
 
 import com.serranoie.itinero.core.domain.exception.ChatApiException
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import kotlin.test.assertFailsWith
 
 class ChatWebSocketServiceTest {
 
-    @Test(expected = ChatApiException::class)
-    fun `sendTypingStart throws on invalid group code`() = runBlockingUnit {
-        val service = ChatWebSocketService(HttpClient(), baseUrl = "ws://localhost")
-        service.sendTypingStart(groupCode = "BAD_CODE", authToken = "token")
-    }
-}
+    @Test
+    fun `sendTypingStart throws on invalid group code`() = runTest {
+        val client = HttpClient()
 
-private fun runBlockingUnit(block: suspend () -> Unit) {
-    kotlinx.coroutines.runBlocking { block() }
+        try {
+            val service = ChatWebSocketService(client, baseUrl = "ws://example.invalid")
+
+            assertFailsWith<ChatApiException> {
+                service.sendTypingStart("BAD_CODE", authToken = "token")
+            }
+        } finally {
+            client.close()
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.serranoie.app.feature.chat
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -79,11 +80,11 @@ class ChatScreenInstrumentedTest {
 
         // Then
         composeTestRule
-            .onNodeWithText("Test Channel")
+            .onNodeWithTag("chat_title")
             .assertExists()
 
         composeTestRule
-            .onNodeWithText("5 members")
+            .onNodeWithTag("chat_member_status")
             .assertExists()
     }
 
@@ -114,6 +115,14 @@ class ChatScreenInstrumentedTest {
         }
 
         // Then
+        composeTestRule
+            .onNodeWithTag("chat_message_item_1")
+            .assertExists()
+
+        composeTestRule
+            .onNodeWithTag("chat_message_item_2")
+            .assertExists()
+
         composeTestRule
             .onNodeWithText("Hello World")
             .assertExists()
@@ -196,7 +205,7 @@ class ChatScreenInstrumentedTest {
 
         // Then
         composeTestRule
-            .onNodeWithText("Alice, Bob are typing...")
+            .onNodeWithTag("chat_typing_indicator")
             .assertExists()
     }
 
@@ -228,7 +237,7 @@ class ChatScreenInstrumentedTest {
 
         // Then
         composeTestRule
-            .onNodeWithText("5 members • Offline")
+            .onNodeWithTag("chat_member_status")
             .assertExists()
     }
 
@@ -269,7 +278,7 @@ class ChatScreenInstrumentedTest {
             .assertDoesNotExist()
 
         composeTestRule
-            .onNodeWithText("Type a message...")
+            .onNodeWithContentDescription("User input text field")
             .assertExists()
     }
 
@@ -312,12 +321,12 @@ class ChatScreenInstrumentedTest {
 
         // Channel name should still be visible during loading
         composeTestRule
-            .onNodeWithText("Test Channel")
+            .onNodeWithTag("chat_title")
             .assertExists()
 
         // Message input should still be accessible during loading
         composeTestRule
-            .onNodeWithText("Type a message...")
+            .onNodeWithContentDescription("User input text field")
             .assertExists()
     }
 
@@ -349,11 +358,11 @@ class ChatScreenInstrumentedTest {
 
         // Then - Should show actual messages when not loading
         composeTestRule
-            .onNodeWithText("Hello World")
+            .onNodeWithTag("chat_message_item_1")
             .assertExists()
 
         composeTestRule
-            .onNodeWithText("How are you?")
+            .onNodeWithTag("chat_message_item_2")
             .assertExists()
 
         // Should not show any loading indicators
@@ -390,7 +399,7 @@ class ChatScreenInstrumentedTest {
 
         // Then
         composeTestRule
-            .onNodeWithText("Type a message...")
+            .onNodeWithContentDescription("User input text field")
             .assertExists()
     }
 }

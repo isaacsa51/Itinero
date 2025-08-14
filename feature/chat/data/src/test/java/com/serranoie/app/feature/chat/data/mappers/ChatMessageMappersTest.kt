@@ -384,4 +384,31 @@ class ChatMessageMappersTest {
         assertEquals(null, result[0].replyToMessageId)
         assertEquals(1L, result[1].replyToMessageId)
     }
+
+    @Test
+    fun `ChatMessageDto toDomain should default to TEXT for unknown messageType`() {
+        // Given
+        val dto = ChatMessageDto(
+            id = 11L,
+            groupCode = "TEST_GROUP",
+            authorId = "invalid_id",
+            authorName = "Unknown User",
+            message = "Message with unknown type",
+            messageType = "FOO",
+            timestamp = "2025-01-01T10:00:00",
+            isEdited = false,
+            replyToId = null,
+            senderId = null,
+            senderName = null
+        )
+
+        // When
+        val result = dto.toDomain()
+
+        // Then
+        assertEquals(MessageType.TEXT, result.messageType)
+        assertEquals(0L, result.senderId) // invalid authorId should default to 0
+        assertEquals("Unknown User", result.senderName)
+        assertEquals("Message with unknown type", result.message)
+    }
 }

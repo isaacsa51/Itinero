@@ -116,7 +116,8 @@ dependencies {
     implementation(libs.ktor.client.logging)
 
     // Unit test helpers
-    testImplementation("io.mockk:mockk:1.13.12")
-    testImplementation("io.ktor:ktor-client-mock:2.3.11")
-    testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation(libs.mockk)
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.turbine)
+    testImplementation(kotlin("test"))
 }

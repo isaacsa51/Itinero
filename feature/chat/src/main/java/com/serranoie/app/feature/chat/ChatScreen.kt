@@ -57,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -326,23 +327,30 @@ fun ChannelNameBar(
     TopAppBar(
         title = {
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("chat_title_bar"),
             ) {
                 Column(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = channelName, style = MaterialTheme.typography.titleMediumEmphasized
+                        text = channelName,
+                        style = MaterialTheme.typography.titleMediumEmphasized,
+                        modifier = Modifier.testTag("chat_title")
                     )
                     Text(
                         text = when {
                             !isConnected -> "$channelMembers members • Offline"
                             else -> "$channelMembers members"
-                        }, style = MaterialTheme.typography.bodySmall, color = if (isConnected) {
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isConnected) {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         } else {
                             MaterialTheme.colorScheme.error
-                        }
+                        },
+                        modifier = Modifier.testTag("chat_member_status")
                     )
                 }
             }
@@ -457,6 +465,7 @@ fun Messages(
                         modifier = Modifier
                             .height(if (typingUsers.isNotEmpty()) 72.dp else 0.dp)
                             .animateContentSize(animationSpec = tween(durationMillis = 300))
+                            .testTag("chat_typing_indicator_container")
                     ) {
                         AnimatedVisibility(
                             visible = typingUsers.isNotEmpty(),
@@ -481,9 +490,12 @@ fun Messages(
                                         maxLines = 1,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(
-                                            horizontal = smallPadding, vertical = extraSmallPadding
-                                        )
+                                        modifier = Modifier
+                                            .padding(
+                                                horizontal = smallPadding,
+                                                vertical = extraSmallPadding
+                                            )
+                                            .testTag("chat_typing_indicator")
                                     )
                                 }
 
@@ -606,7 +618,9 @@ fun MessageItem(
         isDeleted = message.isDeleted,
         deletedByName = message.deletedByName,
         showEditedLabel = message.isEdited,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("chat_message_item_${message.id}")
     )
 }
 

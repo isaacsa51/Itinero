@@ -77,23 +77,34 @@ class EditMessageUseCaseTest {
         val messageId = 456L
         val emptyMessage = ""
         val authToken = "test-token"
-        val expectedResult = Result.success("Message updated successfully")
-
-        coEvery {
-            chatRepository.updateMessage(
-                messageId,
-                emptyMessage,
-                authToken
-            )
-        } returns expectedResult
 
         // When
         val result = editMessageUseCase(messageId, emptyMessage, authToken)
 
         // Then
-        assertTrue(result.isSuccess)
-        assertEquals("Message updated successfully", result.getOrNull())
-        coVerify(exactly = 1) { chatRepository.updateMessage(messageId, emptyMessage, authToken) }
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        assertEquals("Message content cannot be empty", result.exceptionOrNull()?.message)
+        // Repository should not be called for empty message
+        coVerify(exactly = 0) { chatRepository.updateMessage(any(), any(), any()) }
+    }
+
+    @Test
+    fun `invoke should handle whitespace-only message content`() = runTest {
+        // Given
+        val messageId = 789L
+        val whitespaceMessage = "   \n\t  "
+        val authToken = "test-token"
+
+        // When
+        val result = editMessageUseCase(messageId, whitespaceMessage, authToken)
+
+        // Then
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        assertEquals("Message content cannot be empty", result.exceptionOrNull()?.message)
+        // Repository should not be called for whitespace-only message
+        coVerify(exactly = 0) { chatRepository.updateMessage(any(), any(), any()) }
     }
 
     @Test

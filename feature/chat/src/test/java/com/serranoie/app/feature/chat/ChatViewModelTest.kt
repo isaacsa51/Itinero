@@ -17,12 +17,13 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -35,6 +36,8 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
 
+    private val testDispatcher = UnconfinedTestDispatcher()
+
     private lateinit var getMessagesUseCase: GetMessagesUseCase
     private lateinit var sendMessageUseCase: SendMessageUseCase
     private lateinit var connectToChatUseCase: ConnectToChatUseCase
@@ -45,8 +48,6 @@ class ChatViewModelTest {
     private lateinit var getCurrentUserName: () -> String
     private lateinit var getAuthToken: suspend () -> String
     private lateinit var viewModel: ChatViewModel
-
-    private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {
@@ -166,12 +167,31 @@ class ChatViewModelTest {
     @Test
     fun `sendMessage should call use case with correct parameters`() = runTest {
         // Given
+        val groupCode = "TEST_GROUP"
         val messageData = MessageData(
             message = "Hello World",
-            replyToMessageId = null
+            replyToMessageId = "123"
         )
 
-        coEvery { sendMessageUseCase(any(), "test-token") } returns Result.success(Unit)
+        coEvery {
+            getMessagesUseCase(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns Result.success(emptyList())
+        coEvery { connectToChatUseCase(any(), any()) } returns flowOf()
+        viewModel.initializeChat(groupCode, "Test Group", 5)
+        advanceUntilIdle()
+
+        val chatMessageSlot = slot<ChatMessage>()
+        coEvery {
+            sendMessageUseCase(
+                capture(chatMessageSlot),
+                "test-token"
+            )
+        } returns Result.success(Unit)
 
         // When
         viewModel.sendMessage(messageData)
@@ -179,6 +199,17 @@ class ChatViewModelTest {
 
         // Then
         coVerify(exactly = 1) { sendMessageUseCase(any(), "test-token") }
+
+        val capturedMessage = chatMessageSlot.captured
+        assertEquals("Hello World", capturedMessage.message)
+        assertEquals(123L, capturedMessage.replyToMessageId)
+        assertEquals(groupCode, capturedMessage.groupCode)
+        assertEquals(123L, capturedMessage.senderId)
+        assertEquals("Test User", capturedMessage.senderName)
+        assertEquals(MessageType.TEXT, capturedMessage.messageType)
+        assertFalse(capturedMessage.isEdited)
+        assertEquals(0L, capturedMessage.id) // New messages have id = 0
+        assertNotNull(capturedMessage.timestamp)
     }
 
     @Test

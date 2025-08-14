@@ -21,6 +21,10 @@ class EditMessageUseCase(
         newMessage: String,
         authToken: String
     ): Result<String> {
+        if (newMessage.isBlank()) {
+            return Result.failure(IllegalArgumentException("Message content cannot be empty"))
+        }
+
         return repository.updateMessage(messageId, newMessage, authToken)
     }
 }
