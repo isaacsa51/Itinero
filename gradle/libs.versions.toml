@@ -26,6 +26,7 @@ kotlinxCoroutinesCore = "1.10.2"
 kotlinxCoroutinesTest = "1.10.2"
 kotlinxSerializationJson = "1.9.0"
 ktorClientCio = "3.2.4"
+ktorClientMock = "3.2.3"
 ktorClientResources = "3.2.2"
 ktorClientWebsockets = "3.2.4"
 lifecycleRuntimeKtx = "2.9.2"
@@ -37,7 +38,9 @@ material = "1.12.0"
 material3 = "1.4.0-alpha18"
 jetbrainsKotlinJvm = "2.2.0"
 materialIconsExtendedAndroid = "1.7.8"
+mockk = "1.14.5"
 navigationCompose = "2.9.2"
+turbine = "1.2.1"
 uiTextGoogleFonts = "1.8.3"
 camerax = "1.5.0-beta02"
 accompanist = "0.37.3"
@@ -90,6 +93,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCio" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorClientMock" }
 ktor-client-resources = { module = "io.ktor:ktor-client-resources", version.ref = "ktorClientResources" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -118,6 +122,8 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -14,7 +14,6 @@ import com.serranoie.itinero.di.persistenceModule
 import com.serranoie.itinero.di.repositoryModule
 import com.serranoie.itinero.di.useCaseModule
 import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
 class ItineroApplication : Application() {
@@ -23,7 +22,6 @@ class ItineroApplication : Application() {
         super.onCreate()
 
         startKoin {
-            androidLogger()
             androidContext(this@ItineroApplication)
 
             modules(

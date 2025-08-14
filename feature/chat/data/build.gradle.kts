@@ -52,6 +52,16 @@ android {
             buildConfigField("String", "WEBSOCKET_PATH", "\"$websocketPath\"")
         }
     }
+
+    packaging {
+        resources {
+            pickFirsts += "META-INF/mailcap.default"
+            pickFirsts += "META-INF/mimetypes.default"
+
+            excludes += "xsd/catalog.xml"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -59,6 +69,14 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+}
+
+configurations.all {
+    exclude(group = "com.sun.activation", module = "javax.activation")
 }
 
 dependencies {
@@ -75,6 +93,7 @@ dependencies {
     // Kotlin coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     // Kotlin serialization
     implementation(libs.kotlinx.serialization.json)
@@ -95,4 +114,10 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.logging)
+
+    // Unit test helpers
+    testImplementation(libs.mockk)
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.turbine)
+    testImplementation(kotlin("test"))
 }
