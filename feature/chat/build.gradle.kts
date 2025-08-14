@@ -33,6 +33,19 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    packaging {
+        resources {
+            pickFirsts += "META-INF/mailcap.default"
+            pickFirsts += "META-INF/mimetypes.default"
+
+            excludes += "/META-INF/*"
+            excludes += "xsd/catalog.xml"
+        }
+    }
+}
+
+configurations.all {
+    exclude(group = "com.sun.activation", module = "javax.activation")
 }
 
 dependencies {
@@ -55,6 +68,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.koin.android)
     implementation(libs.koin.core)
@@ -82,6 +97,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // MockK for unit tests
+    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
 
     // Coil image loader
     implementation(libs.coil.compose)

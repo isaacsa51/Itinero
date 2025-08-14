@@ -60,7 +60,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // Define product flavors
     flavorDimensions += "version"
     productFlavors {
         create("alpha") {
@@ -71,7 +70,7 @@ android {
             buildConfigField("String", "ENVIRONMENT", "\"alpha\"")
             buildConfigField("String", "BASE_URL", "\"${getLocalProperty("API_BASE_URL") ?: "https://alpha-api.itinero.com"}\"")
 
-            resValue("string", "app_name", "Itinero Testing")
+            resValue("string", "app_name", "Itinero Debug")
         }
 
         create("beta") {
