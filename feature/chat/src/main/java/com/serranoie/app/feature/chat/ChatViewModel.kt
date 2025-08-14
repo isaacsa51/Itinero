@@ -114,11 +114,11 @@ class ChatViewModel(
                 _allMessages.update { currentState ->
                     (currentState + uiMessages).distinctBy { it.id }
                 }
-                _isLoading.value = false
             }.onFailure { exception ->
                 _error.value = "Failed to load messages: ${exception.message}"
-                _isLoading.value = false
             }
+
+            _isLoading.value = false
         }
     }
 

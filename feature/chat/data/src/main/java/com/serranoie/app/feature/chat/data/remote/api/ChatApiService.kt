@@ -107,8 +107,11 @@ class ChatApiService(
                 }
 
                 response.status == HttpStatusCode.NotFound -> {
-                    Log.w(TAG, "Chat group not found")
-                    throw ChatApiException("Chat group not found.")
+                    Log.i(
+                        TAG,
+                        "Chat group has no messages yet or doesn't exist - returning empty list"
+                    )
+                    emptyList<ChatMessageDto>()
                 }
 
                 response.status.isSuccess() -> {

@@ -72,6 +72,8 @@ import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatBubbleWithA
 import com.serranoie.app.designsystemlib.ui.theme.component.card.ChatMessage
 import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.designsystemlib.ui.utils.ShimmerProvider
+import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -227,7 +229,8 @@ fun ChatScreen(
                             selectedMessages + message.id
                         }
                     }
-                }
+                },
+                isLoading = isLoading
             )
             UserInput(
                 onMessageSent = { messageData ->
@@ -434,111 +437,147 @@ fun Messages(
     onBubbleSwipe: (ChatMessage) -> Unit = {},
     onMessageLongPress: (ChatMessage) -> Unit = {},
     onMessageClick: (ChatMessage) -> Unit = {},
+    isLoading: Boolean = false,
 ) {
     val scope = rememberCoroutineScope()
 
     Box(modifier = modifier) {
-        LazyColumn(
-            reverseLayout = true,
-            state = scrollState,
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            item(key = "typing_indicator") {
-                Box(
-                    modifier = Modifier
-                        .height(if (typingUsers.isNotEmpty()) 72.dp else 0.dp)
-                        .animateContentSize(animationSpec = tween(durationMillis = 300))
-                ) {
-                    AnimatedVisibility(
-                        visible = typingUsers.isNotEmpty(),
-                        enter = fadeIn(animationSpec = tween(200)) + slideInVertically(
-                            initialOffsetY = { fullHeight -> fullHeight },
-                            animationSpec = tween(250)
-                        ),
-                        exit = fadeOut(animationSpec = tween(100)) + slideOutVertically(
-                            targetOffsetY = { fullHeight -> fullHeight }, animationSpec = tween(150)
-                        )
+        if (isLoading) {
+            ShimmerMessagesPlaceholder()
+        } else {
+            LazyColumn(
+                reverseLayout = true,
+                state = scrollState,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item(key = "typing_indicator") {
+                    Box(
+                        modifier = Modifier
+                            .height(if (typingUsers.isNotEmpty()) 72.dp else 0.dp)
+                            .animateContentSize(animationSpec = tween(durationMillis = 300))
                     ) {
-                        Column {
-                            AnimatedContent(
-                                targetState = typingUsers.joinToString(", "), transitionSpec = {
-                                    fadeIn(animationSpec = tween(150)).togetherWith(
-                                        fadeOut(animationSpec = tween(150))
+                        AnimatedVisibility(
+                            visible = typingUsers.isNotEmpty(),
+                            enter = fadeIn(animationSpec = tween(200)) + slideInVertically(
+                                initialOffsetY = { fullHeight -> fullHeight },
+                                animationSpec = tween(250)
+                            ),
+                            exit = fadeOut(animationSpec = tween(100)) + slideOutVertically(
+                                targetOffsetY = { fullHeight -> fullHeight },
+                                animationSpec = tween(150)
+                            )
+                        ) {
+                            Column {
+                                AnimatedContent(
+                                    targetState = typingUsers.joinToString(", "), transitionSpec = {
+                                        fadeIn(animationSpec = tween(150)).togetherWith(
+                                            fadeOut(animationSpec = tween(150))
+                                        )
+                                    }) { typingUsersText ->
+                                    Text(
+                                        text = "$typingUsersText ${if (typingUsers.size == 1) "is" else "are"} typing...",
+                                        maxLines = 1,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(
+                                            horizontal = smallPadding, vertical = extraSmallPadding
+                                        )
                                     )
-                                }) { typingUsersText ->
-                                Text(
-                                    text = "$typingUsersText ${if (typingUsers.size == 1) "is" else "are"} typing...",
-                                    maxLines = 1,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(
-                                        horizontal = smallPadding, vertical = extraSmallPadding
-                                    )
-                                )
-                            }
+                                }
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                BubbleTypingIndicator()
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Start
+                                ) {
+                                    BubbleTypingIndicator()
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            val reversedMessages = messages.reversed()
-            itemsIndexed(
-                items = reversedMessages,
-                key = { index, message -> message.id }) { index, message ->
-                val showDayHeader = shouldShowDayHeader(
-                    message, if (index > 0) reversedMessages[index - 1] else null
-                )
-
-                if (showDayHeader) {
-                    DayHeader(getDateString(message.rawTimestamp))
-                }
-                AnimatedVisibility(
-                    visible = true,
-                    enter = slideInVertically(
-                        initialOffsetY = { fullHeight -> fullHeight / 2 },
-                        animationSpec = tween(durationMillis = 200)
-                    ) + fadeIn(animationSpec = tween(durationMillis = 200)),
-                    exit = slideOutVertically(
-                        targetOffsetY = { fullHeight -> fullHeight / 2 },
-                        animationSpec = tween(durationMillis = 200)
-                    ) + fadeOut(animationSpec = tween(durationMillis = 200)),
-                    modifier = Modifier.animateItem()
-                ) {
-                    MessageItem(
-                        message = message,
-                        isUserMe = message.authorId == currentUserId,
-                        isSelected = selectedMessages.contains(message.id),
-                        onBubbleSwipe = onBubbleSwipe,
-                        onLongPress = { onMessageLongPress(message) },
-                        onClick = { onMessageClick(message) }
+                val reversedMessages = messages.reversed()
+                itemsIndexed(
+                    items = reversedMessages,
+                    key = { index, message -> message.id }) { index, message ->
+                    val showDayHeader = shouldShowDayHeader(
+                        message, if (index > 0) reversedMessages[index - 1] else null
                     )
+
+                    if (showDayHeader) {
+                        DayHeader(getDateString(message.rawTimestamp))
+                    }
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = slideInVertically(
+                            initialOffsetY = { fullHeight -> fullHeight / 2 },
+                            animationSpec = tween(durationMillis = 200)
+                        ) + fadeIn(animationSpec = tween(durationMillis = 200)),
+                        exit = slideOutVertically(
+                            targetOffsetY = { fullHeight -> fullHeight / 2 },
+                            animationSpec = tween(durationMillis = 200)
+                        ) + fadeOut(animationSpec = tween(durationMillis = 200)),
+                        modifier = Modifier.animateItem()
+                    ) {
+                        MessageItem(
+                            message = message,
+                            isUserMe = message.authorId == currentUserId,
+                            isSelected = selectedMessages.contains(message.id),
+                            onBubbleSwipe = onBubbleSwipe,
+                            onLongPress = { onMessageLongPress(message) },
+                            onClick = { onMessageClick(message) }
+                        )
+                    }
+                }
+            }
+
+            val jumpThreshold = with(LocalDensity.current) { 120.dp.toPx() }
+            val jumpToBottomButtonEnabled by remember {
+                derivedStateOf {
+                    scrollState.firstVisibleItemIndex != 0 || scrollState.firstVisibleItemScrollOffset > jumpThreshold
+                }
+            }
+
+            JumpToBottom(
+                enabled = jumpToBottomButtonEnabled, onClicked = {
+                    scope.launch {
+                        scrollState.animateScrollToItem(0)
+                    }
+                }, modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
+    }
+}
+
+@DevicePreview
+@Composable
+fun ShimmerMessagesPlaceholder(itemCount: Int = 11) {
+    PreviewWrapper {
+        ShimmerProvider(isLoading = true) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                repeat(itemCount) { index ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = if (index % 3 == 0) Arrangement.End else Arrangement.Start
+                    ) {
+                        // Simulate different message lengths and positions
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(if (index % 2 == 0) 0.7f else 0.5f)
+                                .height(if (index % 4 == 0) 80.dp else 56.dp)
+                                .shimmerable()
+                        )
+                    }
                 }
             }
         }
-
-        val jumpThreshold = with(LocalDensity.current) { 120.dp.toPx() }
-        val jumpToBottomButtonEnabled by remember {
-            derivedStateOf {
-                scrollState.firstVisibleItemIndex != 0 || scrollState.firstVisibleItemScrollOffset > jumpThreshold
-            }
-        }
-
-        JumpToBottom(
-            enabled = jumpToBottomButtonEnabled, onClicked = {
-                scope.launch {
-                    scrollState.animateScrollToItem(0)
-                }
-            }, modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 
@@ -760,81 +799,64 @@ private fun ChatScreenContent(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when {
-                isLoading && uiState.messages.isEmpty() -> {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator()
-                        Text(
-                            text = "Loading messages...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 16.dp)
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Messages(
+                    messages = uiState.messages,
+                    currentUserId = currentUserId,
+                    scrollState = scrollState,
+                    modifier = Modifier.weight(1f),
+                    typingUsers = typingUsers,
+                    selectedMessages = selectedMessages,
+                    onBubbleSwipe = { message ->
+                        replyData =
+                            ReplyData(message.id, message.authorName, message.content)
+                        Log.d(
+                            "ChatScreenPreview",
+                            "UI: User is replying to messageId=${message.id}, author=${message.authorName}, content=${message.content}"
                         )
-                    }
-                }
-
-                else -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Messages(
-                            messages = uiState.messages,
-                            currentUserId = currentUserId,
-                            scrollState = scrollState,
-                            modifier = Modifier.weight(1f),
-                            typingUsers = typingUsers,
-                            selectedMessages = selectedMessages,
-                            onBubbleSwipe = { message ->
-                                replyData =
-                                    ReplyData(message.id, message.authorName, message.content)
-                                Log.d(
-                                    "ChatScreenPreview",
-                                    "UI: User is replying to messageId=${message.id}, author=${message.authorName}, content=${message.content}"
-                                )
-                                onBubbleSwipe(message)
-                            },
-                            onMessageLongPress = { message ->
-                                selectedMessages = if (selectedMessages.contains(message.id)) {
-                                    selectedMessages - message.id
-                                } else {
-                                    selectedMessages + message.id
-                                }
-                            },
-                            onMessageClick = { message ->
-                                if (selectedMessages.isNotEmpty()) {
-                                    selectedMessages = if (selectedMessages.contains(message.id)) {
-                                        selectedMessages - message.id
-                                    } else {
-                                        selectedMessages + message.id
-                                    }
-                                }
-                                // else, do normal click behavior if needed
+                        onBubbleSwipe(message)
+                    },
+                    onMessageLongPress = { message ->
+                        selectedMessages = if (selectedMessages.contains(message.id)) {
+                            selectedMessages - message.id
+                        } else {
+                            selectedMessages + message.id
+                        }
+                    },
+                    onMessageClick = { message ->
+                        if (selectedMessages.isNotEmpty()) {
+                            selectedMessages = if (selectedMessages.contains(message.id)) {
+                                selectedMessages - message.id
+                            } else {
+                                selectedMessages + message.id
                             }
+                        }
+                        // else, do normal click behavior if needed
+                    },
+                    isLoading = isLoading
+                )
+                UserInput(
+                    onMessageSent = { messageData ->
+                        Log.d(
+                            "ChatScreenPreview",
+                            "UI: Sending message with reply data - message='${messageData.message}', replyToMessageId=${messageData.replyToMessageId}"
                         )
-                        UserInput(
-                            onMessageSent = { messageData ->
-                                Log.d(
-                                    "ChatScreenPreview",
-                                    "UI: Sending message with reply data - message='${messageData.message}', replyToMessageId=${messageData.replyToMessageId}"
-                                )
-                                onMessageSent(messageData)
-                                replyData = null
-                            },
-                            onTypingStarted = onTypingStarted,
-                            onTypingStopped = onTypingStopped,
-                            resetScroll = {
-                                scope.launch {
-                                    scrollState.scrollToItem(0)
-                                }
-                            },
-                            replyData = replyData,
-                            onCancelReply = { replyData = null },
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-                }
+                        onMessageSent(messageData)
+                        replyData = null
+                    },
+                    onTypingStarted = onTypingStarted,
+                    onTypingStopped = onTypingStopped,
+                    resetScroll = {
+                        scope.launch {
+                            scrollState.scrollToItem(0)
+                        }
+                    },
+                    replyData = replyData,
+                    onCancelReply = { replyData = null },
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
         }
     }
