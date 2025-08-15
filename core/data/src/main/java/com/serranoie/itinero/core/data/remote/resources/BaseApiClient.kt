@@ -190,25 +190,32 @@ abstract class BaseApiClient(
     }
 
     protected fun handleNetworkError(exception: Throwable): Exception {
-        return when {
-            exception.message?.contains("Connect timeout", ignoreCase = true) == true -> {
-                NetworkException("Unable to connect to server. Please check your internet connection and try again.")
-            }
+        return when (exception) {
+            is UnauthorizedException -> exception
+            is NetworkException -> exception
+            else -> when {
+                exception.message?.contains("Connect timeout", ignoreCase = true) == true -> {
+                    NetworkException("Unable to connect to server. Please check your internet connection and try again.")
+                }
 
-            exception.message?.contains("timeout", ignoreCase = true) == true -> {
-                NetworkException("Request timed out. Please check your internet connection and try again.")
-            }
+                exception.message?.contains("timeout", ignoreCase = true) == true -> {
+                    NetworkException("Request timed out. Please check your internet connection and try again.")
+                }
 
-            exception.message?.contains("No route to host", ignoreCase = true) == true -> {
-                NetworkException("Server is unreachable. Please check your internet connection.")
-            }
+                exception.message?.contains("No route to host", ignoreCase = true) == true -> {
+                    NetworkException("Server is unreachable. Please check your internet connection.")
+                }
 
-            exception.message?.contains("Connection refused", ignoreCase = true) == true -> {
-                NetworkException("Unable to connect to server. The service may be temporarily unavailable.")
-            }
+                exception.message?.contains("Connection refused", ignoreCase = true) == true -> {
+                    NetworkException("Unable to connect to server. The service may be temporarily unavailable.")
+                }
 
-            else -> {
-                NetworkException("Network error occurred. Please check your internet connection and try again.", exception)
+                else -> {
+                    NetworkException(
+                        "Network error occurred. Please check your internet connection and try again.",
+                        exception
+                    )
+                }
             }
         }
     }

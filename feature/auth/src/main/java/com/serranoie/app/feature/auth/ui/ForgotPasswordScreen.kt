@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -47,26 +48,31 @@ fun ForgotPasswordScreen(navController: NavHostController) {
             Image(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.2f),
+                    .fillMaxHeight(0.2f)
+                    .testTag("forgotPasswordImage"),
                 painter = painterResource(com.serranoie.app.feature.auth.R.drawable.forgot_password_image),
                 contentDescription = null,
                 contentScale = ContentScale.Fit
             )
 
             Text(
-                text = "Recover your password", style = typography.headlineSmall
+                text = "Recover your password",
+                style = typography.headlineSmall,
+                modifier = Modifier.testTag("recoverPasswordTitle")
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Remember to enter the email address associated with your account.",
-                style = typography.titleMedium
+                style = typography.titleMedium,
+                modifier = Modifier.testTag("forgotPasswordSubTitle")
             )
 
             Text(
                 text = "This will help you receive a password recovery email with instructions on how to reset your password.",
-                style = typography.bodySmall
+                style = typography.bodySmall,
+                modifier = Modifier.testTag("forgotPasswordHelpText")
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -76,7 +82,8 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                 onValueChange = { email = it },
                 label = "Email",
                 placeholder = "Enter your email",
-                inputType = InputType.EMAIL
+                inputType = InputType.EMAIL,
+                modifier = Modifier.testTag("forgotPasswordEmailField")
             )
 
 
@@ -87,7 +94,9 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                 },
                 text = { Text("Recover account") },
                 leadingIcon = null,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("forgotPasswordRecoverButton")
             )
 
             Spacer(modifier = Modifier.height(16.dp))

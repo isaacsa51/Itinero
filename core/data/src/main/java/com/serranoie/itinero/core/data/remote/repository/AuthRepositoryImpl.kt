@@ -46,7 +46,6 @@ class AuthRepositoryImpl(
     override suspend fun getAuthToken(): String? = authPreferencesRepository.getToken()
 
     override suspend fun logout() {
-        api.logoutUser()
         authPreferencesRepository.clearToken()
         authPreferencesRepository.clearLoginStatus()
         authPreferencesRepository.saveLoginStatus(false)
