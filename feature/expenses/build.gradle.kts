@@ -33,6 +33,20 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    packaging {
+        resources {
+            pickFirsts += "META-INF/mailcap.default"
+            pickFirsts += "META-INF/mimetypes.default"
+
+            excludes += "/META-INF/*"
+            excludes += "xsd/catalog.xml"
+        }
+    }
+    configurations {
+        implementation {
+            exclude(group = "com.sun.activation", module = "javax.activation")
+        }
+    }
 }
 
 dependencies {
@@ -51,9 +65,14 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
+    androidTestImplementation(libs.androidx.activity.compose)
 
     // Koin
     implementation(libs.koin.android)
