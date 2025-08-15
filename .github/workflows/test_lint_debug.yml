@@ -56,12 +56,39 @@ jobs:
       - name: Clean build cache
         run: ./gradlew clean
 
-      - name: Execute Gradle command - testDebugUnitTest
-        run: ./gradlew test${{ steps.flavor.outputs.flavor }}DebugUnitTest --stacktrace
+      - name: Run all unit tests (JVM + Android unit tests)
+        run: ./gradlew testDebugUnitTest test --stacktrace
 
       - name: Execute Gradle command - lintDebug
         run: ./gradlew lint${{ steps.flavor.outputs.flavor }}Debug --continue || echo "Lint failed due to kotlinx-metadata-jvm compatibility issues"
         continue-on-error: true
+
+  instrumentation-tests:
+    runs-on: ubuntu-latest
+    needs: run_tests
+    strategy:
+      matrix:
+        flavor: [alpha, beta, release]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+
+      - uses: android-actions/setup-android@v3
+
+      - run: echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" > local.properties
+
+      - name: Start emulator and run connected tests
+
+        uses: reactivecircus/android-emulator-runner@v2
+
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          script: ./gradlew connected${{ matrix.flavor }}DebugAndroidTest --stacktrace
 
   debug-apk:
     name: Generate Debug APK
