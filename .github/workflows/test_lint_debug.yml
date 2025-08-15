@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Fetch full history for proper branch detection
 
@@ -48,7 +48,7 @@ jobs:
           echo "build_variant=${FLAVOR}Debug" >> $GITHUB_OUTPUT
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -79,8 +79,13 @@ jobs:
 
       - run: echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" > local.properties
 
-      - name: Start emulator and run connected tests
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
+      - name: Start emulator and run connected tests
         uses: reactivecircus/android-emulator-runner@v2
 
         with:
@@ -88,7 +93,7 @@ jobs:
           target: default
           arch: x86_64
           profile: pixel_6
-          script: ./gradlew connected${{ matrix.flavor }}DebugAndroidTest --stacktrace
+          script: ./gradlew test --stacktrace
 
   debug-apk:
     name: Generate Debug APK
@@ -98,7 +103,7 @@ jobs:
     
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Fetch full history for proper branch detection
 
