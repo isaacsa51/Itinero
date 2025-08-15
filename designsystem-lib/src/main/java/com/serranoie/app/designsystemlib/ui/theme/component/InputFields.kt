@@ -30,6 +30,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -42,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -107,7 +109,8 @@ fun ITextField(
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     fontStyle: TextStyle? = MaterialTheme.typography.bodyLarge,
-    autoScrollToFocus: Boolean = true
+    autoScrollToFocus: Boolean = true,
+    isError: Boolean = false
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -141,17 +144,24 @@ fun ITextField(
             },
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
-            unfocusedBorderColor = borderColor,
-            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+            focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary.copy(
+                alpha = PRIMARY_ALPHA
+            ),
+            unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else borderColor,
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            errorLabelColor = MaterialTheme.colorScheme.error,
             unfocusedPrefixColor = MaterialTheme.colorScheme.outline,
             focusedPrefixColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
-            unfocusedLeadingIconColor = MaterialTheme.colorScheme.outline,
-            focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            focusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            errorLeadingIconColor = MaterialTheme.colorScheme.error,
             unfocusedTrailingIconColor = MaterialTheme.colorScheme.outline,
             focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
         ),
-        textStyle = fontStyle ?: MaterialTheme.typography.labelLarge
+        textStyle = fontStyle ?: MaterialTheme.typography.labelLarge,
+        isError = isError
     )
 }
 
@@ -169,7 +179,8 @@ fun IFilledTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    autoScrollToFocus: Boolean = true
+    autoScrollToFocus: Boolean = true,
+    isError: Boolean = false
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -202,6 +213,25 @@ fun IFilledTextField(
                 }
             },
         shape = shape,
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary.copy(
+                alpha = PRIMARY_ALPHA
+            ),
+            unfocusedIndicatorColor = if (isError) MaterialTheme.colorScheme.error else borderColor,
+            errorIndicatorColor = MaterialTheme.colorScheme.error,
+            focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            errorLabelColor = MaterialTheme.colorScheme.error,
+            focusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            unfocusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            errorLeadingIconColor = MaterialTheme.colorScheme.error,
+            focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTrailingIconColor = MaterialTheme.colorScheme.outline,
+        ),
+        isError = isError,
+        trailingIcon = if (isError) {
+            { Icon(imageVector = Icons.Filled.Error, contentDescription = "Error") }
+        } else null
     )
 }
 
@@ -216,7 +246,8 @@ fun IPasswordField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
-    autoScrollToFocus: Boolean = true
+    autoScrollToFocus: Boolean = true,
+    isError: Boolean = false
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -259,16 +290,23 @@ fun IPasswordField(
             },
         shape = shape,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
-            unfocusedBorderColor = borderColor,
-            unfocusedLabelColor = MaterialTheme.colorScheme.outline,
+            focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary.copy(
+                alpha = PRIMARY_ALPHA
+            ),
+            unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else borderColor,
+            errorBorderColor = MaterialTheme.colorScheme.error,
+            focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            errorLabelColor = MaterialTheme.colorScheme.error,
             unfocusedPrefixColor = MaterialTheme.colorScheme.outline,
             focusedPrefixColor = MaterialTheme.colorScheme.primary.copy(alpha = PRIMARY_ALPHA),
-            unfocusedLeadingIconColor = MaterialTheme.colorScheme.outline,
-            focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            focusedLeadingIconColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            errorLeadingIconColor = MaterialTheme.colorScheme.error,
             unfocusedTrailingIconColor = MaterialTheme.colorScheme.outline,
             focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-        )
+        ),
+        isError = isError
     )
 }
 
@@ -289,7 +327,8 @@ fun ISmallerTextField(
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
     enabled: Boolean = true,
-    autoScrollToFocus: Boolean = true
+    autoScrollToFocus: Boolean = true,
+    isError: Boolean = false
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -325,7 +364,9 @@ fun ISmallerTextField(
             )
             .border(
                 1.dp,
-                if (enabled) borderColor else borderColor.copy(alpha = SURFACE_DISABLED_ALPHA),
+                if (isError) MaterialTheme.colorScheme.error else if (enabled) borderColor else borderColor.copy(
+                    alpha = SURFACE_DISABLED_ALPHA
+                ),
                 shape
             )
             .fillMaxWidth()
@@ -346,7 +387,7 @@ fun ISmallerTextField(
                         imageVector = it,
                         contentDescription = null,
                         modifier = Modifier.size(textFieldIconSize),
-                        tint = if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
+                        tint = if (isError) MaterialTheme.colorScheme.error else if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = DISABLED_ALPHA
                         )
                     )
@@ -357,7 +398,7 @@ fun ISmallerTextField(
                     if (value.isEmpty() && placeholder.isNotEmpty()) {
                         Text(
                             text = placeholder, style = LocalTextStyle.current.copy(
-                                color = if (enabled) MaterialTheme.colorScheme.outline.copy(alpha = PLACEHOLDER_ALPHA) else MaterialTheme.colorScheme.onSurface.copy(
+                                color = if (isError) MaterialTheme.colorScheme.error else if (enabled) MaterialTheme.colorScheme.outline.copy(alpha = PLACEHOLDER_ALPHA) else MaterialTheme.colorScheme.onSurface.copy(
                                     alpha = DISABLED_ALPHA
                                 ), fontSize = fontSize
                             )
@@ -372,13 +413,14 @@ fun ISmallerTextField(
                         imageVector = it,
                         contentDescription = null,
                         modifier = Modifier.size(textFieldIconSize),
-                        tint = if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
+                        tint = if (isError) MaterialTheme.colorScheme.error else if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = DISABLED_ALPHA
                         )
                     )
                 }
             }
-        })
+        }
+    )
 }
 
 @Composable
@@ -396,7 +438,8 @@ fun IFilledSmallerTextField(
     shape: RoundedCornerShape = RoundedCornerShape(commonCornerRadius),
     fontSize: TextUnit = MaterialTheme.typography.bodySmall.fontSize,
     enabled: Boolean = true,
-    autoScrollToFocus: Boolean = true
+    autoScrollToFocus: Boolean = true,
+    isError: Boolean = false
 ) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
@@ -448,7 +491,7 @@ fun IFilledSmallerTextField(
                         imageVector = it,
                         contentDescription = null,
                         modifier = Modifier.size(textFieldIconSize),
-                        tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
+                        tint = if (isError) MaterialTheme.colorScheme.error else if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = DISABLED_ALPHA
                         )
                     )
@@ -459,7 +502,7 @@ fun IFilledSmallerTextField(
                     if (value.isEmpty() && placeholder.isNotEmpty()) {
                         Text(
                             text = placeholder, style = LocalTextStyle.current.copy(
-                                color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                color = if (isError) MaterialTheme.colorScheme.error else if (enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(
                                     alpha = PLACEHOLDER_ALPHA
                                 ) else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
                                 fontSize = fontSize
@@ -475,13 +518,14 @@ fun IFilledSmallerTextField(
                         imageVector = it,
                         contentDescription = null,
                         modifier = Modifier.size(textFieldIconSize),
-                        tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
+                        tint = if (isError) MaterialTheme.colorScheme.error else if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface.copy(
                             alpha = DISABLED_ALPHA
                         )
                     )
                 }
             }
-        })
+        }
+    )
 }
 
 
@@ -499,6 +543,7 @@ private fun ITextFieldPreview() {
                 label = "Username",
                 placeholder = "Enter your username",
                 leadingIcon = Icons.Default.Person,
+                isError = true
             )
 
             IFilledTextField(
@@ -507,12 +552,14 @@ private fun ITextFieldPreview() {
                 label = "Username",
                 placeholder = "Enter your username",
                 leadingIcon = Icons.Default.Person,
+                isError = true
             )
 
             IPasswordField(
                 value = "password123",
                 onValueChange = {},
                 label = "Password",
+                isError = true
             )
 
             ISmallerTextField(
@@ -520,6 +567,7 @@ private fun ITextFieldPreview() {
                 onValueChange = {},
                 placeholder = "Enter text",
                 leadingIcon = Icons.Default.Person,
+                isError = true
             )
 
             IFilledSmallerTextField(
@@ -527,6 +575,7 @@ private fun ITextFieldPreview() {
                 onValueChange = {},
                 placeholder = "Enter text",
                 leadingIcon = Icons.Default.Person,
+                isError = true
             )
         }
     }

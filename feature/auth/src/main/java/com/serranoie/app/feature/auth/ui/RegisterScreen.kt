@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,6 +50,8 @@ import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IPasswordField
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.InputType
+import com.serranoie.app.feature.auth.R
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.compose.koinViewModel
 
@@ -70,7 +73,8 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var passwordConfirmation by remember { mutableStateOf("") }
 
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var validationErrorMessage by remember { mutableStateOf<String?>(null) }
+    var authErrorMessage by remember { mutableStateOf<String?>(null) }
 
     val state by uiState.collectAsState()
 
@@ -83,12 +87,24 @@ fun RegisterScreen(
             }
 
             is AuthUiState.Error -> {
-                errorMessage = (state as AuthUiState.Error).message
+                authErrorMessage = (state as AuthUiState.Error).message
+                validationErrorMessage = null // Clear validation error when auth error occurs
             }
 
-            else -> Unit
+            is AuthUiState.Loading -> {
+                validationErrorMessage = null // Clear validation error when loading
+                authErrorMessage = null // Clear auth error when new request starts
+            }
+
+            else -> {
+                authErrorMessage = null
+                validationErrorMessage = null
+            }
         }
     }
+
+    // Display either validation error or auth error
+    val displayErrorMessage = validationErrorMessage ?: authErrorMessage
 
     Scaffold(modifier = Modifier.padding(16.dp)) { paddingValues ->
         Column(
@@ -96,12 +112,14 @@ fun RegisterScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .testTag("RegisterScreenColumn")
         ) {
             Image(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.2f),
-                painter = painterResource(com.serranoie.app.feature.auth.R.drawable.register_image),
+                    .fillMaxHeight(0.2f)
+                    .testTag("RegisterImage"),
+                painter = painterResource(R.drawable.register_image),
                 contentDescription = null,
                 contentScale = ContentScale.Fit
             )
@@ -132,12 +150,14 @@ fun RegisterScreen(
                 passwordConfirmation = passwordConfirmation,
                 onPasswordConfirmationChange = { passwordConfirmation = it })
 
-            if (errorMessage != null) {
+            if (displayErrorMessage != null) {
                 Text(
-                    text = errorMessage!!,
+                    text = displayErrorMessage,
                     color = MaterialTheme.colorScheme.error,
                     style = typography.labelSmall,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .testTag("RegisterErrorText")
                 )
             }
 
@@ -145,9 +165,8 @@ fun RegisterScreen(
 
             IButton(
                 onClick = {
-                errorMessage = null
+                validationErrorMessage = null
 
-                // Validate all fields
                 val nameValidation = validateName(name)
                 val lastNameValidation = validateName(lastName)
                 val numberValidation = validatePhoneNumber(number)
@@ -157,38 +176,43 @@ fun RegisterScreen(
                     validatePasswordConfirmation(password, passwordConfirmation)
 
                 if (!nameValidation.isValid) {
-                    errorMessage = nameValidation.errorMessage
+                    validationErrorMessage = nameValidation.errorMessage
                     return@IButton
                 }
                 if (!lastNameValidation.isValid) {
-                    errorMessage = lastNameValidation.errorMessage
+                    validationErrorMessage = lastNameValidation.errorMessage
                     return@IButton
                 }
                 if (!numberValidation.isValid) {
-                    errorMessage = numberValidation.errorMessage
+                    validationErrorMessage = numberValidation.errorMessage
                     return@IButton
                 }
                 if (!emailValidation.isValid) {
-                    errorMessage = emailValidation.errorMessage
+                    validationErrorMessage = emailValidation.errorMessage
                     return@IButton
                 }
                 if (!passwordValidation.isValid) {
-                    errorMessage = passwordValidation.errorMessage
+                    validationErrorMessage = passwordValidation.errorMessage
                     return@IButton
                 }
                 if (!passwordConfirmationValidation.isValid) {
-                    errorMessage = passwordConfirmationValidation.errorMessage
+                    validationErrorMessage = passwordConfirmationValidation.errorMessage
                     return@IButton
                 }
 
                 onRegister(name, lastName, number, email, password)
-            }, text = {
-                if (state is AuthUiState.Loading) {
-                    LoadingIndicator()
-                } else {
-                    Text("Register")
-                }
-            }, modifier = Modifier.fillMaxWidth(), enabled = state !is AuthUiState.Loading
+            },
+                text = {
+                    if (state is AuthUiState.Loading) {
+                        LoadingIndicator()
+                    } else {
+                        Text("Register")
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("RegisterButton"),
+                enabled = state !is AuthUiState.Loading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -199,7 +223,9 @@ fun RegisterScreen(
 
             IOutlineButton(
                 onClick = { /* Facebook logic */ },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("FacebookButton"),
                 enabled = true,
                 text = { Text("Continue with Facebook") },
                 leadingIcon = {
@@ -212,7 +238,9 @@ fun RegisterScreen(
 
             IOutlineButton(
                 onClick = { /* Google logic */ },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("GoogleButton"),
                 enabled = true,
                 text = { Text("Continue with Google") },
                 leadingIcon = {
@@ -249,7 +277,8 @@ private fun FieldInformation(
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-        inputType = InputType.TEXT
+        inputType = InputType.TEXT,
+        modifier = Modifier.testTag("NameField")
     )
 
     ITextField(
@@ -260,18 +289,26 @@ private fun FieldInformation(
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-        inputType = InputType.TEXT
+        inputType = InputType.TEXT,
+        modifier = Modifier.testTag("LastNameField")
     )
 
     ITextField(
-        value = number, onValueChange = { input ->
+        value = number,
+        onValueChange = { input ->
             if (input.all { it.isDigit() }) {
                 onNumberChange(input)
             }
-        }, label = "Number", placeholder = "Enter your number", keyboardOptions = KeyboardOptions(
+        },
+        label = "Number",
+        placeholder = "Enter your number",
+        keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
-        ), keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) }), inputType = InputType.PHONE
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+        inputType = InputType.PHONE,
+        modifier = Modifier.testTag("NumberField")
     )
 
     ITextField(
@@ -285,7 +322,8 @@ private fun FieldInformation(
         keyboardActions = KeyboardActions(
             onNext = { focusManager.moveFocus(FocusDirection.Down) },
         ),
-        inputType = InputType.EMAIL
+        inputType = InputType.EMAIL,
+        modifier = Modifier.testTag("EmailField")
     )
 
     IPasswordField(
@@ -294,7 +332,8 @@ private fun FieldInformation(
         label = "Password",
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) })
+            onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+        modifier = Modifier.testTag("PasswordField")
     )
 
     IPasswordField(
@@ -303,11 +342,12 @@ private fun FieldInformation(
         label = "Confirm Password",
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
-            onDone = { focusManager.clearFocus() })
+            onDone = { focusManager.clearFocus() }),
+        modifier = Modifier.testTag("ConfirmPasswordField")
     )
 }
 
-private fun validateName(name: String): FieldValidation {
+internal fun validateName(name: String): FieldValidation {
     return if (name.isBlank()) {
         FieldValidation(false, "Name is required")
     } else if (name.length < 2) {
@@ -317,7 +357,7 @@ private fun validateName(name: String): FieldValidation {
     }
 }
 
-private fun validatePhoneNumber(number: String): FieldValidation {
+internal fun validatePhoneNumber(number: String): FieldValidation {
     val phoneRegex = "^[0-9]{10,15}$".toRegex()
     return if (number.isBlank()) {
         FieldValidation(false, "Phone number is required")
@@ -328,7 +368,7 @@ private fun validatePhoneNumber(number: String): FieldValidation {
     }
 }
 
-private fun validateEmail(email: String): FieldValidation {
+internal fun validateEmail(email: String): FieldValidation {
     val emailRegex = "^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$".toRegex()
     return if (email.isBlank()) {
         FieldValidation(false, "Email is required")
@@ -339,7 +379,7 @@ private fun validateEmail(email: String): FieldValidation {
     }
 }
 
-private fun validatePassword(password: String): FieldValidation {
+internal fun validatePassword(password: String): FieldValidation {
     val passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@\$%^&*-]).{8,}\$".toRegex()
     return if (password.isBlank()) {
         FieldValidation(false, "Password is required")
@@ -354,7 +394,7 @@ private fun validatePassword(password: String): FieldValidation {
     }
 }
 
-private fun validatePasswordConfirmation(password: String, confirmation: String): FieldValidation {
+internal fun validatePasswordConfirmation(password: String, confirmation: String): FieldValidation {
     return if (confirmation.isBlank()) {
         FieldValidation(false, "Password confirmation is required")
     } else if (password != confirmation) {
@@ -364,16 +404,14 @@ private fun validatePasswordConfirmation(password: String, confirmation: String)
     }
 }
 
-@DevicePreview
-@Composable
-private fun RegisterScreenPreview() {
-    PreviewWrapper {
-        val navController = rememberNavController()
-        val viewModel = koinViewModel<AuthViewModel>()
-        RegisterScreen(
-            navController = navController,
-            uiState = viewModel.uiState,
-            onRegister = viewModel::register
-        )
-    }
-}
+//@DevicePreview
+//@Composable
+//private fun RegisterScreenPreview() {
+//    PreviewWrapper {
+//        val navController = rememberNavController()
+//        RegisterScreen(
+//            navController = navController,
+//            onRegister = { _, _, _, _, _ -> },
+//        )
+//    }
+//}

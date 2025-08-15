@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.rounded.GroupAdd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -250,31 +252,55 @@ fun ShimmerLoadingTravelList(
     ) {
         items(4) {
             ShimmerProvider {
-                TravelItem(
-                    trip = Trip(
-                        id = "loading",
-                        groupCode = "loading",
-                        groupName = "loading",
-                        totalMembers = 0,
-                        destination = "loading",
-                        startDate = "2025-12-01",
-                        endDate = "2025-12-31",
-                        summary = "loading",
-                        accommodation = Accommodation(
-                            name = "loading",
-                            phone = "loading",
-                            checkIn = "loading",
-                            checkOut = "loading",
-                            location = "loading",
-                            mapUri = "loading"
-                        ),
-                        reservationCode = "loading",
-                        extraInfo = "loading",
-                        additionalInfo = "loading",
-                        ownerId = "loading"
-                    ),
-                    onClick = {}
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Shimmer Airplane Icon
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .shimmerable()
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                // Destination shimmer
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.6f)
+                                        .height(24.dp)
+                                        .shimmerable()
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                // Date and people shimmer
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.8f)
+                                        .height(16.dp)
+                                        .shimmerable()
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                // Group name shimmer
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.5f)
+                                        .height(16.dp)
+                                        .shimmerable()
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -401,83 +427,80 @@ fun TravelItem(
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                // Airplane Icon
+                Icon(
+                    imageVector = Icons.Filled.FlightTakeoff,
+                    contentDescription = "Trip",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(40.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = trip.destination,
                         style = MaterialTheme.typography.titleLargeEmphasized,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.shimmerable()
                     )
-                }
-
-                Text(
-                    text = trip.groupName,
-                    style = MaterialTheme.typography.titleSmallEmphasized,
-                    modifier = Modifier.shimmerable()
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Column {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = formatTripDates(trip.startDate, trip.endDate),
+                            style = MaterialTheme.typography.bodyMediumEmphasized,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.shimmerable()
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Icon(
+                            imageVector = Icons.Rounded.People,
+                            contentDescription = "Members",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${trip.totalMembers} people",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.shimmerable()
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = tripStatus,
-                        style = MaterialTheme.typography.bodyMediumEmphasized,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.shimmerable()
-                    )
-                    Text(
-                        text = "${trip.startDate} - ${trip.endDate}",
-                        style = MaterialTheme.typography.bodySmallEmphasized,
-                        modifier = Modifier.shimmerable()
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row {
-                    Text(
-                        text = "Accommodation:",
-                        style = MaterialTheme.typography.bodySmallEmphasized,
-                        color = MaterialTheme.colorScheme.outline,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.shimmerable()
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = trip.accommodation.name,
-                        color = MaterialTheme.colorScheme.outline,
-                        style = MaterialTheme.typography.bodySmallEmphasized,
+                        text = trip.groupName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.shimmerable()
                     )
                 }
-            }
-        }
-
-        if (tripStatus == "Completed") {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Completed",
-                    style = MaterialTheme.typography.titleLargeEmphasized.copy(
-                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface
-                    )
-                )
+                if (tripStatus == "Completed") {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        tonalElevation = 2.dp,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = "Completed",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
             }
         }
     }
@@ -493,6 +516,25 @@ fun determineTripStatus(startDate: String, endDate: String): String {
         today.isAfter(end) -> "Completed"
         today.isAfter(start) && today.isBefore(end) -> "In Progress"
         else -> "Pending"
+    }
+}
+
+fun formatTripDates(startDate: String, endDate: String): String {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val outputFormatter = DateTimeFormatter.ofPattern("MMM d")
+        val start = LocalDate.parse(startDate, formatter)
+        val end = LocalDate.parse(endDate, formatter)
+
+        if (start.month == end.month && start.year == end.year) {
+            // Same month: "Oct 12 - 15"
+            "${start.format(outputFormatter)} - ${end.dayOfMonth}"
+        } else {
+            // Different months: "Oct 12 - Nov 15"
+            "${start.format(outputFormatter)} - ${end.format(outputFormatter)}"
+        }
+    } catch (e: Exception) {
+        "$startDate - $endDate"
     }
 }
 
