@@ -87,15 +87,17 @@ jobs:
 
       - run: chmod +x ./gradlew
 
-      - name: Start emulator and run connected tests
+      - name: Start emulator and run connected tests (${{ matrix.flavor }})
         uses: reactivecircus/android-emulator-runner@v2
-
         with:
           api-level: 33
           target: default
           arch: x86_64
           profile: pixel_6
-          script: ./gradlew test --stacktrace
+          script: |
+            FLAVOR='${{ matrix.flavor }}'
+            FLAVOR_CAP=${FLAVOR^}    # alpha -> Alpha, beta -> Beta, release -> Release
+            ./gradlew connected${FLAVOR_CAP}DebugAndroidTest --stacktrace
 
   debug-apk:
     name: Generate Debug APK

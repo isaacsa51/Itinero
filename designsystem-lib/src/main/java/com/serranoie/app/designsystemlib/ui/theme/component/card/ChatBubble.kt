@@ -140,7 +140,7 @@ fun ChatBubble(
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start, modifier = modifier
     ) {
         Surface(
-            color = bubbleColor, shape = bubbleShape, modifier = Modifier.widthIn(max = 320.dp)
+            color = bubbleColor, shape = bubbleShape, modifier = Modifier.wrapContentWidth()
         ) {
             Column {
                 if (replyAuthorName != null && replyMessage != null) {
@@ -654,7 +654,7 @@ fun ReplyMessageBubble(
     Surface(
         color = Color(0xFF888888).copy(alpha = 0.25f),
         shape = RoundedCornerShape(commonCornerRadius),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         Column(
             modifier = Modifier.padding(smallPadding)
@@ -825,18 +825,18 @@ private fun ChatBubblePreview() {
                 authorId = "isaac",
                 messageId = "4",
                 replyAuthorName = "Andrea Mena",
-                replyMessage = "Perfect! I've prepared the presentation."
+                replyMessage = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Soluta laoreet nisl. Nisl option aliqua invidunt volutpat ut, feugait at clita placerat consetetur commodo suscipit diam lobortis nihil velit labore soluta voluptua vero velit, gubergren placerat eos nonumy sanctus sanctus dolores qui gubergren iusto deserunt volutpat dolore. Vel tation nam invidunt stet illum cum iure. Sunt in suscipit facer takimata amet dolor takimata. Officia cillum minim mollit labore aliqua in kasd. Facilisis ullamcorper sit."
             )
 
             ChatBubbleWithAvatar(
-                message = "Thanks Isaac! Should we start with the overview?",
+                message = "Thanks Isaac!",
                 isUserMe = true,
                 timestamp = "09:04 AM",
                 authorName = "Me",
                 authorId = "me",
                 messageId = "5",
                 replyAuthorName = "Isaac Serrano",
-                replyMessage = "Great work, Andrea! Looking forward to it.",
+                replyMessage = "Great work, Andrea!",
             )
 
             ChatBubbleWithAvatar(
