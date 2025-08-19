@@ -35,6 +35,9 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldElevation
 import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldIconSpacing
 import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldLabelBottomPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.selectFieldLabelStartPadding
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 /**
  * A custom field for selections like dropdowns and date pickers that looks like
@@ -62,7 +65,6 @@ fun SelectField(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(
-                    start = selectFieldLabelStartPadding,
                     bottom = selectFieldLabelBottomPadding
                 )
             )

@@ -107,6 +107,13 @@ dependencies {
 
     // Barcode scanning ML Kit
     implementation(libs.barcode.scanning)
+
+    // Google Maps SDK for Android
+    implementation(libs.places)
+    implementation(libs.play.services.maps)
+
+    // Google maps Compose
+    implementation(libs.maps.compose)
 }
 
 kapt {

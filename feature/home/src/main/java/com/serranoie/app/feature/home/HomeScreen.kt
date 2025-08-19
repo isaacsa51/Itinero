@@ -1,5 +1,7 @@
 package com.serranoie.app.feature.home
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
@@ -48,12 +50,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.serranoie.app.core.navigation.Route
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
@@ -73,11 +86,13 @@ import com.serranoie.app.designsystemlib.ui.utils.shimmerable
 import com.serranoie.app.designsystemlib.ui.utils.standardPadding
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import kotlin.coroutines.resume
 
 data class TripDateInfo(
     val status: TripStatus, val displayText: String, val subtitle: String
@@ -250,7 +265,8 @@ fun HomeScreen(
                             tripOverview = overviewUiState,
                             paddingValues = paddingValues,
                             onRefresh = onRefresh,
-                            onShowSnackbar = onShowSnackbar
+                            onShowSnackbar = onShowSnackbar,
+                            contentActive = true
                         )
                     } ?: HomeScreenEmptyOrError(
                         message = "Unexpected error: Trip data missing after success.",
@@ -619,7 +635,8 @@ fun HomeScreenContent(
     tripOverview: OverviewUiState,
     paddingValues: PaddingValues,
     onRefresh: () -> Unit,
-    onShowSnackbar: suspend (String) -> Unit
+    onShowSnackbar: suspend (String) -> Unit,
+    contentActive: Boolean
 ) {
     PullToRefreshBox(
         isRefreshing = false, onRefresh = {
@@ -634,7 +651,10 @@ fun HomeScreenContent(
                 .standardPadding()
         ) {
             TripDetailsContent(
-                navController = navController, trip = trip, overviewUiState = tripOverview
+                navController = navController,
+                trip = trip,
+                overviewUiState = tripOverview,
+                contentActive = contentActive
             )
         }
     }
@@ -676,9 +696,23 @@ fun HomeScreenEmptyOrError(
 fun TripDetailsContent(
     navController: NavController,
     trip: Trip,
-    overviewUiState: OverviewUiState = OverviewUiState.Idle
+    overviewUiState: OverviewUiState = OverviewUiState.Idle,
+    contentActive: Boolean
 ) {
     var isExpanded by remember { mutableStateOf(true) }
+    var isMapLoaded by remember { mutableStateOf(false) }
+    var showMap by remember { mutableStateOf(false) }
+
+    LaunchedEffect(contentActive, isExpanded) {
+        // Ensure the GoogleMap is only composed after we are in the active content branch
+        // and after at least one frame to guarantee attachment to an owner.
+        showMap = false
+        if (contentActive && isExpanded) {
+            kotlinx.coroutines.delay(1)
+            showMap = true
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -739,11 +773,44 @@ fun TripDetailsContent(
             contentColor = MaterialTheme.colorScheme.onSurface,
             showDivider = true
         ) {
-            Text(
-                text = "map sdk location holder",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
+            if (showMap) {
+                val (locationLatLng, locationError) = remember(trip.accommodation.location) {
+                    try {
+                        val locParts = trip.accommodation.location.split(",")
+                        if (locParts.size == 2) LatLng(
+                            locParts[0].trim().toDouble(), locParts[1].trim().toDouble()
+                        ) to null
+                        else null to "Location format must be 'lat,lng'"
+                    } catch (e: Exception) {
+                        null to "Invalid location: ${e.localizedMessage}"
+                    }
+                }
+
+                if (locationError != null) {
+                    Text(
+                        text = locationError, color = MaterialTheme.colorScheme.error
+                    )
+                }
+                GoogleMapView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    markerLocation = locationLatLng,
+                    markerTitle = trip.accommodation.name,
+                    onMapLoaded = { isMapLoaded = true })
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Tap to expand and show map",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(smallPadding))
 
@@ -1467,3 +1534,74 @@ fun HomeScreenPreviewLoading() {
         )
     }
 }
+
+@Composable
+fun GoogleMapView(
+    modifier: Modifier = Modifier,
+    markerLocation: LatLng? = null,
+    markerTitle: String = "Marker",
+    onMapLoaded: (() -> Unit)? = null,
+    properties: MapProperties = MapProperties(),
+    uiSettings: MapUiSettings = MapUiSettings()
+) {
+    val context = LocalContext.current
+    val cameraPositionState = rememberCameraPositionState()
+    val defaultLocation = LatLng(40.7128, -74.0060) // New York as fallback
+    var hasMyLocationPermission by remember { mutableStateOf(false) }
+
+    LaunchedEffect(markerLocation) {
+        // Move the camera to the marker location if available
+        markerLocation?.let {
+            cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(it, 14f))
+        }
+    }
+
+    // Check fine location permission (update every recomposition)
+    LaunchedEffect(Unit) {
+        hasMyLocationPermission = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    LaunchedEffect(hasMyLocationPermission) @androidx.annotation.RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION]) {
+        if (markerLocation == null && hasMyLocationPermission) {
+            try {
+                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(
+                    context
+                )
+                val location = fusedLocationClient.getCurrentLocation(
+                    Priority.PRIORITY_HIGH_ACCURACY, null
+                ).await()
+                location?.let {
+                    val userLatLng = LatLng(it.latitude, it.longitude)
+                    cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(userLatLng, 16f))
+                }
+            } catch (e: Exception) {
+                Log.e("GoogleMapView", "Error getting location", e)
+            }
+        } else if (markerLocation == null) {
+            cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(defaultLocation, 8f))
+        }
+    }
+
+    GoogleMap(
+        modifier = modifier,
+        cameraPositionState = cameraPositionState,
+        properties = properties.copy(isMyLocationEnabled = hasMyLocationPermission),
+        uiSettings = uiSettings.copy(myLocationButtonEnabled = true),
+        onMapLoaded = { onMapLoaded?.invoke() }) {
+        // Show marker if location is provided
+        markerLocation?.let {
+            Marker(
+                state = com.google.maps.android.compose.MarkerState(position = it),
+                title = markerTitle
+            )
+        }
+    }
+}
+
+private suspend fun com.google.android.gms.tasks.Task<android.location.Location>.await(): android.location.Location? =
+    suspendCancellableCoroutine { cont ->
+        addOnSuccessListener { cont.resume(it) }
+        addOnFailureListener { cont.resume(null) }
+    }

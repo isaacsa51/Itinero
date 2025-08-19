@@ -87,7 +87,7 @@ fun WelcomeOptions(onCreateTrip: () -> Unit, onJoinTrip: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             ActionTripButton(
                 title = "Unirme con código",
-                imageRes = R.drawable.img_scan,
+                imageRes = R.drawable.img_basic_info,
                 modifier = Modifier.weight(1f),
                 onClick = onJoinTrip
             )
