@@ -114,6 +114,9 @@ dependencies {
 
     // Google maps Compose
     implementation(libs.maps.compose)
+
+    // Place SDK
+    implementation("com.google.android.libraries.places:places:4.4.1")
 }
 
 kapt {

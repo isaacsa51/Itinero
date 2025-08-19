@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -62,8 +63,7 @@ fun SelectField(
         if (titleHeader == true) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(
                     bottom = selectFieldLabelBottomPadding
                 )
@@ -117,6 +117,8 @@ fun SelectField(
 @Preview
 @Composable
 private fun SelectFieldPreview() {
+    val dummyRequestLocationPermission: () -> Unit = {}
+
     PreviewWrapper {
         Column(Modifier.padding(basePadding)) {
             SelectField(
@@ -135,6 +137,19 @@ private fun SelectFieldPreview() {
                 titleHeader = false,
                 label = "Date",
                 leadingIcon = androidx.compose.material.icons.Icons.Default.CalendarToday
+            )
+
+            Spacer(modifier = Modifier.height(basePadding))
+
+            SelectField(
+                value = "".takeIf { it.isNotBlank() } ?: "Select or search location",
+                onSelect = {
+                    dummyRequestLocationPermission()
+                    // then show your Google Places picker/etc.
+                },
+                label = "Accommodation Location",
+                leadingIcon = androidx.compose.material.icons.Icons.Default.LocationOn,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

@@ -543,7 +543,7 @@ private fun ITextFieldPreview() {
                 label = "Username",
                 placeholder = "Enter your username",
                 leadingIcon = Icons.Default.Person,
-                isError = true
+                isError = false
             )
 
             IFilledTextField(
@@ -559,7 +559,7 @@ private fun ITextFieldPreview() {
                 value = "password123",
                 onValueChange = {},
                 label = "Password",
-                isError = true
+                isError = false
             )
 
             ISmallerTextField(

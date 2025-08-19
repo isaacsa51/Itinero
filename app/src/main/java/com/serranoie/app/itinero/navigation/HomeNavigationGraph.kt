@@ -54,9 +54,6 @@ class HomeNavigationGraph : NavigationGraph {
                                     popUpTo(0) { inclusive = true }
                                 }
                             } else {
-                                // Navigate to welcome screen if no other trips
-                                // The WelcomeNavigationGraph will automatically handle showing Welcome screen
-                                // when TravelList is empty
                                 navController.navigate(Route.WelcomeNavigation.route) {
                                     popUpTo(0) { inclusive = true }
                                 }

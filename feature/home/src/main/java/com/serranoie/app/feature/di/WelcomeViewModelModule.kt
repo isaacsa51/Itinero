@@ -17,6 +17,10 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val welcomeViewModelModule = module {
-    viewModel { SharedTravelViewModel(get()) }
+    viewModel {
+        SharedTravelViewModel(
+            get(), placesClient = get()
+        )
+    }
     viewModel { TravelListViewModel(get()) }
 }

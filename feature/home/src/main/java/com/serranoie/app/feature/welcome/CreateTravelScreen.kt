@@ -1,9 +1,12 @@
 package com.serranoie.app.feature.welcome
 
+import android.text.InputType
 import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +15,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -25,6 +32,7 @@ import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePickerDefaults
@@ -59,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
@@ -67,11 +76,14 @@ import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInputType
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
 import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
+import com.serranoie.app.feature.AutocompleteResult
 import com.serranoie.app.feature.TravelUiState
 import com.serranoie.app.feature.home.R
 import kotlinx.coroutines.launch
@@ -79,13 +91,18 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreateTravelScreen(
     uiState: TravelUiState = TravelUiState.Idle,
     onTravelCreated: (String, String, String, String, String, String, String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onAccommodationLocationQueryChanged: (String) -> Unit,
+    autocompleteResults: List<AutocompleteResult>,
+    onAutocompleteResultClick: (AutocompleteResult) -> Unit,
+    onRequestLocationPermission: () -> Unit = {}
 ) {
 
     val snackState = remember { SnackbarHostState() }
@@ -102,8 +119,8 @@ fun CreateTravelScreen(
     var summary by remember { mutableStateOf("") }
     var accommodationName by remember { mutableStateOf("") }
     var accommodationPhone by remember { mutableStateOf("") }
-    var accommodationCheckIn by remember { mutableStateOf("") }
-    var accommodationCheckOut by remember { mutableStateOf("") }
+    var accommodationCheckInDate by remember { mutableStateOf<Long?>(null) }
+    var accommodationCheckOutDate by remember { mutableStateOf<Long?>(null) }
     var accommodationLocation by remember { mutableStateOf("") }
     var accommodationMapUri by remember { mutableStateOf("") }
     var reservationCode by remember { mutableStateOf("") }
@@ -113,9 +130,13 @@ fun CreateTravelScreen(
     fun getPrettyDate(dateString: String): String {
         // dateString is in "yyyy-MM-dd"
         return try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
             val date = inputFormat.parse(dateString)
-            val outputFormat = SimpleDateFormat("d 'of' MMMM", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("d 'of' MMMM", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
             outputFormat.format(date!!)
         } catch (e: Exception) {
             dateString
@@ -143,13 +164,14 @@ fun CreateTravelScreen(
             ),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(modifier = Modifier
-                    .weight(1f, fill = false)
-                    .height(600.dp)
-                    .fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .height(600.dp)
+                        .fillMaxWidth()
+                ) {
                     DateRangePickerSample(dateRangePickerState)
                 }
                 Spacer(Modifier.height(16.dp))
@@ -159,22 +181,22 @@ fun CreateTravelScreen(
                         .padding(end = 16.dp, bottom = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    IButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                if (dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null) {
-                                    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                    startDate =
-                                        formatter.format(Date(dateRangePickerState.selectedStartDateMillis!!))
-                                    endDate =
-                                        formatter.format(Date(dateRangePickerState.selectedEndDateMillis!!))
-                                }
-                                bottomSheetState.hide()
-                                showDateSheet = false
+                    IButton(onClick = {
+                        coroutineScope.launch {
+                            if (dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null) {
+                                val formatter =
+                                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                                        timeZone = TimeZone.getTimeZone("UTC")
+                                    }
+                                startDate =
+                                    formatter.format(Date(dateRangePickerState.selectedStartDateMillis!!))
+                                endDate =
+                                    formatter.format(Date(dateRangePickerState.selectedEndDateMillis!!))
                             }
-                        },
-                        text = { Text("Done") }
-                    )
+                            bottomSheetState.hide()
+                            showDateSheet = false
+                        }
+                    }, text = { Text("Done") })
                 }
             }
         }
@@ -204,7 +226,7 @@ fun CreateTravelScreen(
                             .height(48.dp),
                         enabled = uiState !is TravelUiState.Loading,
                         text = { Text("Back") })
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(basePadding))
                 }
                 if (currentPage == pages.lastIndex) {
                     IButton(
@@ -221,8 +243,16 @@ fun CreateTravelScreen(
                                 summary,
                                 accommodationName,
                                 accommodationPhone,
-                                accommodationCheckIn,
-                                accommodationCheckOut,
+                                accommodationCheckInDate?.let {
+                                    val formatter =
+                                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                    formatter.format(Date(it))
+                                } ?: "",
+                                accommodationCheckOutDate?.let {
+                                    val formatter =
+                                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                    formatter.format(Date(it))
+                                } ?: "",
                                 accommodationLocation,
                                 accommodationMapUri,
                                 reservationCode,
@@ -245,7 +275,7 @@ fun CreateTravelScreen(
 
                     val canGoNext = when (pages[currentPage]) {
                         "Basic" -> groupName.isNotBlank() && destination.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank() && summary.isNotBlank()
-                        "Accommodation" -> accommodationName.isNotBlank() && accommodationPhone.isNotBlank() && accommodationCheckIn.isNotBlank() && accommodationCheckOut.isNotBlank() && accommodationLocation.isNotBlank()
+                        "Accommodation" -> accommodationName.isNotBlank() && accommodationPhone.isNotBlank() && accommodationCheckInDate != null && accommodationCheckOutDate != null && accommodationLocation.isNotBlank()
                         "Additional" -> reservationCode.isNotBlank() && extraInfo.isNotBlank() && additionalInfo.isNotBlank()
                         else -> true
                     }
@@ -268,7 +298,6 @@ fun CreateTravelScreen(
                 .padding(padding)
                 .padding(horizontal = basePadding)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             when (pages[currentPage]) {
                 "Basic" -> {
@@ -276,23 +305,27 @@ fun CreateTravelScreen(
                         text = "Basic Information",
                         description = "Help us know more about your trip via adding basic information.",
                         imageRes = R.drawable.img_basic_info,
-                        modifier = Modifier.padding(bottom = basePadding)
+                        modifier = Modifier
+                            .padding(bottom = basePadding)
+                            .fillMaxWidth()
                     )
 
                     Text(
                         text = "What name should this trip have?",
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp)
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 0.dp)
                     )
                     ITextField(
                         value = groupName,
                         onValueChange = { groupName = it },
                         label = "Group Name",
                         leadingIcon = Icons.Default.Hotel,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = extraSmallPadding)
+                        modifier = Modifier.fillMaxWidth()
                     )
+
+                    Spacer(Modifier.height(basePadding))
 
                     Text(
                         text = "Where are you going on your trip?",
@@ -304,10 +337,10 @@ fun CreateTravelScreen(
                         onValueChange = { destination = it },
                         label = "Destination",
                         leadingIcon = Icons.Default.LocationOn,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = extraSmallPadding)
+                        modifier = Modifier.fillMaxWidth()
                     )
+
+                    Spacer(Modifier.height(basePadding))
 
                     Text(
                         text = "Give your trip a brief summary for easy referencing.",
@@ -319,10 +352,10 @@ fun CreateTravelScreen(
                         onValueChange = { summary = it },
                         label = "Summary",
                         leadingIcon = Icons.Default.Description,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = extraSmallPadding)
+                        modifier = Modifier.fillMaxWidth()
                     )
+
+                    Spacer(Modifier.height(basePadding))
 
                     SelectField(
                         value = if (startDate.isNotBlank() && endDate.isNotBlank()) {
@@ -355,8 +388,7 @@ fun CreateTravelScreen(
                     Text(
                         text = "Where are you staying during your trip?",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                     ITextField(
                         value = accommodationName,
@@ -366,77 +398,121 @@ fun CreateTravelScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    Spacer(Modifier.height(basePadding))
+
                     Text(
                         text = "A phone number helps in contacting your accommodation.",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                     ITextField(
                         value = accommodationPhone,
                         onValueChange = { accommodationPhone = it },
                         label = "Accommodation Phone",
-                        leadingIcon = Icons.Default.Numbers,
+                        leadingIcon = Icons.Default.Phone,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    Spacer(Modifier.height(basePadding))
 
                     Text(
-                        text = "When will you check in to your accommodation?",
+                        text = "When will you check in and check out of your accommodation?",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    ITextField(
-                        value = accommodationCheckIn,
-                        onValueChange = { accommodationCheckIn = it },
-                        label = "Check-in Date/Time",
-                        leadingIcon = Icons.Rounded.CalendarToday,
                         modifier = Modifier.fillMaxWidth()
+                            .padding(bottom = extraSmallPadding)
                     )
-
-                    Text(
-                        text = "When will you check out of your accommodation?",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
+                    Row(
+                        Modifier
                             .fillMaxWidth()
-                    )
-                    ITextField(
-                        value = accommodationCheckOut,
-                        onValueChange = { accommodationCheckOut = it },
-                        label = "Check-out Date/Time",
-                        leadingIcon = Icons.Rounded.CalendarToday,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    // TODO: Use Places SDK to indentify correctly the location
-
+                            .padding(bottom = basePadding),
+                        horizontalArrangement = Arrangement.spacedBy(basePadding),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        DateTimeInput(
+                            selectedDateTime = accommodationCheckInDate?.let { Date(it) },
+                            onDateTimeSelected = { accommodationCheckInDate = it.time },
+                            inputType = DateTimeInputType.DATE,
+                            label = "In: ",
+                            leadingIcon = Icons.Rounded.CalendarToday,
+                            modifier = Modifier.weight(1f)
+                        )
+                        DateTimeInput(
+                            selectedDateTime = accommodationCheckOutDate?.let { Date(it) },
+                            onDateTimeSelected = { accommodationCheckOutDate = it.time },
+                            inputType = DateTimeInputType.DATE,
+                            label = "Out: ",
+                            leadingIcon = Icons.Rounded.CalendarToday,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                     Text(
                         text = "What's the address or location of your accommodation?",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                     ITextField(
                         value = accommodationLocation,
-                        onValueChange = { accommodationLocation = it },
+                        onValueChange = {
+                            accommodationLocation = it
+                            onAccommodationLocationQueryChanged(it)
+                        },
                         label = "Accommodation Location",
                         leadingIcon = Icons.Default.LocationOn,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Text(
-                        text = "Provide a map link for easy navigation (optional).",
-                        style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(bottom = extraSmallPadding)
                     )
-                    ITextField(
-                        value = accommodationMapUri,
-                        onValueChange = { accommodationMapUri = it },
-                        label = "Map URI",
-                        leadingIcon = Icons.Default.LocationOn,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+
+                    if (autocompleteResults.isNotEmpty()) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .padding(bottom = extraSmallPadding),
+                            shape = RoundedCornerShape(commonCornerRadius),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 200.dp)
+                            ) {
+                                items(autocompleteResults) { result ->
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onAutocompleteResultClick(result)
+                                                accommodationLocation = result.address
+                                            }, color = Color.Transparent
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.LocationOn,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(end = 12.dp)
+                                            )
+                                            Text(
+                                                text = result.address,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(smallPadding))
                 }
 
                 "Additional" -> {
@@ -450,8 +526,7 @@ fun CreateTravelScreen(
                     Text(
                         text = "If you have a reservation code, enter it here for easier check-in.",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                     ITextField(
                         value = reservationCode,
@@ -461,11 +536,11 @@ fun CreateTravelScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    Spacer(Modifier.height(basePadding))
                     Text(
                         text = "Add anything important about your trip that wasn't covered above.",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                     ITextField(
                         value = extraInfo,
@@ -474,12 +549,12 @@ fun CreateTravelScreen(
                         leadingIcon = Icons.Default.Info,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(Modifier.height(basePadding))
 
                     Text(
                         text = "Is there any more information you want to add about this trip?",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                     ITextField(
                         value = additionalInfo,
@@ -489,8 +564,7 @@ fun CreateTravelScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
+                    Spacer(modifier = Modifier.height(basePadding))
                 }
             }
         }
@@ -505,9 +579,13 @@ fun CreateTravelScreen(
 }
 
 fun getFormattedDate(timeInMillis: Long): String {
-    val calender = Calendar.getInstance()
+    val calender = Calendar.getInstance().apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
     calender.timeInMillis = timeInMillis
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy")
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
     return dateFormat.format(calender.timeInMillis)
 }
 
@@ -548,8 +626,7 @@ fun DateRangePickerSample(state: DateRangePickerState) {
                         getFormattedDate(state.selectedStartDateMillis!!)
                     } else {
                         "Start Date"
-                    },
-                    modifier = Modifier.align(Alignment.Center)
+                    }, modifier = Modifier.align(Alignment.Center)
                 )
             }
             Box(
@@ -563,8 +640,7 @@ fun DateRangePickerSample(state: DateRangePickerState) {
                         getFormattedDate(state.selectedEndDateMillis!!)
                     } else {
                         "End Date"
-                    },
-                    modifier = Modifier.align(Alignment.Center)
+                    }, modifier = Modifier.align(Alignment.Center)
                 )
             }
         }
@@ -702,7 +778,11 @@ private fun CreateTravelScreenPreview() {
     PreviewWrapper {
         CreateTravelScreen(
             onTravelCreated = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
-            onNavigateBack = {})
+            onNavigateBack = {},
+            onAccommodationLocationQueryChanged = {},
+            autocompleteResults = listOf(),
+            onAutocompleteResultClick = {},
+            onRequestLocationPermission = {})
     }
 }
 

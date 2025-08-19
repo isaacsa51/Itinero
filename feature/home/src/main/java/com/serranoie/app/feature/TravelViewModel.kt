@@ -1,7 +1,10 @@
 package com.serranoie.app.feature
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.serranoie.itinero.core.data.mappers.toTrip
 import com.serranoie.itinero.core.domain.exception.NetworkException
 import com.serranoie.itinero.core.domain.model.Accommodation
@@ -10,6 +13,8 @@ import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,9 +29,15 @@ sealed interface TravelUiState {
     data object NoInternet : TravelUiState
 }
 
+data class AutocompleteResult(
+    val address: String,
+    val placeId: String
+)
+
 // Shared ViewModel for creation and joining operations only
 class SharedTravelViewModel(
-    private val travelUseCase: TravelUseCase
+    private val travelUseCase: TravelUseCase,
+    private val placesClient: PlacesClient
 ) : ViewModel() {
 
     private val _createUiState = MutableStateFlow<TravelUiState>(TravelUiState.Idle)
@@ -34,6 +45,11 @@ class SharedTravelViewModel(
 
     private val _joinUiState = MutableStateFlow<TravelUiState>(TravelUiState.Idle)
     val joinUiState: StateFlow<TravelUiState> = _joinUiState.asStateFlow()
+
+    private val _locationAutofill = mutableStateListOf<AutocompleteResult>()
+    val locationAutofill: List<AutocompleteResult> = _locationAutofill
+
+    private var searchJob: Job? = null
 
     fun createTravel(
         groupName: String,
@@ -87,6 +103,35 @@ class SharedTravelViewModel(
                 }
             }
         }
+    }
+
+    fun searchPlaces(query: String) {
+        searchJob?.cancel()
+        _locationAutofill.clear()
+        if (query.isBlank()) {
+            return
+        }
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            delay(300L) // Debounce requests
+            val request = FindAutocompletePredictionsRequest.builder().setQuery(query).build()
+            placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener { response ->
+                    _locationAutofill.addAll(response.autocompletePredictions.map {
+                        AutocompleteResult(
+                            address = it.getFullText(null).toString(),
+                            placeId = it.placeId
+                        )
+                    })
+                }
+                .addOnFailureListener { exception ->
+                    // You can log the error or update a UI state to show failure
+                    exception.printStackTrace()
+                }
+        }
+    }
+
+    fun clearLocationAutofill() {
+        _locationAutofill.clear()
     }
 
     fun joinTravel(groupCode: String) {
