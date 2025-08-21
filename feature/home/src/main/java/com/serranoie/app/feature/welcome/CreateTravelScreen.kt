@@ -1,6 +1,5 @@
 package com.serranoie.app.feature.welcome
 
-import android.text.InputType
 import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -73,11 +72,11 @@ import androidx.compose.ui.zIndex
 import com.serranoie.app.designsystemlib.ui.ComponentPreview
 import com.serranoie.app.designsystemlib.ui.DevicePreview
 import com.serranoie.app.designsystemlib.ui.PreviewWrapper
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInputType
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.SelectField
-import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
-import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInputType
 import com.serranoie.app.designsystemlib.ui.utils.Constants.basePadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.commonCornerRadius
 import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
