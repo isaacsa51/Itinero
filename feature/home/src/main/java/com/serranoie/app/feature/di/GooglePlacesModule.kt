@@ -23,10 +23,12 @@ val googlePlacesModule = module {
         if (!Places.isInitialized()) {
             val ai: ApplicationInfo = context.packageManager
                 .getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
-            val apiKey = ai.metaData.getString("com.google.android.geo.API_KEY")
-                ?: throw IllegalStateException("Google Places API key not found in manifest")
-            Places.initialize(context, apiKey)
+            val meta = ai.metaData
+                ?: throw IllegalStateException("Google Places metadata not found in AndroidManifest.xml")
+            val apiKey = meta.getString("com.google.android.geo.API_KEY")
+                ?: throw IllegalStateException("Google Places API key not found in AndroidManifest.xml")
+            Places.initialize(context.applicationContext, apiKey)
         }
-        Places.createClient(context)
+        Places.createClient(context.applicationContext)
     }
 }

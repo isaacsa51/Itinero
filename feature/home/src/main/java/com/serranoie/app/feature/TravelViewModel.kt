@@ -1,6 +1,5 @@
 package com.serranoie.app.feature
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
@@ -18,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed interface TravelUiState {
@@ -34,7 +34,6 @@ data class AutocompleteResult(
     val placeId: String
 )
 
-// Shared ViewModel for creation and joining operations only
 class SharedTravelViewModel(
     private val travelUseCase: TravelUseCase,
     private val placesClient: PlacesClient
@@ -46,10 +45,11 @@ class SharedTravelViewModel(
     private val _joinUiState = MutableStateFlow<TravelUiState>(TravelUiState.Idle)
     val joinUiState: StateFlow<TravelUiState> = _joinUiState.asStateFlow()
 
-    private val _locationAutofill = mutableStateListOf<AutocompleteResult>()
-    val locationAutofill: List<AutocompleteResult> = _locationAutofill
+    private val _locationAutofill = MutableStateFlow<List<AutocompleteResult>>(emptyList())
+    val locationAutofill: StateFlow<List<AutocompleteResult>> = _locationAutofill.asStateFlow()
 
     private var searchJob: Job? = null
+    private var currentRequestId = 0
 
     fun createTravel(
         groupName: String,
@@ -107,31 +107,47 @@ class SharedTravelViewModel(
 
     fun searchPlaces(query: String) {
         searchJob?.cancel()
-        _locationAutofill.clear()
+        _locationAutofill.update { emptyList() }
         if (query.isBlank()) {
             return
         }
+
+        val requestId = ++currentRequestId
+
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             delay(300L) // Debounce requests
             val request = FindAutocompletePredictionsRequest.builder().setQuery(query).build()
             placesClient.findAutocompletePredictions(request)
                 .addOnSuccessListener { response ->
-                    _locationAutofill.addAll(response.autocompletePredictions.map {
-                        AutocompleteResult(
-                            address = it.getFullText(null).toString(),
-                            placeId = it.placeId
-                        )
-                    })
+                    viewModelScope.launch(Dispatchers.Main) {
+                        if (requestId == currentRequestId) {
+                            _locationAutofill.update {
+                                response.autocompletePredictions.map {
+                                    AutocompleteResult(
+                                        address = it.getFullText(null).toString(),
+                                        placeId = it.placeId
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
                 .addOnFailureListener { exception ->
-                    // You can log the error or update a UI state to show failure
-                    exception.printStackTrace()
+                    viewModelScope.launch(Dispatchers.Main) {
+                        if (requestId == currentRequestId) {
+                            exception.printStackTrace()
+                        }
+                    }
                 }
         }
     }
 
     fun clearLocationAutofill() {
-        _locationAutofill.clear()
+        _locationAutofill.update { emptyList() }
+    }
+
+    fun applyAutocompleteSelection(selectedResult: AutocompleteResult) {
+        _locationAutofill.update { emptyList() }
     }
 
     fun joinTravel(groupCode: String) {
@@ -159,7 +175,6 @@ class SharedTravelViewModel(
     }
 }
 
-// Separate ViewModel for travel list operations
 class TravelListViewModel(
     private val travelUseCase: TravelUseCase
 ) : ViewModel() {

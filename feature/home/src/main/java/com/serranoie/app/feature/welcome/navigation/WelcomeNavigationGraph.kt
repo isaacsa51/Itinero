@@ -41,6 +41,7 @@ class WelcomeNavigationGraph : NavigationGraph {
             composable(route = Route.CreateTravel.route) {
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
                 val createUiState by sharedViewModel.createUiState.collectAsState()
+                val autocompleteResults by sharedViewModel.locationAutofill.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
                 LaunchedEffect(createUiState) {
@@ -88,9 +89,9 @@ class WelcomeNavigationGraph : NavigationGraph {
                     onAccommodationLocationQueryChanged = { query ->
                         sharedViewModel.searchPlaces(query)
                     },
-                    autocompleteResults = sharedViewModel.locationAutofill,
-                    onAutocompleteResultClick = { _ -> // AutocompleteResult is ignored
-                        sharedViewModel.clearLocationAutofill()
+                    autocompleteResults = autocompleteResults,
+                    onAutocompleteResultClick = { selectedResult ->
+                        sharedViewModel.applyAutocompleteSelection(selectedResult)
                     }
                 )
             }

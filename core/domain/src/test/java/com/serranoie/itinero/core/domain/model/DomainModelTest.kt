@@ -1,5 +1,6 @@
 package com.serranoie.itinero.core.domain.model
 
+import org.junit.Assert.*
 import org.junit.Test
 
 class DomainModelTest {
@@ -27,15 +28,15 @@ class DomainModelTest {
             additionalInfo = "Flight details in email"
         )
 
-        assert(createTrip.groupName == "Summer Adventure")
-        assert(createTrip.destination == "Tokyo, Japan")
-        assert(createTrip.startDate == "2025-06-15")
-        assert(createTrip.endDate == "2025-06-20")
-        assert(createTrip.summary == "Amazing summer trip to Japan")
-        assert(createTrip.accommodation == accommodation)
-        assert(createTrip.reservationCode == "RES123456")
-        assert(createTrip.extraInfo == "Bring passports")
-        assert(createTrip.additionalInfo == "Flight details in email")
+        assertEquals("Summer Adventure", createTrip.groupName)
+        assertEquals("Tokyo, Japan", createTrip.destination)
+        assertEquals("2025-06-15", createTrip.startDate)
+        assertEquals("2025-06-20", createTrip.endDate)
+        assertEquals("Amazing summer trip to Japan", createTrip.summary)
+        assertEquals(accommodation, createTrip.accommodation)
+        assertEquals("RES123456", createTrip.reservationCode)
+        assertEquals("Bring passports", createTrip.extraInfo)
+        assertEquals("Flight details in email", createTrip.additionalInfo)
     }
 
     @Test
@@ -49,12 +50,12 @@ class DomainModelTest {
             mapUri = "https://maps.google.com/place123"
         )
 
-        assert(accommodation.name == "Grand Hotel Tokyo")
-        assert(accommodation.phone == "+81-3-1234-5678")
-        assert(accommodation.checkIn == "2025-06-15T15:00:00")
-        assert(accommodation.checkOut == "2025-06-20T11:00:00")
-        assert(accommodation.location == "1-1-1 Ginza, Chuo-ku, Tokyo")
-        assert(accommodation.mapUri == "https://maps.google.com/place123")
+        assertEquals("Grand Hotel Tokyo", accommodation.name)
+        assertEquals("+81-3-1234-5678", accommodation.phone)
+        assertEquals("2025-06-15T15:00:00", accommodation.checkIn)
+        assertEquals("2025-06-20T11:00:00", accommodation.checkOut)
+        assertEquals("1-1-1 Ginza, Chuo-ku, Tokyo", accommodation.location)
+        assertEquals("https://maps.google.com/place123", accommodation.mapUri)
     }
 
     @Test
@@ -68,8 +69,8 @@ class DomainModelTest {
             mapUri = null
         )
 
-        assert(accommodation.mapUri == null)
-        assert(accommodation.name == "Hotel")
+        assertNull(accommodation.mapUri)
+        assertEquals("Hotel", accommodation.name)
     }
 
     @Test
@@ -92,12 +93,12 @@ class DomainModelTest {
             ownerId = "user123"
         )
 
-        assert(trip.id == "trip123")
-        assert(trip.groupName == "Test Trip")
-        assert(trip.destination == "Tokyo")
-        assert(trip.totalMembers == 5)
-        assert(trip.groupCode == "ITN-12345")
-        assert(trip.ownerId == "user123")
+        assertEquals("trip123", trip.id)
+        assertEquals("Test Trip", trip.groupName)
+        assertEquals("Tokyo", trip.destination)
+        assertEquals(5, trip.totalMembers)
+        assertEquals("ITN-12345", trip.groupCode)
+        assertEquals("user123", trip.ownerId)
     }
 
     @Test
@@ -106,9 +107,9 @@ class DomainModelTest {
             Accommodation("Hotel", "123", "2025-06-15", "2025-06-20", "Tokyo", null)
         val copiedAccommodation = originalAccommodation.copy(name = "New Hotel")
 
-        assert(copiedAccommodation.name == "New Hotel")
-        assert(copiedAccommodation.phone == "123") // Unchanged
-        assert(originalAccommodation.name == "Hotel") // Original unchanged
+        assertEquals("New Hotel", copiedAccommodation.name)
+        assertEquals("123", copiedAccommodation.phone) // Unchanged
+        assertEquals("Hotel", originalAccommodation.name) // Original unchanged
 
         val originalTrip = CreateTrip(
             "Trip", "Tokyo", "2025-06-15", "2025-06-20", "Summary",
@@ -116,9 +117,9 @@ class DomainModelTest {
         )
         val copiedTrip = originalTrip.copy(groupName = "New Trip")
 
-        assert(copiedTrip.groupName == "New Trip")
-        assert(copiedTrip.destination == "Tokyo") // Unchanged
-        assert(originalTrip.groupName == "Trip") // Original unchanged
+        assertEquals("New Trip", copiedTrip.groupName)
+        assertEquals("Tokyo", copiedTrip.destination) // Unchanged
+        assertEquals("Trip", originalTrip.groupName) // Original unchanged
     }
 
     @Test
@@ -130,9 +131,9 @@ class DomainModelTest {
         val accommodation3 =
             Accommodation("Different Hotel", "123", "2025-06-15", "2025-06-20", "Tokyo", null)
 
-        assert(accommodation1 == accommodation2) // Same data
-        assert(accommodation1 != accommodation3) // Different data
-        assert(accommodation1.hashCode() == accommodation2.hashCode()) // Same hash
+        assertEquals(accommodation1, accommodation2) // Same data
+        assertNotEquals(accommodation1, accommodation3) // Different data
+        assertEquals(accommodation1.hashCode(), accommodation2.hashCode()) // Same hash
     }
 
     @Test
@@ -155,9 +156,9 @@ class DomainModelTest {
             validAccommodation, "RES", "Extra", "Additional"
         )
 
-        assert(isValidTrip(validTrip))
+        assertTrue(isValidTrip(validTrip))
 
         val invalidTrip = validTrip.copy(groupName = "")
-        assert(!isValidTrip(invalidTrip))
+        assertFalse(isValidTrip(invalidTrip))
     }
 }

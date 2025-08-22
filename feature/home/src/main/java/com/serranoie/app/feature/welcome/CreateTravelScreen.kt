@@ -1,6 +1,5 @@
 package com.serranoie.app.feature.welcome
 
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -230,10 +229,6 @@ fun CreateTravelScreen(
                 if (currentPage == pages.lastIndex) {
                     IButton(
                         onClick = {
-                            Log.d(
-                                "ISAAC",
-                                "Create Trip clicked with destination: $destination, dates: $startDate - $endDate"
-                            )
                             onTravelCreated(
                                 groupName,
                                 destination,
@@ -244,12 +239,16 @@ fun CreateTravelScreen(
                                 accommodationPhone,
                                 accommodationCheckInDate?.let {
                                     val formatter =
-                                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                                            timeZone = TimeZone.getTimeZone("UTC")
+                                        }
                                     formatter.format(Date(it))
                                 } ?: "",
                                 accommodationCheckOutDate?.let {
                                     val formatter =
-                                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                                            timeZone = TimeZone.getTimeZone("UTC")
+                                        }
                                     formatter.format(Date(it))
                                 } ?: "",
                                 accommodationLocation,
@@ -418,7 +417,8 @@ fun CreateTravelScreen(
                     Text(
                         text = "When will you check in and check out of your accommodation?",
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(bottom = extraSmallPadding)
                     )
                     Row(

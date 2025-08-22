@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+    testImplementation(libs.ktor.client.mock)
 
     // Kotlin serialization
     implementation(libs.kotlinx.serialization.json)
