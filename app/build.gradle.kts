@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     id("kotlin-kapt")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 // Function to get current Git branch
@@ -58,6 +59,13 @@ android {
         versionName = "0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val props = Properties().apply {
+            val file = rootProject.file("local.properties")
+            if (file.exists()) file.inputStream().use(::load)
+        }
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] =
+            props.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }
 
     flavorDimensions += "version"

@@ -2,6 +2,8 @@ package com.serranoie.app.feature
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.serranoie.itinero.core.data.mappers.toTrip
 import com.serranoie.itinero.core.domain.exception.NetworkException
 import com.serranoie.itinero.core.domain.model.Accommodation
@@ -10,9 +12,12 @@ import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 sealed interface TravelUiState {
@@ -24,9 +29,14 @@ sealed interface TravelUiState {
     data object NoInternet : TravelUiState
 }
 
-// Shared ViewModel for creation and joining operations only
+data class AutocompleteResult(
+    val address: String,
+    val placeId: String
+)
+
 class SharedTravelViewModel(
-    private val travelUseCase: TravelUseCase
+    private val travelUseCase: TravelUseCase,
+    private val placesClient: PlacesClient
 ) : ViewModel() {
 
     private val _createUiState = MutableStateFlow<TravelUiState>(TravelUiState.Idle)
@@ -34,6 +44,12 @@ class SharedTravelViewModel(
 
     private val _joinUiState = MutableStateFlow<TravelUiState>(TravelUiState.Idle)
     val joinUiState: StateFlow<TravelUiState> = _joinUiState.asStateFlow()
+
+    private val _locationAutofill = MutableStateFlow<List<AutocompleteResult>>(emptyList())
+    val locationAutofill: StateFlow<List<AutocompleteResult>> = _locationAutofill.asStateFlow()
+
+    private var searchJob: Job? = null
+    private var currentRequestId = 0
 
     fun createTravel(
         groupName: String,
@@ -89,6 +105,51 @@ class SharedTravelViewModel(
         }
     }
 
+    fun searchPlaces(query: String) {
+        searchJob?.cancel()
+        _locationAutofill.update { emptyList() }
+        if (query.isBlank()) {
+            return
+        }
+
+        val requestId = ++currentRequestId
+
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            delay(300L) // Debounce requests
+            val request = FindAutocompletePredictionsRequest.builder().setQuery(query).build()
+            placesClient.findAutocompletePredictions(request)
+                .addOnSuccessListener { response ->
+                    viewModelScope.launch(Dispatchers.Main) {
+                        if (requestId == currentRequestId) {
+                            _locationAutofill.update {
+                                response.autocompletePredictions.map {
+                                    AutocompleteResult(
+                                        address = it.getFullText(null).toString(),
+                                        placeId = it.placeId
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    viewModelScope.launch(Dispatchers.Main) {
+                        if (requestId == currentRequestId) {
+                            exception.printStackTrace()
+                        }
+                    }
+                }
+        }
+    }
+
+    fun clearLocationAutofill() {
+        _locationAutofill.update { emptyList() }
+    }
+
+    fun applyAutocompleteSelection(selectedResult: AutocompleteResult) {
+        _locationAutofill.update { emptyList() }
+    }
+
     fun joinTravel(groupCode: String) {
         viewModelScope.launch {
             _joinUiState.value = TravelUiState.Loading
@@ -114,7 +175,6 @@ class SharedTravelViewModel(
     }
 }
 
-// Separate ViewModel for travel list operations
 class TravelListViewModel(
     private val travelUseCase: TravelUseCase
 ) : ViewModel() {

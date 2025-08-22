@@ -11,11 +11,14 @@
 
 package com.serranoie.app.itinero.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,10 +29,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -54,6 +58,10 @@ import org.koin.androidx.compose.KoinAndroidContext
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalCoroutinesApi::class)
 class MainActivity : ComponentActivity() {
+    companion object {
+        private const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1001
+    }
+
     private lateinit var navController: NavHostController
     private val authPreferences: AuthPreferencesRepository by inject()
     private val authRepository: AuthRepository by inject()
@@ -62,11 +70,32 @@ class MainActivity : ComponentActivity() {
     private val networkObserver: NetworkObserver by inject()
     private val settingsViewModel: SettingsViewModel by inject()
 
+    private var locationPermissionGranted by mutableStateOf(false)
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            locationPermissionGranted = isGranted
+            if (isGranted) {
+                Log.d("MainActivity", "Location permission granted")
+            } else {
+                Log.d("MainActivity", "Location permission denied")
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Initialize location permission state
+        locationPermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        // Request location permission if needed
+        getLocationPermission()
 
         setContent {
             KoinAndroidContext {
@@ -126,6 +155,13 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
+                            // Example: Use locationPermissionGranted state in Composables
+                            // Location-dependent UI will recompose when permission changes
+                            if (locationPermissionGranted) {
+                                // LocationFeatures()
+                            } else {
+                                // RequestLocationPermissionUI { getLocationPermission() }
+                            }
                         }
                     }
                 }
@@ -168,6 +204,14 @@ class MainActivity : ComponentActivity() {
             Log.e(
                 "ITINERO - MainActivity", "Network error during token validation: ${e.message}"
             )
+        }
+    }
+
+    private fun getLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 }

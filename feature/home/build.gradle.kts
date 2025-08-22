@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.camera.view)
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
@@ -107,6 +109,16 @@ dependencies {
 
     // Barcode scanning ML Kit
     implementation(libs.barcode.scanning)
+
+    // Google Maps SDK for Android
+    implementation(libs.places)
+    implementation(libs.play.services.maps)
+
+    // Google maps Compose
+    implementation(libs.maps.compose)
+
+    // Place SDK
+    implementation("com.google.android.libraries.places:places:4.4.1")
 }
 
 kapt {

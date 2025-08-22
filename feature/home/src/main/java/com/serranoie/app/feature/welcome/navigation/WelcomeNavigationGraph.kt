@@ -41,6 +41,7 @@ class WelcomeNavigationGraph : NavigationGraph {
             composable(route = Route.CreateTravel.route) {
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
                 val createUiState by sharedViewModel.createUiState.collectAsState()
+                val autocompleteResults by sharedViewModel.locationAutofill.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
                 LaunchedEffect(createUiState) {
@@ -84,19 +85,27 @@ class WelcomeNavigationGraph : NavigationGraph {
                     },
                     onNavigateBack = {
                         navController.popBackStack()
-                    })
+                    },
+                    onAccommodationLocationQueryChanged = { query ->
+                        sharedViewModel.searchPlaces(query)
+                    },
+                    autocompleteResults = autocompleteResults,
+                    onAutocompleteResultClick = { selectedResult ->
+                        sharedViewModel.applyAutocompleteSelection(selectedResult)
+                    }
+                )
             }
 
             composable(route = Route.JoinTrip.route) {
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
                 val travelListViewModel = koinViewModel<TravelListViewModel>()
                 val joinUiState by sharedViewModel.joinUiState.collectAsState()
-                val snackbarHostState = remember { SnackbarHostState() }
+                val snackbarHostState = remember { SnackbarHostState() } // Warning: This is unused if JoinTripScreen handles its own snackbars or doesn't show them.
 
                 LaunchedEffect(joinUiState) {
                     when (val currentState = joinUiState) {
                         is TravelUiState.Success<*> -> {
-                            Log.e("ITINERO - WelcomeNav", "Success travel join, $currentState")
+                            Log.d("ITINERO - WelcomeNav", "Success travel join, $currentState") // Changed Log.e to Log.d for success
 
                             // Refresh the travel list data first
                             travelListViewModel.getAllTravels()
@@ -109,6 +118,9 @@ class WelcomeNavigationGraph : NavigationGraph {
 
                         is TravelUiState.Error -> {
                             Log.e("ITINERO - WelcomeNav", "Error travel join, $currentState")
+                            // To show a snackbar here, you'd call:
+                            // snackbarHostState.showSnackbar(currentState.message)
+                            // However, JoinTripScreen or a wrapper needs to use this snackbarHostState.
                         }
 
                         else -> Unit
