@@ -23,7 +23,6 @@ class SharedTravelViewModelTest {
         val networkError = TravelUiState.NetworkError
         val noInternet = TravelUiState.NoInternet
 
-        // All states should be different
         assertTrue(
             "All states should be distinct",
             setOf(idle, loading, success, error, networkError, noInternet).size == 6
@@ -46,7 +45,6 @@ class SharedTravelViewModelTest {
 
     @Test
     fun `accommodation mapUri handling logic`() {
-        // Test the logic used in SharedTravelViewModel.createTravel
         fun processMapUri(mapUri: String): String? {
             return mapUri.takeIf { it.isNotBlank() }
         }
@@ -62,7 +60,6 @@ class SharedTravelViewModelTest {
 
     @Test
     fun `create travel request validation logic`() {
-        // Test validation logic for required fields
         fun areRequiredFieldsValid(
             groupName: String,
             destination: String,
@@ -90,7 +87,6 @@ class SharedTravelViewModelTest {
 
     @Test
     fun `accommodation object construction logic`() {
-        // Test the accommodation object creation logic from ViewModel
         fun createAccommodation(
             name: String,
             phone: String,
@@ -105,7 +101,11 @@ class SharedTravelViewModelTest {
                 checkIn = checkIn,
                 checkOut = checkOut,
                 location = location,
-                mapUri = mapUri.takeIf { it.isNotBlank() }
+                mapUri = mapUri.takeIf { it.isNotBlank() },
+                latitude = null,
+                longitude = null,
+                reservationCode = null,
+                extraInfo = null
             )
         }
 
@@ -115,6 +115,10 @@ class SharedTravelViewModelTest {
 
         assertEquals("Test Hotel", accommodation.name)
         assertEquals("123456789", accommodation.phone)
-        assertEquals(null, accommodation.mapUri) // Should be null for empty string
+        assertEquals(null, accommodation.mapUri)
+        assertEquals(null, accommodation.latitude)
+        assertEquals(null, accommodation.longitude)
+        assertEquals(null, accommodation.reservationCode)
+        assertEquals(null, accommodation.extraInfo)
     }
 }

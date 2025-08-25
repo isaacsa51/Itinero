@@ -40,4 +40,6 @@ data class EmbeddedAccommodation(
     val checkOut: String,
     val location: String,
     val mapUri: String?,
+    val latitude: Double?,
+    val longitude: Double?,
 )

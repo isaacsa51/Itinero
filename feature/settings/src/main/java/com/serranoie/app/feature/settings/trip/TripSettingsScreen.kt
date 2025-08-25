@@ -474,28 +474,6 @@ private fun TripInfoSection(navController: NavController, tripId: String, trip: 
         CustomPaddedListItem(
             onClick = {
                 navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
-            }, position = PaddedListItemPosition.Middle
-        ) {
-            Spacer(modifier = Modifier.width(basePadding))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Accommodation Location",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                )
-                Text(
-                    text = trip?.accommodation?.location ?: "Not set",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                contentDescription = "Navigate"
-            )
-        }
-
-        CustomPaddedListItem(
-            onClick = {
-                navController.navigate(Route.TripInfo.createRoute(tripId = tripId))
             }, position = PaddedListItemPosition.Last
         ) {
             Spacer(modifier = Modifier.width(basePadding))
@@ -921,7 +899,11 @@ private fun TripSettingsScreenPreview() {
                     phone = "+1 1234567890",
                     checkIn = "15:00",
                     checkOut = "11:00",
-                    mapUri = null
+                    mapUri = null,
+                    latitude = 40.7128,
+                    longitude = -74.0060,
+                    reservationCode = "SETTINGS-RES123",
+                    extraInfo = "Settings preview extras"
                 ),
                 reservationCode = "RES123",
                 extraInfo = "",

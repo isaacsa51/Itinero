@@ -3,12 +3,14 @@ package com.serranoie.itinero.core.data.mappers
 import com.serranoie.itinero.core.data.local.entity.EmbeddedAccommodation
 import com.serranoie.itinero.core.data.local.entity.TripEntity
 import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
+import com.serranoie.itinero.core.data.remote.dto.CreateAccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.DebtorDto
 import com.serranoie.itinero.core.data.remote.dto.PaidByDto
 import com.serranoie.itinero.core.data.remote.dto.TodayItineraryDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.data.remote.dto.TripOverviewDto
+import com.serranoie.itinero.core.data.remote.dto.UpdateTripDto
 import com.serranoie.itinero.core.data.remote.dto.UserDto
 import com.serranoie.itinero.core.data.remote.dto.YesterdayExpenseDto
 import com.serranoie.itinero.core.domain.model.Accommodation
@@ -19,6 +21,8 @@ import com.serranoie.itinero.core.domain.model.TodayItinerary
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripOverview
 import com.serranoie.itinero.core.domain.model.User
+import com.serranoie.itinero.core.domain.model.UpdateTrip
+import com.serranoie.itinero.core.domain.model.UpdateTripAccommodation
 import com.serranoie.itinero.core.domain.model.YesterdayExpense
 
 fun TripDto.toDomain(): Trip {
@@ -32,9 +36,9 @@ fun TripDto.toDomain(): Trip {
             summary = summary,
             totalMembers = totalMembers,
             accommodation = accommodation.toDomain(),
-            reservationCode = reservationCode,
-            extraInfo = extraInfo,
-            additionalInfo = additionalInfo,
+            reservationCode = reservationCode ?: "",
+            extraInfo = extraInfo ?: "",
+            additionalInfo = additionalInfo ?: "",
             groupCode = groupCode,
             ownerId = ownerId
         )
@@ -43,22 +47,36 @@ fun TripDto.toDomain(): Trip {
 
 fun CreateTripDto.toDomain(): CreateTrip {
     return CreateTrip(
-        groupName = groupName,
+        ownerId = ownerId,
         destination = destination,
         startDate = startDate,
         endDate = endDate,
         summary = summary,
         accommodation = accommodation.toDomain(),
-        reservationCode = reservationCode,
-        extraInfo = extraInfo,
-        additionalInfo = additionalInfo
+        groupName = groupName,
+        reservationCode = reservationCode ?: "",
+        extraInfo = extraInfo ?: ""
+    )
+}
+
+fun CreateAccommodationDto.toDomain(): Accommodation {
+    return Accommodation(
+        name = name,
+        phone = phone,
+        checkIn = checkIn,
+        checkOut = checkOut,
+        latitude = latitude,
+        longitude = longitude,
+        reservationCode = reservationCode ?: "",
+        extraInfo = extraInfo ?: "",
+        location = "",
+        mapUri = null
     )
 }
 
 fun CreateTrip.toTrip(
     id: String = "",
     groupCode: String = "",
-    ownerId: String = "",
     totalMembers: Int = 1,
 ): Trip {
     return Trip(
@@ -69,12 +87,27 @@ fun CreateTrip.toTrip(
         endDate = endDate,
         summary = summary,
         totalMembers = totalMembers,
-        accommodation = accommodation,
+        accommodation = accommodation.toAccommodation(),
         reservationCode = reservationCode,
         extraInfo = extraInfo,
-        additionalInfo = additionalInfo,
+        additionalInfo = "",
         groupCode = groupCode,
-        ownerId = ownerId,
+        ownerId = ownerId.toString(),
+    )
+}
+
+fun Accommodation.toAccommodation(): Accommodation {
+    return Accommodation(
+        name = name,
+        phone = phone,
+        checkIn = checkIn,
+        checkOut = checkOut,
+        location = "",
+        mapUri = null,
+        latitude = latitude,
+        longitude = longitude,
+        reservationCode = reservationCode,
+        extraInfo = extraInfo
     )
 }
 
@@ -84,8 +117,12 @@ fun AccommodationDto.toDomain(): Accommodation {
         phone = phone,
         checkIn = checkIn,
         checkOut = checkOut,
-        location = location,
-        mapUri = mapUri
+        location = location ?: "",
+        mapUri = mapUri,
+        latitude = latitude,
+        longitude = longitude,
+        reservationCode = reservationCode,
+        extraInfo = extraInfo
     )
 }
 
@@ -96,7 +133,24 @@ fun Accommodation.toDto(): AccommodationDto {
         checkIn = checkIn,
         checkOut = checkOut,
         location = location,
-        mapUri = mapUri ?: ""
+        mapUri = mapUri ?: "",
+        latitude = latitude,
+        longitude = longitude,
+        reservationCode = reservationCode ?: "", 
+        extraInfo = extraInfo ?: ""
+    )
+}
+
+fun Accommodation.toCreateDto(): CreateAccommodationDto {
+    return CreateAccommodationDto(
+        name = name,
+        phone = phone,
+        checkIn = checkIn,
+        checkOut = checkOut,
+        latitude = latitude,
+        longitude = longitude,
+        reservationCode = reservationCode,
+        extraInfo = extraInfo
     )
 }
 
@@ -125,7 +179,11 @@ fun EmbeddedAccommodation.toDomain(): Accommodation {
         checkIn = checkIn,
         checkOut = checkOut,
         location = location,
-        mapUri = mapUri
+        mapUri = mapUri,
+        latitude = latitude,
+        longitude = longitude,
+        reservationCode = null, 
+        extraInfo = null 
     )
 }
 
@@ -154,7 +212,9 @@ fun Accommodation.toEmbedded(): EmbeddedAccommodation {
         checkIn = checkIn,
         checkOut = checkOut,
         location = location,
-        mapUri = mapUri
+        mapUri = mapUri,
+        latitude = latitude,
+        longitude = longitude
     )
 }
 
@@ -181,7 +241,6 @@ fun TodayItineraryDto.toDomain(): TodayItinerary {
 }
 
 fun TodayItineraryDto.toDomainSafe(): TodayItinerary? {
-    // Only return if we have essential fields
     return if (name != null && time != null) {
         TodayItinerary(
             date = date ?: "",
@@ -215,7 +274,6 @@ fun YesterdayExpenseDto.toDomain(): YesterdayExpense {
 }
 
 fun YesterdayExpenseDto.toDomainSafe(): YesterdayExpense? {
-    // Only return if we have essential fields
     return if (name != null && paidBy != null) {
         YesterdayExpense(
             amount = amount,
@@ -272,5 +330,34 @@ fun PaidByDto.toDomain(): PaidBy {
         id = id ?: 0,
         name = name ?: "",
         surname = surname ?: ""
+    )
+}
+
+fun UpdateTripAccommodation.toDto(): AccommodationDto {
+    return AccommodationDto(
+        name = name,
+        phone = phone,
+        checkIn = checkIn,
+        checkOut = checkOut,
+        location = location,
+        mapUri = mapUri ?: "",
+        latitude = latitude,
+        longitude = longitude,
+        reservationCode = reservationCode,
+        extraInfo = extraInfo
+    )
+}
+
+fun UpdateTrip.toDto(): UpdateTripDto {
+    return UpdateTripDto(
+        groupName = groupName,
+        destination = destination,
+        startDate = startDate,
+        endDate = endDate,
+        summary = summary,
+        accommodation = accommodation.toDto(),
+        reservationCode = reservationCode,
+        extraInfo = extraInfo,
+        additionalInfo = additionalInfo
     )
 }

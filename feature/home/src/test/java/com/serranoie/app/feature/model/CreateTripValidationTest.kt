@@ -144,18 +144,6 @@ class CreateTripValidationTest {
     }
 
     @Test
-    fun `isValidCreateTrip returns false when additionalInfo is blank`() {
-        // Given
-        val invalidTrip = createValidTrip().copy(additionalInfo = "")
-
-        // When
-        val isValid = isValidCreateTrip(invalidTrip)
-
-        // Then
-        assertFalse("Trip with empty additional info should fail validation", isValid)
-    }
-
-    @Test
     fun `isValidCreateTrip handles whitespace-only fields correctly`() {
         // Given
         val tripWithWhitespace = createValidTrip().copy(groupName = "   ")
@@ -174,12 +162,17 @@ class CreateTripValidationTest {
             checkIn = "2025-06-15",
             checkOut = "2025-06-20",
             location = "Tokyo",
-            mapUri = null
+            mapUri = null,
+            latitude = null,
+            longitude = null,
+            reservationCode = null,
+            extraInfo = null
         )
     }
 
     private fun createValidTrip(): CreateTrip {
         return CreateTrip(
+            ownerId = 123,
             groupName = "Test Trip",
             destination = "Tokyo",
             startDate = "2025-06-15",
@@ -187,8 +180,7 @@ class CreateTripValidationTest {
             summary = "Test summary",
             accommodation = createValidAccommodation(),
             reservationCode = "RES123",
-            extraInfo = "Extra info",
-            additionalInfo = "Additional info"
+            extraInfo = "Extra info"
         )
     }
 
@@ -202,7 +194,6 @@ class CreateTripValidationTest {
                 createTrip.accommodation.phone.isNotBlank() &&
                 createTrip.accommodation.location.isNotBlank() &&
                 createTrip.reservationCode.isNotBlank() &&
-                createTrip.extraInfo.isNotBlank() &&
-                createTrip.additionalInfo.isNotBlank()
+                createTrip.extraInfo.isNotBlank()
     }
 }

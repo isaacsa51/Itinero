@@ -19,7 +19,9 @@ class MappersTest {
             checkIn = "2025-06-15",
             checkOut = "2025-06-20",
             location = "Tokyo Downtown",
-            mapUri = "https://maps.google.com"
+            mapUri = "https://maps.google.com",
+            latitude = 35.6762,
+            longitude = 139.6503
         )
 
         val tripEntity = TripEntity(
@@ -62,6 +64,8 @@ class MappersTest {
         assertEquals("2025-06-20", domainTrip.accommodation.checkOut)
         assertEquals("Tokyo Downtown", domainTrip.accommodation.location)
         assertEquals("https://maps.google.com", domainTrip.accommodation.mapUri)
+        assertEquals(35.6762, domainTrip.accommodation.latitude!!, 0.001)
+        assertEquals(139.6503, domainTrip.accommodation.longitude!!, 0.001)
     }
 
     @Test
@@ -73,7 +77,9 @@ class MappersTest {
             checkIn = "2025-07-01T15:00",
             checkOut = "2025-07-05T11:00",
             location = "Shibuya, Tokyo",
-            mapUri = null
+            mapUri = null,
+            latitude = 35.6647,
+            longitude = 139.6992
         )
 
         // When
@@ -86,6 +92,8 @@ class MappersTest {
         assertEquals("2025-07-05T11:00", domainAccommodation.checkOut)
         assertEquals("Shibuya, Tokyo", domainAccommodation.location)
         assertNull("mapUri should be null", domainAccommodation.mapUri)
+        assertEquals(35.6647, domainAccommodation.latitude!!, 0.001)
+        assertEquals(139.6992, domainAccommodation.longitude!!, 0.001)
     }
 
     @Test
@@ -97,7 +105,11 @@ class MappersTest {
             checkIn = "2025-09-10",
             checkOut = "2025-09-15",
             location = "Osaka",
-            mapUri = "https://business-hotel.com/map"
+            mapUri = "https://business-hotel.com/map",
+            latitude = 34.6937,
+            longitude = 135.5023,
+            reservationCode = "BUS123",
+            extraInfo = "Formal attire required",
         )
 
         val domainTrip = Trip(
@@ -140,6 +152,8 @@ class MappersTest {
         assertEquals("2025-09-15", entityTrip.accommodation.checkOut)
         assertEquals("Osaka", entityTrip.accommodation.location)
         assertEquals("https://business-hotel.com/map", entityTrip.accommodation.mapUri)
+        assertEquals(34.6937, entityTrip.accommodation.latitude!!, 0.001)
+        assertEquals(135.5023, entityTrip.accommodation.longitude!!, 0.001)
     }
 
     @Test
@@ -151,7 +165,9 @@ class MappersTest {
             checkIn = "2025-12-01",
             checkOut = "2025-12-05",
             location = "Kyoto",
-            mapUri = "https://kyoto-hotel.jp"
+            mapUri = "https://kyoto-hotel.jp",
+            latitude = 35.0211,
+            longitude = 135.7556
         )
 
         val originalEntity = TripEntity(
@@ -206,7 +222,9 @@ class MappersTest {
             checkIn = "2025-10-10",
             checkOut = "2025-10-15",
             location = "Remote Location",
-            mapUri = null
+            mapUri = null,
+            latitude = 40.7128,
+            longitude = -74.0060
         )
 
         // When
@@ -215,6 +233,8 @@ class MappersTest {
         // Then
         assertNull("mapUri should remain null", domainAccommodation.mapUri)
         assertEquals("No Map Hotel", domainAccommodation.name)
+        assertEquals(40.7128, domainAccommodation.latitude!!, 0.001)
+        assertEquals(-74.0060, domainAccommodation.longitude!!, 0.001)
     }
 
     @Test
@@ -226,7 +246,11 @@ class MappersTest {
             checkIn = "2025-11-01",
             checkOut = "2025-11-05",
             location = "Test City",
-            mapUri = "https://test-hotel.com"
+            mapUri = "https://test-hotel.com",
+            latitude = 51.5074,
+            longitude = -0.1278,
+            reservationCode = "RES123",
+            extraInfo = "Test extra info"
         )
 
         // When
@@ -239,5 +263,7 @@ class MappersTest {
         assertEquals("2025-11-05", embeddedAccommodation.checkOut)
         assertEquals("Test City", embeddedAccommodation.location)
         assertEquals("https://test-hotel.com", embeddedAccommodation.mapUri)
+        assertEquals(51.5074, embeddedAccommodation.latitude!!, 0.001)
+        assertEquals(-0.1278, embeddedAccommodation.longitude!!, 0.001)
     }
 }

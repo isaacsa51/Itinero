@@ -23,8 +23,7 @@ class BusinessLogicTest {
                     createTrip.accommodation.phone.isNotBlank() &&
                     createTrip.accommodation.location.isNotBlank() &&
                     createTrip.reservationCode.isNotBlank() &&
-                    createTrip.extraInfo.isNotBlank() &&
-                    createTrip.additionalInfo.isNotBlank()
+                    createTrip.extraInfo.isNotBlank()
         }
 
         val validAccommodation = Accommodation(
@@ -33,10 +32,15 @@ class BusinessLogicTest {
             checkIn = "2025-06-15",
             checkOut = "2025-06-20",
             location = "Tokyo",
-            mapUri = null
+            mapUri = null,
+            latitude = 35.6895,
+            longitude = 139.6917,
+            reservationCode = "ACC123",
+            extraInfo = "Hotel extra info"
         )
 
         val validTrip = CreateTrip(
+            ownerId = 123,
             groupName = "Test Trip",
             destination = "Tokyo",
             startDate = "2025-06-15",
@@ -44,8 +48,7 @@ class BusinessLogicTest {
             summary = "Test summary",
             accommodation = validAccommodation,
             reservationCode = "RES123",
-            extraInfo = "Extra info",
-            additionalInfo = "Additional info"
+            extraInfo = "Extra info"
         )
 
         assertTrue("Valid trip should pass validation", isValidCreateTrip(validTrip))
@@ -116,14 +119,13 @@ class BusinessLogicTest {
             accommodationLocation: String,
             accommodationMapUri: String,
             reservationCode: String,
-            extraInfo: String,
-            additionalInfo: String
+            extraInfo: String
         ): Boolean {
             // Basic validation
             val hasRequiredFields = listOf(
                 groupName, destination, startDate, endDate, summary,
                 accommodationName, accommodationPhone, accommodationCheckIn, accommodationCheckOut,
-                accommodationLocation, reservationCode, extraInfo, additionalInfo
+                accommodationLocation, reservationCode, extraInfo
             ).all { it.isNotBlank() }
 
             val processedMapUri = accommodationMapUri.takeIf { it.isNotBlank() }
@@ -135,7 +137,7 @@ class BusinessLogicTest {
             "All required fields should pass", validateTripCreationParameters(
                 "Trip", "Tokyo", "2025-06-15", "2025-06-20", "Summary",
                 "Hotel", "123456789", "2025-06-15", "2025-06-20", "Location",
-                "https://maps.google.com", "RES123", "Extra", "Additional"
+                "https://maps.google.com", "RES123", "Extra"
             )
         )
 
@@ -143,7 +145,7 @@ class BusinessLogicTest {
             "Missing field should fail", validateTripCreationParameters(
                 "", "Tokyo", "2025-06-15", "2025-06-20", "Summary",
                 "Hotel", "123456789", "2025-06-15", "2025-06-20", "Location",
-                "https://maps.google.com", "RES123", "Extra", "Additional"
+                "https://maps.google.com", "RES123", "Extra"
             )
         )
 
@@ -151,7 +153,7 @@ class BusinessLogicTest {
             "Empty map URI should still pass", validateTripCreationParameters(
                 "Trip", "Tokyo", "2025-06-15", "2025-06-20", "Summary",
                 "Hotel", "123456789", "2025-06-15", "2025-06-20", "Location",
-                "", "RES123", "Extra", "Additional"
+                "", "RES123", "Extra"
             )
         )
     }
@@ -180,10 +182,9 @@ class BusinessLogicTest {
 
         fun canAdvanceFromAdditionalPage(
             reservationCode: String,
-            extraInfo: String,
-            additionalInfo: String
+            extraInfo: String
         ): Boolean {
-            return reservationCode.isNotBlank() && extraInfo.isNotBlank() && additionalInfo.isNotBlank()
+            return reservationCode.isNotBlank() && extraInfo.isNotBlank()
         }
 
         assertTrue(
@@ -219,11 +220,11 @@ class BusinessLogicTest {
 
         assertTrue(
             "Complete additional page should allow advance",
-            canAdvanceFromAdditionalPage("RES123", "Extra", "Additional")
+            canAdvanceFromAdditionalPage("RES123", "Extra")
         )
         assertFalse(
             "Incomplete additional page should not allow advance",
-            canAdvanceFromAdditionalPage("", "Extra", "Additional")
+            canAdvanceFromAdditionalPage("", "Extra")
         )
     }
 

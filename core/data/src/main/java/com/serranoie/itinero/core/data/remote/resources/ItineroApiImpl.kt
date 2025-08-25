@@ -11,6 +11,7 @@
 
 package com.serranoie.itinero.core.data.remote.resources
 
+import com.serranoie.itinero.core.data.mappers.toDto
 import com.serranoie.itinero.core.data.remote.dto.AuthResponse
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.DeleteAccountRequestDto
@@ -20,6 +21,7 @@ import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
 import com.serranoie.itinero.core.data.remote.dto.TripOverviewDto
+import com.serranoie.itinero.core.data.remote.dto.UpdateTripDto
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 import io.ktor.client.HttpClient
 
@@ -63,7 +65,7 @@ class ItineroApiImpl(
     }
 
     override suspend fun updateTripInfo(groupCode: String, request: UpdateTrip) {
-        put<Unit, UpdateTrip>("/trips/$groupCode/info", request)
+        put<Unit, UpdateTripDto>("/trips/$groupCode/info", request.toDto())
     }
 
     override suspend fun joinTrip(groupCode: String) {

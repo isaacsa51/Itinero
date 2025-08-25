@@ -21,6 +21,7 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.Toast
 import androidx.core.net.toUri
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -69,6 +70,88 @@ object Utils {
         if (date == null) return ""
         val targetFormat = SimpleDateFormat("dd MMMM yyyy, hh:mm a", Locale.getDefault())
         return targetFormat.format(date)
+    }
+
+    /**
+     * Parses a date string trying multiple common date formats.
+     *
+     * @param dateString the date string to parse
+     * @return the parsed Date, or null if parsing fails
+     */
+    fun parseDate(dateString: String): Date? {
+        if (dateString.isBlank()) return null
+        return try {
+            // Try different date formats
+            val formats = listOf(
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()),
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()),
+                SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()),
+                SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()),
+                SimpleDateFormat(
+                    "HH:mm",
+                    Locale.getDefault()
+                ), // For time-only strings like "15:00"
+                SimpleDateFormat("dd MMMM yyyy, hh:mm a", Locale.getDefault())
+            )
+
+            for (format in formats) {
+                try {
+                    return format.parse(dateString)
+                } catch (e: ParseException) {
+                    continue
+                }
+            }
+            null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Formats a Date object to string in yyyy-MM-dd format.
+     *
+     * @param date the date object
+     * @return the formatted string, or empty string if date is null
+     */
+    fun formatDateForStorage(date: Date?): String {
+        if (date == null) return ""
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return format.format(date)
+    }
+
+    /**
+     * Formats a Date object to string in yyyy-MM-dd HH:mm format.
+     *
+     * @param date the date object
+     * @return the formatted string, or empty string if date is null
+     */
+    fun formatDateTimeForStorage(date: Date?): String {
+        if (date == null) return ""
+        val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        return format.format(date)
+    }
+
+    /**
+     * Formats a date object using the given format and locale.
+     *
+     * @param date the date object
+     * @param format the desired string format
+     * @return the formatted string, or empty string if date is null
+     */
+    fun formatDate(date: Date?, format: String = "dd MMMM yyyy"): String {
+        if (date == null) return ""
+        return SimpleDateFormat(format, Locale.getDefault()).format(date)
+    }
+
+    /**
+     * Formats a date-time object to a string, with "dd MMMM yyyy, hh:mm a" format.
+     *
+     * @param date the date object
+     * @return the formatted string, or empty string if date is null
+     */
+    fun formatDateTime(date: Date?): String {
+        if (date == null) return ""
+        return SimpleDateFormat("dd MMMM yyyy, hh:mm a", Locale.getDefault()).format(date)
     }
 
     fun View.toggleFeedback() {

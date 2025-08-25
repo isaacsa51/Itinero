@@ -37,5 +37,9 @@ data class Accommodation(
     val checkIn: String,
     val checkOut: String,
     val location: String,
-    val mapUri: String?
+    val mapUri: String?,
+    val latitude: Double?,
+    val longitude: Double?,
+    val reservationCode: String?,
+    val extraInfo: String?
 )

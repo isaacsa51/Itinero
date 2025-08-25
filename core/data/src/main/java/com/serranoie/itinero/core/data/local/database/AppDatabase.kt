@@ -35,7 +35,7 @@ import com.serranoie.itinero.core.data.local.entity.UserExpenseSummaryEntity
         ExpenseDebtorEntity::class,
         UserExpenseSummaryEntity::class,
         UserBalanceEntity::class,
-    ], version = 5, exportSchema = false
+    ], version = 6, exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun tripDao(): TripDao
@@ -52,11 +52,68 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Remove duplicate accommodation fields that were moved to trip level
+                // Create new table without the duplicate fields
+                database.execSQL(
+                    """
+                    CREATE TABLE trips_new (
+                        id TEXT NOT NULL PRIMARY KEY,
+                        destination TEXT NOT NULL,
+                        groupName TEXT NOT NULL,
+                        startDate TEXT NOT NULL,
+                        endDate TEXT NOT NULL,
+                        summary TEXT NOT NULL,
+                        totalMembers INTEGER NOT NULL,
+                        accommodation_name TEXT NOT NULL,
+                        accommodation_phone TEXT NOT NULL,
+                        accommodation_checkIn TEXT NOT NULL,
+                        accommodation_checkOut TEXT NOT NULL,
+                        accommodation_location TEXT NOT NULL,
+                        accommodation_mapUri TEXT,
+                        accommodation_latitude REAL,
+                        accommodation_longitude REAL,
+                        reservationCode TEXT NOT NULL,
+                        extraInfo TEXT NOT NULL,
+                        additionalInfo TEXT NOT NULL,
+                        groupCode TEXT NOT NULL,
+                        ownerId TEXT NOT NULL
+                    )
+                """
+                )
+
+                // Copy data from old table to new table (excluding the duplicate fields)
+                database.execSQL(
+                    """
+                    INSERT INTO trips_new (
+                        id, destination, groupName, startDate, endDate, summary, totalMembers,
+                        accommodation_name, accommodation_phone, accommodation_checkIn, 
+                        accommodation_checkOut, accommodation_location, accommodation_mapUri, 
+                        accommodation_latitude, accommodation_longitude, reservationCode, 
+                        extraInfo, additionalInfo, groupCode, ownerId
+                    )
+                    SELECT 
+                        id, destination, groupName, startDate, endDate, summary, totalMembers,
+                        accommodation_name, accommodation_phone, accommodation_checkIn, 
+                        accommodation_checkOut, accommodation_location, accommodation_mapUri, 
+                        accommodation_latitude, accommodation_longitude, reservationCode, 
+                        extraInfo, additionalInfo, groupCode, ownerId
+                    FROM trips
+                """
+                )
+
+                // Drop old table and rename new table
+                database.execSQL("DROP TABLE trips")
+                database.execSQL("ALTER TABLE trips_new RENAME TO trips")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext, AppDatabase::class.java, "itinero_database"
-                ).addMigrations(MIGRATION_4_5).build()
+                ).addMigrations(MIGRATION_4_5, MIGRATION_5_6).build()
                 INSTANCE = instance
                 instance
             }

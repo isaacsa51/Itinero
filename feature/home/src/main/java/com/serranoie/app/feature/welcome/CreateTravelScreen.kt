@@ -49,10 +49,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,6 +80,7 @@ import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.mediumPadding
 import com.serranoie.app.designsystemlib.ui.utils.Constants.smallPadding
 import com.serranoie.app.feature.AutocompleteResult
+import com.serranoie.app.feature.SelectedPlaceDetails
 import com.serranoie.app.feature.TravelUiState
 import com.serranoie.app.feature.home.R
 import kotlinx.coroutines.launch
@@ -95,20 +94,19 @@ import java.util.TimeZone
 @Composable
 fun CreateTravelScreen(
     uiState: TravelUiState = TravelUiState.Idle,
-    onTravelCreated: (String, String, String, String, String, String, String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
+    onTravelCreated: (String, String, String, String, String, String, String, String, String, String, String, String, String, String, String) -> Unit = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
     onNavigateBack: () -> Unit = {},
     onAccommodationLocationQueryChanged: (String) -> Unit,
+    onAccommodationNameQueryChanged: (String) -> Unit,
     autocompleteResults: List<AutocompleteResult>,
+    accommodationNameAutocompleteResults: List<AutocompleteResult>,
     onAutocompleteResultClick: (AutocompleteResult) -> Unit,
-    onRequestLocationPermission: () -> Unit = {}
+    onAccommodationNameAutocompleteResultClick: (AutocompleteResult) -> Unit,
+    selectedPlaceDetails: SelectedPlaceDetails? = null,
 ) {
 
     val snackState = remember { SnackbarHostState() }
     SnackbarHost(hostState = snackState, Modifier.zIndex(1f))
-
-    val scope = rememberCoroutineScope()
-
-    var showDatePicker by remember { mutableStateOf(false) }
 
     var groupName by remember { mutableStateOf("") }
     var destination by remember { mutableStateOf("") }
@@ -121,12 +119,12 @@ fun CreateTravelScreen(
     var accommodationCheckOutDate by remember { mutableStateOf<Long?>(null) }
     var accommodationLocation by remember { mutableStateOf("") }
     var accommodationMapUri by remember { mutableStateOf("") }
+    var accommodationExtraInfo by remember { mutableStateOf("") }
     var reservationCode by remember { mutableStateOf("") }
     var extraInfo by remember { mutableStateOf("") }
     var additionalInfo by remember { mutableStateOf("") }
 
     fun getPrettyDate(dateString: String): String {
-        // dateString is in "yyyy-MM-dd"
         return try {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
@@ -141,12 +139,8 @@ fun CreateTravelScreen(
         }
     }
 
-    // Pager setup
     val pages = listOf("Basic", "Accommodation", "Additional")
     var currentPage by remember { mutableStateOf(0) }
-
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
     val dateRangePickerState = rememberDateRangePickerState()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -172,11 +166,11 @@ fun CreateTravelScreen(
                 ) {
                     DateRangePickerSample(dateRangePickerState)
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(basePadding))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(end = 16.dp, bottom = 24.dp),
+                        .padding(end = basePadding, bottom = mediumPadding),
                     horizontalArrangement = Arrangement.End
                 ) {
                     IButton(onClick = {
@@ -256,6 +250,7 @@ fun CreateTravelScreen(
                                 reservationCode,
                                 extraInfo,
                                 additionalInfo,
+                                accommodationExtraInfo,
                             )
                         },
                         modifier = Modifier
@@ -273,7 +268,7 @@ fun CreateTravelScreen(
 
                     val canGoNext = when (pages[currentPage]) {
                         "Basic" -> groupName.isNotBlank() && destination.isNotBlank() && startDate.isNotBlank() && endDate.isNotBlank() && summary.isNotBlank()
-                        "Accommodation" -> accommodationName.isNotBlank() && accommodationPhone.isNotBlank() && accommodationCheckInDate != null && accommodationCheckOutDate != null && accommodationLocation.isNotBlank()
+                        "Accommodation" -> accommodationName.isNotBlank() && accommodationPhone.isNotBlank() && accommodationCheckInDate != null && accommodationCheckOutDate != null && accommodationLocation.isNotBlank() && accommodationExtraInfo.isNotBlank()
                         "Additional" -> reservationCode.isNotBlank() && extraInfo.isNotBlank() && additionalInfo.isNotBlank()
                         else -> true
                     }
@@ -332,11 +327,64 @@ fun CreateTravelScreen(
                     )
                     ITextField(
                         value = destination,
-                        onValueChange = { destination = it },
+                        onValueChange = {
+                            destination = it
+                            onAccommodationLocationQueryChanged(it)
+                        },
                         label = "Destination",
                         leadingIcon = Icons.Default.LocationOn,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = extraSmallPadding)
                     )
+
+                    if (autocompleteResults.isNotEmpty()) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .padding(bottom = extraSmallPadding),
+                            shape = RoundedCornerShape(commonCornerRadius),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 200.dp)
+                            ) {
+                                items(autocompleteResults) { result ->
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onAutocompleteResultClick(result)
+                                                destination = result.address
+                                            }, color = Color.Transparent
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.LocationOn,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(end = 12.dp)
+                                            )
+                                            Text(
+                                                text = result.address,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     Spacer(Modifier.height(basePadding))
 
@@ -390,11 +438,64 @@ fun CreateTravelScreen(
                     )
                     ITextField(
                         value = accommodationName,
-                        onValueChange = { accommodationName = it },
+                        onValueChange = {
+                            accommodationName = it
+                            onAccommodationNameQueryChanged(it)
+                        },
                         label = "Accommodation Name",
                         leadingIcon = Icons.Default.Hotel,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = extraSmallPadding)
                     )
+
+                    if (accommodationNameAutocompleteResults.isNotEmpty() && accommodationName.isNotBlank()) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .padding(bottom = extraSmallPadding),
+                            shape = RoundedCornerShape(commonCornerRadius),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 200.dp)
+                            ) {
+                                items(accommodationNameAutocompleteResults) { result ->
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onAccommodationNameAutocompleteResultClick(result)
+                                                accommodationName = result.address
+                                            }, color = Color.Transparent
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Hotel,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(end = 12.dp)
+                                            )
+                                            Text(
+                                                text = result.address,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     Spacer(Modifier.height(basePadding))
 
@@ -512,6 +613,19 @@ fun CreateTravelScreen(
                     }
 
                     Spacer(Modifier.height(smallPadding))
+
+                    Text(
+                        text = "Add any additional information about your accommodation.",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    ITextField(
+                        value = accommodationExtraInfo,
+                        onValueChange = { accommodationExtraInfo = it },
+                        label = "Accommodation Extra Info",
+                        leadingIcon = Icons.Default.Info,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
                 "Additional" -> {
@@ -545,20 +659,6 @@ fun CreateTravelScreen(
                         value = extraInfo,
                         onValueChange = { extraInfo = it },
                         label = "Extra Info",
-                        leadingIcon = Icons.Default.Info,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(basePadding))
-
-                    Text(
-                        text = "Is there any more information you want to add about this trip?",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    ITextField(
-                        value = additionalInfo,
-                        onValueChange = { additionalInfo = it },
-                        label = "Additional Info",
                         leadingIcon = Icons.Default.Info,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -759,29 +859,21 @@ private fun TopAppBarTitle(
     }
 }
 
-@ComponentPreview
-@Composable
-private fun SurveyTopBarPreview() {
-    PreviewWrapper {
-        ProgressTopBar(
-            questionIndex = 3,
-            totalQuestionsCount = 6,
-            onClosePressed = { },
-        )
-    }
-}
-
 @DevicePreview
 @Composable
 private fun CreateTravelScreenPreview() {
     PreviewWrapper {
         CreateTravelScreen(
-            onTravelCreated = { _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
+            onTravelCreated = { _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> },
             onNavigateBack = {},
             onAccommodationLocationQueryChanged = {},
+            onAccommodationNameQueryChanged = {},
             autocompleteResults = listOf(),
+            accommodationNameAutocompleteResults = listOf(),
             onAutocompleteResultClick = {},
-            onRequestLocationPermission = {})
+            onAccommodationNameAutocompleteResultClick = {},
+            selectedPlaceDetails = null
+        )
     }
 }
 

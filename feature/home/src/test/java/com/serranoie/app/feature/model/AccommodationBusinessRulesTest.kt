@@ -130,7 +130,11 @@ class AccommodationBusinessRulesTest {
             checkIn = "2025-06-15T15:00",
             checkOut = "2025-06-20T11:00",
             location = "Ginza, Tokyo",
-            mapUri = "https://grand-hotel.jp/map"
+            mapUri = "https://grand-hotel.jp/map",
+            latitude = 35.6762,
+            longitude = 139.6503,
+            reservationCode = "GH123",
+            extraInfo = "5-star hotel"
         )
 
         // Then
@@ -145,7 +149,18 @@ class AccommodationBusinessRulesTest {
     @Test
     fun `Accommodation copy function works correctly`() {
         // Given
-        val original = Accommodation("Hotel", "123", "2025-06-15", "2025-06-20", "Tokyo", null)
+        val original = Accommodation(
+            name = "Hotel",
+            phone = "123",
+            checkIn = "2025-06-15",
+            checkOut = "2025-06-20",
+            location = "Tokyo",
+            mapUri = null,
+            latitude = null,
+            longitude = null,
+            reservationCode = null,
+            extraInfo = null
+        )
 
         // When
         val copied = original.copy(name = "New Hotel", mapUri = "https://new-hotel.com")

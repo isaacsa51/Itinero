@@ -3,7 +3,9 @@ package com.serranoie.itinero.core.data.remote.repository
 import android.util.Log
 import com.serranoie.itinero.core.data.local.repository.LocalTravelRepository
 import com.serranoie.itinero.core.data.mappers.toDomain
-import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
+import com.serranoie.itinero.core.data.mappers.toDto
+import com.serranoie.itinero.core.data.mappers.toCreateDto
+import com.serranoie.itinero.core.data.remote.dto.CreateAccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.domain.model.CreateTrip
@@ -112,25 +114,16 @@ class TravelRepositoryImpl(
 
     override suspend fun createTravel(request: CreateTrip): Result<CreateTrip> {
         return safeApiCall {
-            val accommodationDto = AccommodationDto(
-                name = request.accommodation.name,
-                phone = request.accommodation.phone,
-                checkIn = request.accommodation.checkIn,
-                checkOut = request.accommodation.checkOut,
-                location = request.accommodation.location,
-                mapUri = request.accommodation.mapUri ?: ""
-            )
-
             val createTripDto = CreateTripDto(
-                groupName = request.groupName,
+                ownerId = request.ownerId,
                 destination = request.destination,
                 startDate = request.startDate,
                 endDate = request.endDate,
                 summary = request.summary,
-                accommodation = accommodationDto,
+                accommodation = request.accommodation.toCreateDto(),
+                groupName = request.groupName,
                 reservationCode = request.reservationCode,
-                extraInfo = request.extraInfo,
-                additionalInfo = request.additionalInfo
+                extraInfo = request.extraInfo
             )
             val createdTrip = api.createTrip(createTripDto)
             createdTrip.toDomain()

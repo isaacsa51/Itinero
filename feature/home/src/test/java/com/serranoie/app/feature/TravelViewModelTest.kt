@@ -86,7 +86,11 @@ class TravelViewModelTest {
             checkIn = "2025-06-15",
             checkOut = "2025-06-20",
             location = "Test Location",
-            mapUri = null
+            mapUri = null,
+            latitude = null,
+            longitude = null,
+            reservationCode = null,
+            extraInfo = null
         )
 
         assertEquals("Test Hotel", accommodation.name)
@@ -103,10 +107,15 @@ class TravelViewModelTest {
             checkIn = "2025-06-15",
             checkOut = "2025-06-20",
             location = "Tokyo",
-            mapUri = null
+            mapUri = null,
+            latitude = null,
+            longitude = null,
+            reservationCode = null,
+            extraInfo = null
         )
 
         val createTrip = CreateTrip(
+            ownerId = 123,
             groupName = "Test Trip",
             destination = "Tokyo",
             startDate = "2025-06-15",
@@ -114,8 +123,7 @@ class TravelViewModelTest {
             summary = "Test summary",
             accommodation = accommodation,
             reservationCode = "RES123",
-            extraInfo = "Extra info",
-            additionalInfo = "Additional info"
+            extraInfo = "Extra info"
         )
 
         // Test business validation logic
@@ -203,7 +211,11 @@ class TravelViewModelTest {
                 checkIn = "2025-06-15",
                 checkOut = "2025-06-20",
                 location = "Test Location",
-                mapUri = null
+                mapUri = null,
+                latitude = null,
+                longitude = null,
+                reservationCode = null,
+                extraInfo = null
             ),
             reservationCode = "RES123",
             extraInfo = "Extra info",

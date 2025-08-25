@@ -92,7 +92,11 @@ class HomeViewModelTest {
                 "2025-07-01",
                 "2025-07-10",
                 "Updated Location",
-                null
+                null,
+                35.6762,
+                139.6503,
+                "UPD-RES123",
+                "Updated extra info"
             ),
             reservationCode = "UPD123",
             extraInfo = "Updated extra",
@@ -145,7 +149,18 @@ class HomeViewModelTest {
 
         val validUpdate = UpdateTrip(
             "Trip", "Tokyo", "2025-06-15", "2025-06-20", "Summary",
-            UpdateTripAccommodation("Hotel", "123", "2025-06-15", "2025-06-20", "Tokyo", null),
+            UpdateTripAccommodation(
+                "Hotel",
+                "123",
+                "2025-06-15",
+                "2025-06-20",
+                "Tokyo",
+                null,
+                35.6762,
+                139.6503,
+                "RES123",
+                "Extra info"
+            ),
             "RES123", "Extra", "Additional"
         )
 
@@ -164,7 +179,16 @@ class HomeViewModelTest {
         }
 
         val validAccommodation = UpdateTripAccommodation(
-            "Hotel", "123456789", "2025-06-15", "2025-06-20", "Tokyo", null
+            "Hotel",
+            "123456789",
+            "2025-06-15",
+            "2025-06-20",
+            "Tokyo",
+            null,
+            35.6762,
+            139.6503,
+            "RES123",
+            "Extra info"
         )
 
         assertTrue(
@@ -226,7 +250,11 @@ class HomeViewModelTest {
                 "2025-06-15",
                 "2025-06-20",
                 "Tokyo",
-                null
+                null,
+                35.6762,
+                139.6503,
+                "TEST-RES123",
+                "Test extra info"
             ),
             reservationCode = "TEST123",
             extraInfo = "Test extra",

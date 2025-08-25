@@ -2,6 +2,7 @@ package com.serranoie.itinero.core.data.repository
 
 import com.serranoie.itinero.core.data.local.repository.LocalTravelRepository
 import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
+import com.serranoie.itinero.core.data.remote.dto.CreateAccommodationDto
 import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
 import com.serranoie.itinero.core.data.remote.dto.TripDto
 import com.serranoie.itinero.core.data.remote.repository.TravelRepositoryImpl
@@ -41,6 +42,7 @@ class TravelRepositoryImplTest {
     fun `createTravel success returns CreateTrip`() = runTest {
         // Given
         val createTripRequest = CreateTrip(
+            ownerId = 123,
             groupName = "Test Trip",
             destination = "Tokyo",
             startDate = "2025-06-15",
@@ -51,31 +53,36 @@ class TravelRepositoryImplTest {
                 phone = "123456789",
                 checkIn = "2025-06-15",
                 checkOut = "2025-06-20",
-                location = "Tokyo Downtown",
+                latitude = 35.6895,
+                longitude = 139.6917,
+                reservationCode = "ACC123",
+                extraInfo = "Hotel extra info",
+                location = "",
                 mapUri = null
             ),
             reservationCode = "RES123",
-            extraInfo = "Extra info",
-            additionalInfo = "Additional info"
+            extraInfo = "Extra info"
         )
 
         val expectedResponse = CreateTripDto(
+            ownerId = 123,
             groupName = "Test Trip",
             destination = "Tokyo",
             startDate = "2025-06-15",
             endDate = "2025-06-20",
             summary = "Test summary",
-            accommodation = AccommodationDto(
+            accommodation = CreateAccommodationDto(
                 name = "Test Hotel",
                 phone = "123456789",
                 checkIn = "2025-06-15",
                 checkOut = "2025-06-20",
-                location = "Tokyo Downtown",
-                mapUri = ""
+                latitude = 35.6895,
+                longitude = 139.6917,
+                reservationCode = "ACC123",
+                extraInfo = "Hotel extra info"
             ),
             reservationCode = "RES123",
-            extraInfo = "Extra info",
-            additionalInfo = "Additional info"
+            extraInfo = "Extra info"
         )
 
         coEvery { mockApi.createTrip(any()) } returns expectedResponse
@@ -121,13 +128,17 @@ class TravelRepositoryImplTest {
                 checkIn = "2025-06-15",
                 checkOut = "2025-06-20",
                 location = "Tokyo Downtown",
-                mapUri = ""
+                latitude = 35.6895,
+                longitude = 139.6917,
+                mapUri = "",
+                reservationCode = "ACC123",
+                extraInfo = "Hotel extra info"
             ),
             reservationCode = "RES123",
             extraInfo = "Extra info",
-            additionalInfo = "Additional info",
             groupCode = "ITN-12345",
-            ownerId = "user123"
+            ownerId = "user123",
+            additionalInfo = "Additional info"
         )
 
         coEvery { mockApi.getAllTrips() } returns listOf(tripDto)
@@ -164,13 +175,17 @@ class TravelRepositoryImplTest {
                 checkIn = "2025-06-15",
                 checkOut = "2025-06-20",
                 location = "Tokyo Downtown",
-                mapUri = ""
+                latitude = 35.6895,
+                longitude = 139.6917,
+                mapUri = "",
+                reservationCode = "ACC123",
+                extraInfo = "Hotel extra info"
             ),
             reservationCode = "RES123",
             extraInfo = "Extra info",
-            additionalInfo = "Additional info",
             groupCode = groupCode,
-            ownerId = "user123"
+            ownerId = "user123",
+            additionalInfo = "Additional info"
         )
         coEvery { mockApi.getTripById(groupCode) } returns tripDto
         coEvery { mockLocalRepository.cacheTrip(any()) } returns Result.Success(Unit)

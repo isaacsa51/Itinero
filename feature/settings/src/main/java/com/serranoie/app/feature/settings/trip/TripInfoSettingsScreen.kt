@@ -33,13 +33,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.DevicePreview
+import com.serranoie.app.designsystemlib.ui.PreviewWrapper
 import com.serranoie.app.designsystemlib.ui.theme.component.ButtonImportance
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInput
+import com.serranoie.app.designsystemlib.ui.theme.component.DateTimeInputType
 import com.serranoie.app.designsystemlib.ui.theme.component.IButton
 import com.serranoie.app.designsystemlib.ui.theme.component.IOutlineButton
 import com.serranoie.app.designsystemlib.ui.theme.component.ITextField
 import com.serranoie.app.designsystemlib.ui.theme.component.LocationInput
+import com.serranoie.app.designsystemlib.ui.utils.Constants.extraSmallPadding
+import com.serranoie.app.designsystemlib.ui.utils.Utils
 import com.serranoie.itinero.core.domain.model.Accommodation
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.UpdateTrip
@@ -52,20 +56,35 @@ fun TripInfoSettingsScreen(
     trip: Trip?,
     onUpdateTripInfo: (String, UpdateTrip) -> Unit,
 ) {
-
     var groupName by remember { mutableStateOf(trip?.groupName ?: "") }
     var summary by remember { mutableStateOf(trip?.summary ?: "") }
-    var tripStart by remember { mutableStateOf(trip?.startDate ?: "") }
-    var tripEnd by remember { mutableStateOf(trip?.endDate ?: "") }
+    var tripStart by remember { mutableStateOf(Utils.parseDate(trip?.startDate ?: "")) }
+    var tripEnd by remember { mutableStateOf(Utils.parseDate(trip?.endDate ?: "")) }
     var name by remember { mutableStateOf(trip?.accommodation?.name ?: "") }
-    var checkIn by remember { mutableStateOf(trip?.accommodation?.checkIn ?: "") }
-    var checkOut by remember { mutableStateOf(trip?.accommodation?.checkOut ?: "") }
+    var checkIn by remember { mutableStateOf(Utils.parseDate(trip?.accommodation?.checkIn ?: "")) }
+    var checkOut by remember {
+        mutableStateOf(
+            Utils.parseDate(
+                trip?.accommodation?.checkOut ?: ""
+            )
+        )
+    }
     var phoneNumber by remember { mutableStateOf(trip?.accommodation?.phone ?: "") }
-    var reservationCode by remember { mutableStateOf(trip?.reservationCode ?: "") }
-    var accommodationExtras by remember { mutableStateOf(trip?.extraInfo ?: "") }
-    var miscInfo by remember { mutableStateOf(trip?.additionalInfo ?: "") }
-    var location by remember { mutableStateOf(trip?.accommodation?.location ?: "") }
-
+    var reservationCode by remember {
+        mutableStateOf(trip?.accommodation?.reservationCode ?: "")
+    }
+    var accommodationExtras by remember {
+        mutableStateOf(trip?.accommodation?.extraInfo ?: "")
+    }
+    var location by remember {
+        mutableStateOf(trip?.accommodation?.let { accommodation ->
+            when {
+                accommodation.location.isNotBlank() -> accommodation.location
+                accommodation.name.isNotBlank() -> accommodation.name
+                else -> ""
+            }
+        } ?: "")
+    }
     var destination by remember { mutableStateOf(trip?.destination ?: "") }
     var isConfirmDestinationDialogOpen by remember { mutableStateOf(false) }
 
@@ -102,23 +121,32 @@ fun TripInfoSettingsScreen(
                 leadingIcon = Icons.Default.Description
             )
 
-            SectionHeader(title = "TRIP INFORMATION")
 
-            ITextField(
-                value = tripStart,
-                onValueChange = { tripStart = it },
-                label = "Trip start date",
-                placeholder = "Enter trip start date",
-                leadingIcon = Icons.Default.CalendarToday
-            )
+            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                DateTimeInput(
+                    selectedDateTime = tripStart,
+                    onDateTimeSelected = { tripStart = it },
+                    label = "Trip start date: ",
+                    placeholder = trip?.startDate?.takeIf { it.isNotBlank() }
+                        ?: "Select trip start date",
+                    inputType = DateTimeInputType.DATE,
+                    leadingIcon = Icons.Default.CalendarToday,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = extraSmallPadding))
 
-            ITextField(
-                value = tripEnd,
-                onValueChange = { tripEnd = it },
-                label = "Trip end date",
-                placeholder = "Enter trip end date",
-                leadingIcon = Icons.Default.CalendarToday
-            )
+                DateTimeInput(
+                    selectedDateTime = tripEnd,
+                    onDateTimeSelected = { tripEnd = it },
+                    label = "Trip end date: ",
+                    placeholder = trip?.endDate?.takeIf { it.isNotBlank() }
+                        ?: "Select trip end date",
+                    inputType = DateTimeInputType.DATE,
+                    leadingIcon = Icons.Default.CalendarToday,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = extraSmallPadding))
+            }
 
             SectionHeader(title = "ACCOMMODATION DETAILS")
 
@@ -130,21 +158,31 @@ fun TripInfoSettingsScreen(
                 leadingIcon = Icons.Default.Home
             )
 
-            ITextField(
-                value = checkIn,
-                onValueChange = { checkIn = it },
-                label = "Check in date",
-                placeholder = "Enter check-in date and time",
-                leadingIcon = Icons.Default.CalendarToday
-            )
+            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                DateTimeInput(
+                    selectedDateTime = checkIn,
+                    onDateTimeSelected = { checkIn = it },
+                    label = "Check-in: ",
+                    placeholder = trip?.accommodation?.checkIn?.takeIf { it.isNotBlank() }
+                        ?: "Select check-in date and time",
+                    inputType = DateTimeInputType.BOTH,
+                    leadingIcon = Icons.Default.CalendarToday,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = extraSmallPadding))
 
-            ITextField(
-                value = checkOut,
-                onValueChange = { checkOut = it },
-                label = "Check out date",
-                placeholder = "Enter check-out date and time",
-                leadingIcon = Icons.Default.CalendarToday
-            )
+                DateTimeInput(
+                    selectedDateTime = checkOut,
+                    onDateTimeSelected = { checkOut = it },
+                    label = "Check-out: ",
+                    placeholder = trip?.accommodation?.checkOut?.takeIf { it.isNotBlank() }
+                        ?: "Select check-out date and time",
+                    inputType = DateTimeInputType.BOTH,
+                    leadingIcon = Icons.Default.CalendarToday,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = extraSmallPadding))
+            }
 
             ITextField(
                 value = phoneNumber,
@@ -168,8 +206,6 @@ fun TripInfoSettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 onValueChange = { location = it })
 
-            SectionHeader(title = "ADDITIONAL INFORMATION")
-
             ITextField(
                 value = accommodationExtras,
                 onValueChange = { accommodationExtras = it },
@@ -178,25 +214,14 @@ fun TripInfoSettingsScreen(
                 modifier = Modifier.heightIn(min = 100.dp)
             )
 
-            ITextField(
-                value = miscInfo,
-                onValueChange = { miscInfo = it },
-                label = "Miscellaneous information",
-                placeholder = "Enter any other relevant information",
-                modifier = Modifier.heightIn(min = 80.dp)
-            )
-
             Spacer(modifier = Modifier.padding(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                IOutlineButton(
-                    onClick = {
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier.weight(1f),
-                    text = { Text("Cancel") })
+                IOutlineButton(onClick = {
+                    navController.popBackStack()
+                }, modifier = Modifier.weight(1f), text = { Text("Cancel") })
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -206,21 +231,25 @@ fun TripInfoSettingsScreen(
                             name = name,
                             location = location,
                             phone = phoneNumber,
-                            checkIn = checkIn,
-                            checkOut = checkOut,
-                            mapUri = trip?.accommodation?.mapUri
+                            checkIn = Utils.formatDateTimeForStorage(checkIn),
+                            checkOut = Utils.formatDateTimeForStorage(checkOut),
+                            mapUri = trip?.accommodation?.mapUri,
+                            latitude = trip?.accommodation?.latitude,
+                            longitude = trip?.accommodation?.longitude,
+                            reservationCode = reservationCode,
+                            extraInfo = accommodationExtras
                         )
 
                         val updateTrip = UpdateTrip(
                             groupName = groupName,
                             destination = destination,
-                            startDate = tripStart,
-                            endDate = tripEnd,
+                            startDate = Utils.formatDateForStorage(tripStart),
+                            endDate = Utils.formatDateForStorage(tripEnd),
                             summary = summary,
                             accommodation = accommodation,
                             reservationCode = reservationCode,
                             extraInfo = accommodationExtras,
-                            additionalInfo = miscInfo
+                            additionalInfo = ""
                         )
 
                         Log.d("ITINERO", "Trip info: $updateTrip")
@@ -243,8 +272,8 @@ fun TripInfoSettingsScreen(
             text = { Text("Are you sure you want to change the destination to $destination?") },
             confirmButton = {
                 TextButton(onClick = {
-                    isConfirmDestinationDialogOpen = false
-                    /* TODO: Save all data including new destination */
+                    isConfirmDestinationDialogOpen =
+                        false/* TODO: Save all data including new destination */
                 }) {
                     Text("Confirm")
                 }
@@ -277,9 +306,7 @@ private fun TripInfoSettingsScreenPreview() {
     val routeTripId = "ITN-12349"
     PreviewWrapper {
         TripInfoSettingsScreen(
-            navController = rememberNavController(),
-            tripId = routeTripId,
-            trip = Trip(
+            navController = rememberNavController(), tripId = routeTripId, trip = Trip(
                 id = "12345",
                 groupName = "My Group",
                 destination = "My Trip",
@@ -293,15 +320,17 @@ private fun TripInfoSettingsScreenPreview() {
                     phone = "+1 1234567890",
                     checkIn = "15:00",
                     checkOut = "11:00",
-                    mapUri = null
+                    mapUri = null,
+                    latitude = 40.7128,
+                    longitude = -74.0060,
+                    reservationCode = "PREVIEW-RES123",
+                    extraInfo = "Preview extras info"
                 ),
                 reservationCode = "RES123",
                 extraInfo = "",
                 additionalInfo = "",
                 groupCode = "ITN-12345",
                 ownerId = "user123"
-            ),
-            onUpdateTripInfo = { _, _ -> }
-        )
+            ), onUpdateTripInfo = { _, _ -> })
     }
 }

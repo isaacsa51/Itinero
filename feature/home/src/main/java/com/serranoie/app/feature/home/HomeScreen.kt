@@ -774,30 +774,26 @@ fun TripDetailsContent(
             showDivider = true
         ) {
             if (showMap) {
-                val (locationLatLng, locationError) = remember(trip.accommodation.location) {
-                    try {
-                        val locParts = trip.accommodation.location.split(",")
-                        if (locParts.size == 2) LatLng(
-                            locParts[0].trim().toDouble(), locParts[1].trim().toDouble()
-                        ) to null
-                        else null to "Location format must be 'lat,lng'"
-                    } catch (e: Exception) {
-                        null to "Invalid location: ${e.localizedMessage}"
+                // Use latitude and longitude directly from trip accommodation
+                val accommodationLatLng =
+                    remember(trip.accommodation.latitude, trip.accommodation.longitude) {
+                        val lat = trip.accommodation.latitude
+                        val lng = trip.accommodation.longitude
+                        if (lat != null && lng != null) {
+                            LatLng(lat, lng)
+                        } else {
+                            null
                     }
                 }
 
-                if (locationError != null) {
-                    Text(
-                        text = locationError, color = MaterialTheme.colorScheme.error
-                    )
-                }
                 GoogleMapView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp),
-                    markerLocation = locationLatLng,
+                    markerLocation = accommodationLatLng,
                     markerTitle = trip.accommodation.name,
-                    onMapLoaded = { isMapLoaded = true })
+                    onMapLoaded = { isMapLoaded = true }
+                )
             } else {
                 Box(
                     modifier = Modifier
@@ -815,16 +811,11 @@ fun TripDetailsContent(
             Spacer(modifier = Modifier.height(smallPadding))
 
             Text(
-                text = "Address".uppercase(Locale.getDefault()),
-                style = MaterialTheme.typography.labelSmallEmphasized,
+                text = "Tap to open location into Maps.",
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
 
-            Text(
-                text = trip.accommodation.location,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground
-            )
         }
 
         Spacer(modifier = Modifier.height(Constants.basePadding))
@@ -1046,7 +1037,7 @@ fun TravelInfoCard(navController: NavController, tripInfo: Trip) {
         }
 
         SelectField(
-            value = tripInfo.reservationCode,
+            value = tripInfo.accommodation.reservationCode ?: "Error",
             onSelect = { },
             label = "Reservation Code",
             leadingIcon = null,
@@ -1469,8 +1460,12 @@ fun HomeScreenPreview() {
             phone = "1231231",
             checkIn = "2025/10/06",
             checkOut = "2025/11/06",
-            location = "Germany",
-            mapUri = "test"
+            location = "Berlin, Germany",
+            mapUri = "test",
+            latitude = 52.5200,
+            longitude = 13.4050,
+            reservationCode = "MOCK-RES123",
+            extraInfo = "Mock extras"
         )
         val tripInfo = Trip(
             id = "ITN-51712",
@@ -1510,8 +1505,12 @@ fun HomeScreenPreviewLoading() {
             phone = "1231231",
             checkIn = "2025/10/06",
             checkOut = "2025/11/06",
-            location = "Germany",
-            mapUri = "test"
+            location = "Berlin, Germany",
+            mapUri = "test",
+            latitude = 52.5200,
+            longitude = 13.4050,
+            reservationCode = "REV14123",
+            extraInfo = "Not provided"
         )
         Trip(
             id = "ITN-51712",

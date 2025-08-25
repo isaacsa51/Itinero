@@ -146,7 +146,8 @@ fun LocationInput(
                     MarqueeText(
                         text = value,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        gradientEdgeColor = MaterialTheme.colorScheme.surface,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
@@ -160,7 +161,7 @@ fun LocationInput(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit Location",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(iconSize)
                         )
                     }

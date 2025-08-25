@@ -4,13 +4,25 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CreateTripDto(
-    val groupName: String,
+    val ownerId: Int,
     val destination: String,
     val startDate: String,
     val endDate: String,
     val summary: String,
-    val accommodation: AccommodationDto,
-    val reservationCode: String,
-    val extraInfo: String,
-    val additionalInfo: String
+    val accommodation: CreateAccommodationDto,
+    val groupName: String,
+    val reservationCode: String? = null,
+    val extraInfo: String? = null
+)
+
+@Serializable
+data class CreateAccommodationDto(
+    val name: String,
+    val phone: String,
+    val checkIn: String,
+    val checkOut: String,
+    val latitude: Double?,
+    val longitude: Double?,
+    val reservationCode: String? = null,
+    val extraInfo: String? = null
 )

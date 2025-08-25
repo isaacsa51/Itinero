@@ -42,6 +42,7 @@ class WelcomeNavigationGraph : NavigationGraph {
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
                 val createUiState by sharedViewModel.createUiState.collectAsState()
                 val autocompleteResults by sharedViewModel.locationAutofill.collectAsState()
+                val selectedPlaceDetails by sharedViewModel.selectedPlaceDetails.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
                 LaunchedEffect(createUiState) {
@@ -65,22 +66,22 @@ class WelcomeNavigationGraph : NavigationGraph {
 
                 CreateTravelScreen(
                     uiState = createUiState,
-                    onTravelCreated = { groupName, destination, startDate, endDate, summary, accommodationName, accommodationPhone, accommodationCheckIn, accommodationCheckOut, accommodationLocation, accommodationMapUri, reservationCode, extraInfo, additionalInfo ->
+                    onTravelCreated = { groupName, destination, startDate, endDate, summary, accommodationName, accommodationPhone, accommodationCheckIn, accommodationCheckOut, accommodationLocation, accommodationMapUri, reservationCode, extraInfo, additionalInfo, accommodationExtraInfo ->
+                        val coordinates = sharedViewModel.getSelectedLocationCoordinates()
                         sharedViewModel.createTravel(
-                            groupName,
-                            destination,
-                            startDate,
-                            endDate,
-                            summary,
-                            accommodationName,
-                            accommodationPhone,
-                            accommodationCheckIn,
-                            accommodationCheckOut,
-                            accommodationLocation,
-                            accommodationMapUri,
-                            reservationCode,
-                            extraInfo,
-                            additionalInfo
+                            groupName = groupName,
+                            destination = destination,
+                            startDate = startDate,
+                            endDate = endDate,
+                            summary = summary,
+                            accommodationName = accommodationName,
+                            accommodationPhone = accommodationPhone,
+                            accommodationCheckIn = accommodationCheckIn,
+                            accommodationCheckOut = accommodationCheckOut,
+                            accommodationReservationCode = reservationCode, // Use reservationCode for accommodation
+                            accommodationExtraInfo = accommodationExtraInfo, // Use the new accommodationExtraInfo field
+                            reservationCode = reservationCode, // Trip-level reservation code
+                            extraInfo = extraInfo // Use extraInfo for trip-level extra info
                         )
                     },
                     onNavigateBack = {
@@ -89,10 +90,20 @@ class WelcomeNavigationGraph : NavigationGraph {
                     onAccommodationLocationQueryChanged = { query ->
                         sharedViewModel.searchPlaces(query)
                     },
+                    onAccommodationNameQueryChanged = { query ->
+                        // Use the same search functionality as location
+                        sharedViewModel.searchPlaces(query)
+                    },
                     autocompleteResults = autocompleteResults,
+                    accommodationNameAutocompleteResults = autocompleteResults, // Use the same results as location
                     onAutocompleteResultClick = { selectedResult ->
                         sharedViewModel.applyAutocompleteSelection(selectedResult)
-                    }
+                    },
+                    onAccommodationNameAutocompleteResultClick = { selectedResult ->
+                        // Use the same apply function as location
+                        sharedViewModel.applyAutocompleteSelection(selectedResult)
+                    },
+                    selectedPlaceDetails = selectedPlaceDetails
                 )
             }
 
@@ -100,14 +111,11 @@ class WelcomeNavigationGraph : NavigationGraph {
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
                 val travelListViewModel = koinViewModel<TravelListViewModel>()
                 val joinUiState by sharedViewModel.joinUiState.collectAsState()
-                val snackbarHostState = remember { SnackbarHostState() } // Warning: This is unused if JoinTripScreen handles its own snackbars or doesn't show them.
+                val snackbarHostState = remember { SnackbarHostState() }
 
                 LaunchedEffect(joinUiState) {
                     when (val currentState = joinUiState) {
                         is TravelUiState.Success<*> -> {
-                            Log.d("ITINERO - WelcomeNav", "Success travel join, $currentState") // Changed Log.e to Log.d for success
-
-                            // Refresh the travel list data first
                             travelListViewModel.getAllTravels()
 
                             navController.navigate(Route.TravelList.route) {
@@ -153,7 +161,6 @@ class WelcomeNavigationGraph : NavigationGraph {
                 val travels by travelListViewModel.travels.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
-                // Handle navigation based on state and trips
                 LaunchedEffect(uiState, travels) {
                     when (val currentState = uiState) {
                         is TravelUiState.Success<*> -> {
@@ -169,7 +176,6 @@ class WelcomeNavigationGraph : NavigationGraph {
                         is TravelUiState.Error -> {
                             Log.e("ITINERO - WelcomeNav", "Error loading trips: ${currentState.message}")
 
-                            // Check if the error is authentication-related
                             if (currentState.message.contains(
                                     "Please log in again",
                                     ignoreCase = true
@@ -193,7 +199,6 @@ class WelcomeNavigationGraph : NavigationGraph {
                                     popUpTo(0) { inclusive = true }
                                 }
                             } else {
-                                // For other errors, navigate to welcome screen
                                 navController.navigate(Route.Welcome.route) {
                                     popUpTo(Route.TravelList.route) { inclusive = true }
                                     launchSingleTop = true

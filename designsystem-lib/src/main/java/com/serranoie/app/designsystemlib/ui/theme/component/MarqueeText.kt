@@ -141,14 +141,12 @@ fun MarqueeText(
 
         var secondPlaceableWithOffset: Pair<Placeable, Int>? = null
         if (mainText.width <= constraints.maxWidth) {
-            // Text fits within container - use regular Text behavior
             mainText = subcompose(MarqueeLayers.SecondaryText) {
                 createText(Modifier.fillMaxWidth())
             }.first().measure(constraints)
             textLayoutInfoState.value = null
             shouldUseMarquee = false
         } else {
-            // Text overflows - use marquee behavior
             val spacing = constraints.maxWidth * 2 / 3
             textLayoutInfoState.value = TextLayoutInfo(
                 textWidth = mainText.width + spacing,
@@ -164,7 +162,7 @@ fun MarqueeText(
             gradient = subcompose(MarqueeLayers.EdgesGradient) {
                 Box(
                     modifier = Modifier
-                        .width(10.dp)
+                        .width(5.dp)
                         .fillMaxHeight()
                         .background(
                             brush = Brush.horizontalGradient(
@@ -188,7 +186,6 @@ fun MarqueeText(
             secondPlaceableWithOffset?.let {
                 it.first.place(it.second, 0)
             }
-            // Only place gradient when marquee is actually needed
             if (shouldUseMarquee) {
                 gradient?.place(constraints.maxWidth - (gradient.width), 0)
             }
