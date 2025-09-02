@@ -7,6 +7,7 @@ plugins {
 
     id("kotlin-kapt")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 // Function to get current Git branch
@@ -271,6 +272,20 @@ dependencies {
     // ML Kit and QR generator
     implementation(libs.barcode.scanning)
     implementation(libs.core)
+
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+
+    // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
+    implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
+
+    // Firebase Cloud Messaging
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-installations:19.0.0")
 }
 
 kapt {

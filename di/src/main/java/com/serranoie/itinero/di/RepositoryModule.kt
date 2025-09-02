@@ -13,15 +13,22 @@ import com.serranoie.itinero.core.data.remote.resources.ItineroApiImpl
 import com.serranoie.itinero.core.data.remote.resources.UnauthorizedHandler
 import com.serranoie.itinero.core.data.remote.repository.AuthRepositoryImpl
 import com.serranoie.itinero.core.data.remote.repository.TravelRepositoryImpl
+import com.serranoie.itinero.core.data.remote.repository.UserPreferencesRepositoryImpl
 import com.serranoie.itinero.core.domain.repository.AuthPreferencesRepository
 import com.serranoie.itinero.core.domain.repository.AuthRepository
 import com.serranoie.itinero.core.domain.repository.TravelRepository
+import com.serranoie.itinero.core.domain.repository.UserPreferencesRepository
+import com.serranoie.itinero.core.domain.usecase.GetUserLanguagePreferenceUseCase
 import com.serranoie.itinero.core.domain.usecase.LogoutObserverUseCase
+import com.serranoie.itinero.core.domain.usecase.UpdateLanguagePreferenceUseCase
 import com.serranoie.app.feature.chat.data.remote.api.ChatApiService
 import com.serranoie.app.feature.chat.data.remote.websocket.ChatWebSocketService
 import com.serranoie.app.feature.chat.data.repository.ChatRepositoryImpl
 import com.serranoie.app.feature.chat.domain.repository.ChatRepository
+import com.serranoie.itinero.core.domain.usecase.InitializeLanguagePreferenceUseCase
 import com.serranoie.app.feature.chat.data.BuildConfig as ChatBuildConfig
+import com.serranoie.itinero.core.domain.manager.LanguageRefreshManager
+import com.serranoie.itinero.core.domain.usecase.CheckAndUpdateLanguageOnAppEntryUseCase
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -81,4 +88,19 @@ val repositoryModule = module {
             webSocketService = get()
         )
     }
+
+    // User preferences
+    single { LanguageRefreshManager() }
+    single<UserPreferencesRepository> {
+        UserPreferencesRepositoryImpl(
+            api = get(),
+            authPreferencesRepository = get(),
+            languageRefreshManager = get()
+        )
+    }
+
+    single { GetUserLanguagePreferenceUseCase(get()) }
+    single { UpdateLanguagePreferenceUseCase(get()) }
+    single { InitializeLanguagePreferenceUseCase(get(), get()) }
+    single { CheckAndUpdateLanguageOnAppEntryUseCase(get(), get()) }
 }

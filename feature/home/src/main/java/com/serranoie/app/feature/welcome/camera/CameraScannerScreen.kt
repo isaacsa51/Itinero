@@ -6,6 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.view.MotionEvent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -134,6 +135,7 @@ fun CameraScannerScreen(
     var tapCoordinates by remember { mutableStateOf<Offset?>(null) }
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var didLaunchIntent by remember { mutableStateOf(false) }
 
     // Handle focus indicator visibility timeout
     LaunchedEffect(tapCoordinates) {
@@ -143,7 +145,29 @@ fun CameraScannerScreen(
         }
     }
 
-    // Show bottom sheet when QR code is detected
+    // Auto-trigger deep link intent when a QR code is scanned
+    LaunchedEffect(scannedCode) {
+        val code = scannedCode
+        if (code != null && !didLaunchIntent) {
+            didLaunchIntent = true
+            try {
+                val uri = buildDeepLinkUri(code)
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                context.startActivity(intent)
+                if (uri.scheme == "itinero" && uri.host == "join") {
+                    Toast.makeText(
+                        context,
+                        "You're pending to join the group.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                showSheet = true
+                didLaunchIntent = false
+            }
+        }
+    }
+
     if (showSheet && scannedCode != null) {
         QrCodeBottomSheet(
             scannedCode = scannedCode.orEmpty(),
@@ -151,6 +175,7 @@ fun CameraScannerScreen(
             onDismiss = {
                 showSheet = false
                 viewModel.clearScannedCode()
+                didLaunchIntent = false
             },
             onCopy = {
                 clipboardManager.setPrimaryClip(ClipData.newPlainText("QR Code", scannedCode))
@@ -192,9 +217,9 @@ fun CameraScannerScreen(
         ) {
             CameraPreview(
                 onQrCodeScanned = { code ->
-                    if (!showSheet) {
+                    if (!didLaunchIntent) {
                         viewModel.onQrCodeScanned(code)
-                        showSheet = true
+                        // Attempt intent via LaunchedEffect; sheet only as fallback
                     }
                 },
                 onFocusTap = { coordinates ->
@@ -209,6 +234,16 @@ fun CameraScannerScreen(
                 showIndicator = tapCoordinates != null
             )
         }
+    }
+}
+
+private fun buildDeepLinkUri(raw: String): Uri {
+    return try {
+        val parsed = Uri.parse(raw)
+        if (!parsed.scheme.isNullOrBlank()) parsed
+        else Uri.parse("itinero://join?code=$raw")
+    } catch (e: Exception) {
+        Uri.parse("itinero://join?code=$raw")
     }
 }
 

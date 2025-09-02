@@ -41,26 +41,22 @@ import kotlinx.coroutines.delay
 fun NetworkStatusBar(
     isConnected: Boolean
 ) {
-    // State to control the visibility of the status bar.
     var visibility by remember { mutableStateOf(false) }
 
-    // Animates the visibility of the status bar with vertical expansion and shrink effects.
     AnimatedVisibility(
-        visible = visibility, // Controls whether the status bar is visible.
-        enter = expandVertically(), // Animation for appearing: expands vertically.
-        exit = shrinkVertically()   // Animation for disappearing: shrinks vertically.
+        visible = visibility,
+        enter = expandVertically(),
+        exit = shrinkVertically()
     ) {
-        // Display the status bar with the appropriate connectivity message and color.
         NetworkStatusBox(isConnected = isConnected)
     }
 
-    // React to changes in connectivity state.
     LaunchedEffect(isConnected) {
         if (!isConnected) {
-            visibility = true // Show the status bar when disconnected.
+            visibility = true
         } else {
-            delay(2000) // Delay hiding the status bar for 2 seconds after reconnecting.
-            visibility = false // Hide the status bar after the delay.
+            delay(2000)
+            visibility = false
         }
     }
 }
@@ -73,14 +69,12 @@ fun NetworkStatusBar(
  */
 @Composable
 private fun NetworkStatusBox(isConnected: Boolean) {
-    // Animate the background color change based on the connectivity state.
     val backgroundColor by animateColorAsState(
         if (isConnected) {
             MaterialTheme.colorScheme.tertiary
         } else MaterialTheme.colorScheme.error, label = ""
     )
 
-    // Simple hardcoded strings - in production you'd use string resources
     val message = if (isConnected) {
         "Back online"
     } else {
@@ -88,33 +82,29 @@ private fun NetworkStatusBox(isConnected: Boolean) {
     }
 
     val iconResource = if (isConnected) {
-        Icons.Default.Wifi // Icon for "connected" status.
+        Icons.Default.Wifi
     } else {
-        Icons.Default.WifiOff // Icon for "disconnected" status.
+        Icons.Default.WifiOff
     }
 
-    // A box to display the connectivity message and icon.
     Box(
         modifier = Modifier
-            .background(backgroundColor) // Background color changes based on connection state.
-            .fillMaxWidth() // Make the box span the entire width.
+            .background(backgroundColor)
+            .fillMaxWidth()
             .wrapContentHeight()
-            .padding(8.dp), // Padding around the content.
-        contentAlignment = Alignment.Center // Center the content inside the box.
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        // Row to display an icon and a message horizontally.
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Icon representing the current connectivity state.
             Icon(
-                imageVector = iconResource, // Resource ID for the icon.
-                contentDescription = "", // Content description for accessibility.
-                tint = MaterialTheme.colorScheme.surface // Icon color.
+                imageVector = iconResource,
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.surface
             )
-            Spacer(modifier = Modifier.size(8.dp)) // Spacer between the icon and the text.
-            // Text displaying the connectivity message.
+            Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = message, color = MaterialTheme.colorScheme.surface, // Text color.
-                fontSize = 15.sp // Font size.
+                text = message, color = MaterialTheme.colorScheme.surface,
+                fontSize = 15.sp
             )
         }
     }

@@ -3,10 +3,8 @@ package com.serranoie.itinero.core.data.remote.repository
 import android.util.Log
 import com.serranoie.itinero.core.data.local.repository.LocalTravelRepository
 import com.serranoie.itinero.core.data.mappers.toDomain
-import com.serranoie.itinero.core.data.mappers.toDto
 import com.serranoie.itinero.core.data.mappers.toCreateDto
-import com.serranoie.itinero.core.data.remote.dto.CreateAccommodationDto
-import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
+import com.serranoie.itinero.core.data.remote.dto.trip.CreateTripDto
 import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.domain.model.CreateTrip
 import com.serranoie.itinero.core.domain.model.MembershipStatus

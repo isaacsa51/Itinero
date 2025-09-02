@@ -53,6 +53,7 @@ import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -140,7 +141,7 @@ fun CreateTravelScreen(
     }
 
     val pages = listOf("Basic", "Accommodation", "Additional")
-    var currentPage by remember { mutableStateOf(0) }
+    var currentPage by remember { mutableIntStateOf(0) }
 
     val dateRangePickerState = rememberDateRangePickerState()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

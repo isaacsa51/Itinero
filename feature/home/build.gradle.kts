@@ -119,6 +119,8 @@ dependencies {
 
     // Place SDK
     implementation("com.google.android.libraries.places:places:4.4.1")
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json)
 }
 
 kapt {

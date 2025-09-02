@@ -1,4 +1,4 @@
-package com.serranoie.itinero.core.data.remote.dto
+package com.serranoie.itinero.core.data.remote.dto.auth
 
 import kotlinx.serialization.Serializable
 

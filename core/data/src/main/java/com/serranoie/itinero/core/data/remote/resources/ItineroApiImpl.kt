@@ -12,16 +12,19 @@
 package com.serranoie.itinero.core.data.remote.resources
 
 import com.serranoie.itinero.core.data.mappers.toDto
-import com.serranoie.itinero.core.data.remote.dto.AuthResponse
-import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
-import com.serranoie.itinero.core.data.remote.dto.DeleteAccountRequestDto
-import com.serranoie.itinero.core.data.remote.dto.LoginRequestDto
-import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
-import com.serranoie.itinero.core.data.remote.dto.RegisterRequestDto
-import com.serranoie.itinero.core.data.remote.dto.TripDto
-import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
-import com.serranoie.itinero.core.data.remote.dto.TripOverviewDto
-import com.serranoie.itinero.core.data.remote.dto.UpdateTripDto
+import com.serranoie.itinero.core.data.remote.dto.auth.AuthResponse
+import com.serranoie.itinero.core.data.remote.dto.auth.DeleteAccountRequestDto
+import com.serranoie.itinero.core.data.remote.dto.auth.LoginRequestDto
+import com.serranoie.itinero.core.data.remote.dto.auth.RegisterRequestDto
+import com.serranoie.itinero.core.data.remote.dto.auth.UpdateLanguageRequest
+import com.serranoie.itinero.core.data.remote.dto.auth.UpdateLanguageResponse
+import com.serranoie.itinero.core.data.remote.dto.auth.UserPreferencesResponse
+import com.serranoie.itinero.core.data.remote.dto.trip.CreateTripDto
+import com.serranoie.itinero.core.data.remote.dto.trip.MembershipStatusDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripMemberDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripOverviewDto
+import com.serranoie.itinero.core.data.remote.dto.trip.UpdateTripDto
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 import io.ktor.client.HttpClient
 
@@ -46,6 +49,14 @@ class ItineroApiImpl(
     override suspend fun forgotPasswordUser(email: String) {
         val body = mapOf("email" to email)
         post<Unit, Map<String, String>>("/auth/forgot-password", body)
+    }
+
+    override suspend fun getUserPreferences(): UserPreferencesResponse {
+        return get("/user/preferences")
+    }
+
+    override suspend fun updateLanguagePreference(request: UpdateLanguageRequest): UpdateLanguageResponse {
+        return patch("/user/preferences/language", request)
     }
 
     override suspend fun getTripById(id: String): TripDto {

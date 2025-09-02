@@ -11,12 +11,15 @@
 
 package com.serranoie.itinero.core.data.remote.resources
 
-import com.serranoie.itinero.core.data.remote.dto.AuthResponse
-import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
-import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
-import com.serranoie.itinero.core.data.remote.dto.TripDto
-import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
-import com.serranoie.itinero.core.data.remote.dto.TripOverviewDto
+import com.serranoie.itinero.core.data.remote.dto.auth.AuthResponse
+import com.serranoie.itinero.core.data.remote.dto.auth.UpdateLanguageRequest
+import com.serranoie.itinero.core.data.remote.dto.auth.UpdateLanguageResponse
+import com.serranoie.itinero.core.data.remote.dto.auth.UserPreferencesResponse
+import com.serranoie.itinero.core.data.remote.dto.trip.CreateTripDto
+import com.serranoie.itinero.core.data.remote.dto.trip.MembershipStatusDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripMemberDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripOverviewDto
 import com.serranoie.itinero.core.domain.model.UpdateTrip
 
 interface ItineroApi {
@@ -31,6 +34,10 @@ interface ItineroApi {
     suspend fun logoutUser()
     suspend fun deleteAccount(password: String)
     suspend fun forgotPasswordUser(email: String)
+
+    // User preferences
+    suspend fun getUserPreferences(): UserPreferencesResponse
+    suspend fun updateLanguagePreference(request: UpdateLanguageRequest): UpdateLanguageResponse
 
     suspend fun getAllTrips(): List<TripDto>
     suspend fun getTripById(id: String): TripDto

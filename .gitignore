@@ -215,4 +215,7 @@ fabric.properties
 
 !/gradle/wrapper/gradle-wrapper.jar
 
+## HTTP Request file
+itinero-request.http
+
 # End of https://www.toptal.com/developers/gitignore/api/android,androidstudio,gradle,kotlin

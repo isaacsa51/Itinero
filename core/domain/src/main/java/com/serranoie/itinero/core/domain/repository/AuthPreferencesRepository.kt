@@ -25,6 +25,11 @@ interface AuthPreferencesRepository {
     fun getUserPhone(): String?
     fun clearUserInfo()
 
+    // Language preferences
+    fun saveLanguagePreference(languageCode: String)
+    fun getLanguagePreference(): String?
+    fun clearLanguagePreference()
+
     // Convenience methods for user profile
     fun getUserProfile(): UserProfile?
     fun setUserProfile(profile: UserProfile)

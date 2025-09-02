@@ -9,7 +9,7 @@
  - Last edited: 30 julio 2025
  */
 
-package com.serranoie.itinero.core.data.remote.dto
+package com.serranoie.itinero.core.data.remote.dto.trip
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

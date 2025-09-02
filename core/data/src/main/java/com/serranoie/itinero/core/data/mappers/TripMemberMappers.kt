@@ -11,8 +11,8 @@
 
 package com.serranoie.itinero.core.data.mappers
 
-import com.serranoie.itinero.core.data.remote.dto.MembershipStatusDto
-import com.serranoie.itinero.core.data.remote.dto.TripMemberDto
+import com.serranoie.itinero.core.data.remote.dto.trip.MembershipStatusDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripMemberDto
 import com.serranoie.itinero.core.domain.model.MemberStatus
 import com.serranoie.itinero.core.domain.model.MembershipStatus
 import com.serranoie.itinero.core.domain.model.TripMember

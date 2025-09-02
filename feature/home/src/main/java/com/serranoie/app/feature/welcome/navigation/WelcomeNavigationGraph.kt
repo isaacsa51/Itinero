@@ -22,6 +22,8 @@ import com.serranoie.app.feature.welcome.TravelListScreen
 import com.serranoie.app.feature.welcome.WelcomeScreen
 import com.serranoie.app.feature.welcome.camera.CameraScannerScreen
 import org.koin.androidx.compose.koinViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 class WelcomeNavigationGraph : NavigationGraph {
     @SuppressLint("UnrememberedGetBackStackEntry")
@@ -107,11 +109,21 @@ class WelcomeNavigationGraph : NavigationGraph {
                 )
             }
 
-            composable(route = Route.JoinTrip.route) {
+            composable(
+                route = "${Route.JoinTrip.route}?code={code}",
+                arguments = listOf(
+                    navArgument("code") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
                 val sharedViewModel = koinViewModel<SharedTravelViewModel>()
                 val travelListViewModel = koinViewModel<TravelListViewModel>()
                 val joinUiState by sharedViewModel.joinUiState.collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
+                val codeArg = backStackEntry.arguments?.getString("code")
 
                 LaunchedEffect(joinUiState) {
                     when (val currentState = joinUiState) {
@@ -132,6 +144,12 @@ class WelcomeNavigationGraph : NavigationGraph {
                         }
 
                         else -> Unit
+                    }
+                }
+
+                LaunchedEffect(codeArg) {
+                    codeArg?.let { nonNullCode ->
+                        sharedViewModel.joinTravel(nonNullCode)
                     }
                 }
 

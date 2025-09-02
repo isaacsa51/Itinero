@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.serranoie.itinero.core.domain.model.Trip
 import com.serranoie.itinero.core.domain.model.TripOverview
 import com.serranoie.itinero.core.domain.model.UpdateTrip
+import com.serranoie.itinero.core.domain.repository.NotificationRepository
 import com.serranoie.itinero.core.domain.result.Result
 import com.serranoie.itinero.core.domain.usecase.TravelUseCase
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +42,8 @@ sealed interface OverviewUiState {
 
 class HomeViewModel(
     private val travelUseCase: TravelUseCase,
-    private val groupCode: String
+    private val groupCode: String,
+    private val notificationRepository: NotificationRepository? = null
 ): ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Idle)
@@ -53,10 +55,6 @@ class HomeViewModel(
     private val _trip = MutableStateFlow<Trip?>(null)
     val trip: StateFlow<Trip?> = _trip.asStateFlow()
 
-    /**
-     * Gets current travel data with caching strategy
-     * @param forceRefresh If true, bypasses cache and fetches fresh data
-     */
     fun getCurrentTravel(groupCode: String, forceRefresh: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = HomeUiState.Loading
@@ -74,16 +72,11 @@ class HomeViewModel(
         }
     }
 
-    /**
-     * Convenience method that uses the group code from constructor
-     */
     fun getCurrentTravel() {
         getCurrentTravel(groupCode, forceRefresh = false)
     }
 
-    /**
-     * Refreshes trip data by forcing a remote fetch
-     */
+
     fun refreshTrip() {
         getCurrentTravel(groupCode, forceRefresh = true)
     }
@@ -93,7 +86,6 @@ class HomeViewModel(
             _uiState.value = HomeUiState.Loading
             when (val result = travelUseCase.updateTripInfo(groupCode, request)) {
                 is Result.Success -> {
-                    Log.d("HomeViewModel", "updateTripInfo: Success")
                     _trip.value = result.data
                     _uiState.value = HomeUiState.Success(result.data)
                 }
@@ -120,9 +112,6 @@ class HomeViewModel(
         }
     }
 
-    /**
-     * Checks if user has other trips available for navigation after deletion
-     */
     fun getAllTravels(callback: (Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             when (val result = travelUseCase.getAllTravels()) {
@@ -132,7 +121,6 @@ class HomeViewModel(
                 }
 
                 is Result.Error -> {
-                    // If we can't fetch trips, assume no other trips available
                     callback(false)
                 }
             }

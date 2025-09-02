@@ -1,10 +1,10 @@
 package com.serranoie.itinero.core.data.repository
 
 import com.serranoie.itinero.core.data.local.repository.LocalTravelRepository
-import com.serranoie.itinero.core.data.remote.dto.AccommodationDto
-import com.serranoie.itinero.core.data.remote.dto.CreateAccommodationDto
-import com.serranoie.itinero.core.data.remote.dto.CreateTripDto
-import com.serranoie.itinero.core.data.remote.dto.TripDto
+import com.serranoie.itinero.core.data.remote.dto.trip.AccommodationDto
+import com.serranoie.itinero.core.data.remote.dto.trip.CreateAccommodationDto
+import com.serranoie.itinero.core.data.remote.dto.trip.CreateTripDto
+import com.serranoie.itinero.core.data.remote.dto.trip.TripDto
 import com.serranoie.itinero.core.data.remote.repository.TravelRepositoryImpl
 import com.serranoie.itinero.core.data.remote.resources.ItineroApi
 import com.serranoie.itinero.core.domain.model.Accommodation

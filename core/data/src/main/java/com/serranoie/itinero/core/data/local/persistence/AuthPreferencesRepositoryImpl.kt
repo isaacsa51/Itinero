@@ -97,7 +97,18 @@ class AuthPreferencesRepositoryImpl(context: Context) : AuthPreferencesRepositor
             remove("user_last_name")
             remove("user_email")
             remove("user_phone")
+            remove("language_preference")
         }
+    }
+
+    override fun saveLanguagePreference(languageCode: String) {
+        prefs.edit { putString("language_preference", languageCode) }
+    }
+
+    override fun getLanguagePreference(): String? = prefs.getString("language_preference", null)
+
+    override fun clearLanguagePreference() {
+        prefs.edit { remove("language_preference") }
     }
 
     override fun setUserProfile(profile: UserProfile) {

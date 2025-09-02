@@ -21,15 +21,9 @@ import kotlinx.coroutines.flow.callbackFlow
 class NetworkObserver(
     context: Context
 ) {
-    // ConnectivityManager is used to check and monitor the device's network state.
     private var connectivityManager: ConnectivityManager? =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    /**
-     * A [Flow] that emits a boolean value `true` when the device is connected to the internet
-     * and `false` when it loses connection. This provides a reactive approach to
-     * handling network connectivity changes.
-     */
     val isConnectedFlow: Flow<Boolean>
         get() = callbackFlow {
             val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -45,17 +39,14 @@ class NetworkObserver(
                     }
                 }
 
-                // Called when a network is lost.
                 override fun onLost(network: Network) {
                     trySend(false)
                 }
 
-                // Called when no networks are available or a request fails.
                 override fun onUnavailable() {
                     trySend(false)
                 }
 
-                // Called when network capabilities change, such as validation status.
                 override fun onCapabilitiesChanged(
                     network: Network, capabilities: NetworkCapabilities
                 ) {
@@ -68,20 +59,14 @@ class NetworkObserver(
                 }
             }
 
-            // Create a NetworkRequest specifying the types of networks and capabilities we are interested in.
-            val networkRequest = NetworkRequest.Builder()
-                .addCapability(NET_CAPABILITY_INTERNET)
+            val networkRequest = NetworkRequest.Builder().addCapability(NET_CAPABILITY_INTERNET)
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
-                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                .build()
+                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR).build()
 
-            // Register the NetworkCallback with the ConnectivityManager to start listening for changes.
             connectivityManager?.registerNetworkCallback(networkRequest, networkCallback)
 
-            // Ensure resources are cleaned up when the flow collector is no longer active.
             awaitClose {
-                // Unregister the NetworkCallback to prevent memory leaks.
                 connectivityManager?.unregisterNetworkCallback(networkCallback)
             }
         }

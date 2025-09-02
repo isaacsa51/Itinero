@@ -774,7 +774,6 @@ fun TripDetailsContent(
             showDivider = true
         ) {
             if (showMap) {
-                // Use latitude and longitude directly from trip accommodation
                 val accommodationLatLng =
                     remember(trip.accommodation.latitude, trip.accommodation.longitude) {
                         val lat = trip.accommodation.latitude

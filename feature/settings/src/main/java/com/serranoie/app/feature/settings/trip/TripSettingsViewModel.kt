@@ -65,10 +65,11 @@ class TripSettingsViewModel(
 
     companion object {
         private const val TAG = "TripSettingsViewModel"
+        private const val DEEP_LINK_URL_PREFIX = "itinero://join?code="
     }
 
     fun setQrText(groupCode: String) {
-        _qrText.value = groupCode
+        _qrText.value = "$DEEP_LINK_URL_PREFIX$groupCode"
     }
 
     fun generateQrCode() {
